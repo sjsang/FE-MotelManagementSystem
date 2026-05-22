@@ -1,43 +1,2907 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+<html lang="vi">
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhà Nghỉ Bình An — Quản lý</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&family=Playfair+Display:wght@600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+    :root {
+      --accent: #1D9E75;
+      --accent-hover: #0F6E56;
+      --accent-light: #E1F5EE;
+      --accent-text: #085041;
+      --sidebar-bg: #04342C;
+      --sidebar-w: 230px;
+      --bg: #FAFAF8;
+      --surface: #FFFFFF;
+      --surface2: #F5F4F0;
+      --border: rgba(0, 0, 0, 0.08);
+      --border2: rgba(0, 0, 0, 0.14);
+      --text: #1a1a18;
+      --text2: #6b6b67;
+      --text3: #9b9b97;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+      --shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.10);
+    }
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-  </body>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 100;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo {
+      padding: 20px 18px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-mark {
+      width: 38px;
+      height: 38px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .logo-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      color: white;
+      line-height: 1.2;
+    }
+
+    .logo-sub {
+      font-size: 10.5px;
+      color: rgba(255, 255, 255, 0.38);
+      letter-spacing: 0.03em;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 14px 10px;
+      overflow-y: auto;
+    }
+
+    .nav-group-label {
+      font-size: 9.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255, 255, 255, 0.3);
+      padding: 12px 10px 5px;
+      font-weight: 600;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      color: rgba(255, 255, 255, 0.55);
+      font-size: 13.5px;
+      cursor: pointer;
+      margin-bottom: 1px;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.07);
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .nav-item.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .nav-item i {
+      font-size: 18px;
+      width: 22px;
+      flex-shrink: 0;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: rgba(255, 255, 255, 0.14);
+      color: rgba(255, 255, 255, 0.65);
+      font-size: 10.5px;
+      padding: 1px 7px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .nav-item.active .nav-badge {
+      background: rgba(255, 255, 255, 0.25);
+      color: white;
+    }
+
+    .sidebar-bottom {
+      padding: 12px 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .user-card:hover {
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .user-av {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .user-name {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 500;
+    }
+
+    .user-role {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    /* ── MAIN ───────────────────────────── */
+    .main-wrap {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 56px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+
+    .page-heading {
+      font-size: 15.5px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .page-breadcrumb {
+      font-size: 12px;
+      color: var(--text3);
+      margin-top: 1px;
+    }
+
+    .topbar-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .date-chip {
+      background: var(--accent-light);
+      color: var(--accent-text);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 12px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tb-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--border2);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text2);
+      font-size: 17px;
+      transition: 0.15s;
+    }
+
+    .tb-btn:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .tb-btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .tb-btn.primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 22px 24px;
+    }
+
+    /* ── PAGES ──────────────────────────── */
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    /* ── STAT CARDS ─────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text2);
+      font-weight: 500;
+    }
+
+    .stat-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .si-green {
+      background: #E1F5EE;
+      color: #0F6E56;
+    }
+
+    .si-blue {
+      background: #E6F1FB;
+      color: #185FA5;
+    }
+
+    .si-amber {
+      background: #FAEEDA;
+      color: #854F0B;
+    }
+
+    .si-red {
+      background: #FCEBEB;
+      color: #A32D2D;
+    }
+
+    .si-purple {
+      background: #EEEDFE;
+      color: #534AB7;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-change {
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .up {
+      color: #0F6E56;
+    }
+
+    .down {
+      color: #A32D2D;
+    }
+
+    .neutral {
+      color: var(--text3);
+    }
+
+    /* ── GRID LAYOUTS ───────────────────── */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .grid-65-35 {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    /* ── CARDS ──────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title i {
+      color: var(--accent);
+      font-size: 16px;
+    }
+
+    .card-action {
+      font-size: 12px;
+      color: var(--accent);
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .card-action:hover {
+      color: var(--accent-hover);
+    }
+
+    /* ── ROOM GRID ──────────────────────── */
+    .room-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      padding: 16px;
+    }
+
+    .room-tile {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .room-tile:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .room-tile.occupied {
+      border-left: 3px solid #E24B4A;
+    }
+
+    .room-tile.available {
+      border-left: 3px solid #1D9E75;
+    }
+
+    .room-tile.cleaning {
+      border-left: 3px solid #EF9F27;
+    }
+
+    .room-tile.reserved {
+      border-left: 3px solid #378ADD;
+    }
+
+    .room-num {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .room-type-small {
+      font-size: 10.5px;
+      color: var(--text3);
+      margin-bottom: 8px;
+    }
+
+    .room-price {
+      font-size: 11px;
+      color: var(--text2);
+      margin-bottom: 6px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10.5px;
+      padding: 2px 7px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .s-occupied {
+      background: #FCEBEB;
+      color: #A32D2D;
+    }
+
+    .s-available {
+      background: #E1F5EE;
+      color: #0F6E56;
+    }
+
+    .s-cleaning {
+      background: #FAEEDA;
+      color: #854F0B;
+    }
+
+    .s-reserved {
+      background: #E6F1FB;
+      color: #185FA5;
+    }
+
+    .status-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* ── TABLE ──────────────────────────── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .data-table th {
+      text-align: left;
+      color: var(--text3);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+
+    .data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .data-table tbody tr:hover td {
+      background: #F8FBF9;
+    }
+
+    .data-table .td-name {
+      font-weight: 500;
+    }
+
+    .data-table .td-muted {
+      color: var(--text2);
+      font-size: 12px;
+    }
+
+    /* ── BADGES ─────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .badge-green {
+      background: #E1F5EE;
+      color: #085041;
+    }
+
+    .badge-red {
+      background: #FCEBEB;
+      color: #791F1F;
+    }
+
+    .badge-blue {
+      background: #E6F1FB;
+      color: #0C447C;
+    }
+
+    .badge-amber {
+      background: #FAEEDA;
+      color: #633806;
+    }
+
+    .badge-gray {
+      background: #F1EFE8;
+      color: #444441;
+    }
+
+    .badge-purple {
+      background: #EEEDFE;
+      color: #3C3489;
+    }
+
+    /* ── FORM ───────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2);
+    }
+
+    .form-control {
+      height: 38px;
+      padding: 0 12px;
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      font-family: 'Be Vietnam Pro', sans-serif;
+      font-size: 13.5px;
+      color: var(--text);
+      background: white;
+      outline: none;
+      transition: 0.15s;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.12);
+    }
+
+    select.form-control {
+      cursor: pointer;
+    }
+
+    textarea.form-control {
+      height: 80px;
+      padding: 10px 12px;
+      resize: none;
+    }
+
+    /* ── BUTTONS ────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 16px;
+      height: 36px;
+      border-radius: var(--radius);
+      font-family: 'Be Vietnam Pro', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    .btn-outline {
+      background: white;
+      color: var(--text);
+      border-color: var(--border2);
+    }
+
+    .btn-outline:hover {
+      background: var(--surface2);
+    }
+
+    .btn-danger {
+      background: white;
+      color: #A32D2D;
+      border-color: #F7C1C1;
+    }
+
+    .btn-danger:hover {
+      background: #FCEBEB;
+    }
+
+    .btn-sm {
+      height: 30px;
+      padding: 0 12px;
+      font-size: 12px;
+    }
+
+    .btn i {
+      font-size: 16px;
+    }
+
+    /* ── MODAL ──────────────────────────── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.2s;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: white;
+      border-radius: var(--radius-xl);
+      width: 520px;
+      max-width: 95vw;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+      transform: translateY(10px);
+      transition: 0.2s;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-backdrop.open .modal {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      padding: 18px 22px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      border: 1px solid var(--border2);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--text2);
+      transition: 0.15s;
+    }
+
+    .modal-close:hover {
+      background: #FCEBEB;
+      color: #A32D2D;
+      border-color: #F7C1C1;
+    }
+
+    .modal-body {
+      padding: 20px 22px;
+    }
+
+    .modal-footer {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* ── CHECKIN LIST ───────────────────── */
+    .ci-list {
+      list-style: none;
+    }
+
+    .ci-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      transition: 0.12s;
+      cursor: pointer;
+    }
+
+    .ci-item:last-child {
+      border-bottom: none;
+    }
+
+    .ci-item:hover {
+      background: #F8FBF9;
+    }
+
+    .ci-av {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent-light);
+      color: var(--accent-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .ci-name {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .ci-sub {
+      font-size: 11.5px;
+      color: var(--text2);
+      margin-top: 2px;
+    }
+
+    .ci-time {
+      font-size: 12px;
+      color: var(--text3);
+      margin-bottom: 3px;
+      text-align: right;
+    }
+
+    .ci-right {
+      margin-left: auto;
+      text-align: right;
+    }
+
+    /* ── CHART ──────────────────────────── */
+    .mini-chart-wrap {
+      padding: 16px 18px;
+    }
+
+    .chart-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+
+    .chart-total {
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--text);
+    }
+
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 7px;
+      height: 90px;
+    }
+
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .bar-fill {
+      width: 100%;
+      background: var(--accent-light);
+      border-radius: 4px 4px 0 0;
+      min-height: 4px;
+      transition: 0.2s;
+      cursor: pointer;
+    }
+
+    .bar-fill:hover,
+    .bar-fill.hi {
+      background: var(--accent);
+    }
+
+    .bar-lbl {
+      font-size: 10px;
+      color: var(--text3);
+    }
+
+    .bar-val-top {
+      font-size: 9.5px;
+      color: var(--text3);
+    }
+
+    /* ── SEARCH BAR ─────────────────────── */
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-input {
+      width: 240px;
+      height: 34px;
+      padding: 0 12px 0 34px;
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      font-family: 'Be Vietnam Pro', sans-serif;
+      font-size: 13px;
+      background: white;
+      outline: none;
+      transition: 0.15s;
+      color: var(--text);
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+      width: 280px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text3);
+      font-size: 16px;
+      pointer-events: none;
+    }
+
+    /* ── ROOM DETAIL ────────────────────── */
+    .room-detail {
+      padding: 16px;
+    }
+
+    .detail-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .detail-item {
+      background: var(--surface2);
+      border-radius: var(--radius);
+      padding: 12px;
+    }
+
+    .detail-lbl {
+      font-size: 11px;
+      color: var(--text3);
+      margin-bottom: 4px;
+    }
+
+    .detail-val {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ── PROGRESS ───────────────────────── */
+    .progress-bar {
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: 0.3s;
+    }
+
+    /* ── NOTIFICATION BADGE ─────────────── */
+    .notif-dot {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #E24B4A;
+      border: 2px solid var(--sidebar-bg);
+    }
+
+    /* ── EMPTY STATE ────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--text3);
+    }
+
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 14px;
+      display: block;
+      opacity: 0.4;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+    }
+
+    /* ── TOAST ──────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--text);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: var(--shadow-md);
+      z-index: 2000;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: 0.25s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.success i {
+      color: var(--accent);
+    }
+
+    /* ── ANIMATIONS ─────────────────────── */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .page.active>* {
+      animation: fadeIn 0.25s ease both;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 4px;
+    }
+
+    /* Filter toolbar */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .filter-tab {
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 500;
+      border: 1px solid var(--border2);
+      background: white;
+      cursor: pointer;
+      color: var(--text2);
+      transition: 0.15s;
+    }
+
+    .filter-tab:hover {
+      background: var(--surface2);
+    }
+
+    .filter-tab.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    /* Occupancy gauge */
+    .occ-ring {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 18px;
+    }
+
+    svg.ring {
+      transform: rotate(-90deg);
+    }
+
+    .ring-bg {
+      fill: none;
+      stroke: var(--surface2);
+      stroke-width: 8;
+    }
+
+    .ring-fill {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: 0.4s;
+    }
+
+    .ring-label {
+      text-anchor: middle;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      font-weight: 600;
+    }
+
+    /* Invoice */
+    .inv-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13.5px;
+    }
+
+    .inv-row:last-child {
+      border-bottom: none;
+      font-weight: 600;
+      font-size: 14.5px;
+    }
+
+    .inv-total {
+      color: var(--accent);
+    }
+
+    /* Color dot */
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .dot-green {
+      background: var(--accent);
+    }
+
+    .dot-red {
+      background: #E24B4A;
+    }
+
+    .dot-amber {
+      background: #EF9F27;
+    }
+
+    .dot-blue {
+      background: #378ADD;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ══════════════ SIDEBAR ══════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark"><i class="ti ti-building-cottage"></i></div>
+      <div>
+        <div class="logo-name">Nhà Nghỉ Bình An</div>
+        <div class="logo-sub">Hệ thống quản lý</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Tổng quan</div>
+      <div class="nav-item active" onclick="navigate('dashboard', this)">
+        <i class="ti ti-layout-dashboard"></i> Dashboard
+      </div>
+      <div class="nav-item" onclick="navigate('calendar', this)">
+        <i class="ti ti-calendar"></i> Lịch đặt phòng
+        <span class="nav-badge">3</span>
+      </div>
+
+      <div class="nav-group-label">Quản lý</div>
+      <div class="nav-item" onclick="navigate('rooms', this)">
+        <i class="ti ti-door"></i> Quản lý phòng
+      </div>
+      <div class="nav-item" onclick="navigate('checkin', this)">
+        <i class="ti ti-arrows-exchange"></i> Check-in / Out
+        <span class="nav-badge" id="nb-ci">5</span>
+      </div>
+      <div class="nav-item" onclick="navigate('customers', this)">
+        <i class="ti ti-users"></i> Khách hàng
+      </div>
+      <div class="nav-item" onclick="navigate('invoices', this)">
+        <i class="ti ti-receipt"></i> Hóa đơn
+        <span class="nav-badge">2</span>
+      </div>
+
+      <div class="nav-group-label">Báo cáo</div>
+      <div class="nav-item" onclick="navigate('revenue', this)">
+        <i class="ti ti-chart-bar"></i> Doanh thu
+      </div>
+      <div class="nav-item" onclick="navigate('reports', this)">
+        <i class="ti ti-report-analytics"></i> Thống kê
+      </div>
+
+      <div class="nav-group-label">Hệ thống</div>
+      <div class="nav-item" onclick="navigate('settings', this)">
+        <i class="ti ti-settings"></i> Cài đặt
+      </div>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-av">QT</div>
+        <div>
+          <div class="user-name">Quản Trị Viên</div>
+          <div class="user-role">Administrator</div>
+        </div>
+        <i class="ti ti-chevron-right" style="margin-left:auto;color:rgba(255,255,255,0.25);font-size:14px;"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══════════════ MAIN WRAP ══════════════ -->
+  <div class="main-wrap">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div>
+        <div class="page-heading" id="page-heading">Dashboard</div>
+        <div class="page-breadcrumb" id="page-breadcrumb">Tổng quan hôm nay</div>
+      </div>
+      <div class="topbar-right">
+        <div class="search-wrap">
+          <i class="ti ti-search search-icon"></i>
+          <input class="search-input" type="text" placeholder="Tìm kiếm...">
+        </div>
+        <div class="date-chip">
+          <i class="ti ti-calendar" style="font-size:13px;"></i>
+          Thứ 6, 22/05/2026
+        </div>
+        <div class="tb-btn" title="Thông báo" style="position:relative;"
+          onclick="showToast('Bạn có 3 thông báo mới','ti-bell')">
+          <i class="ti ti-bell"></i>
+          <div class="notif-dot"></div>
+        </div>
+        <div class="tb-btn primary" title="Thêm mới" onclick="openAddModal()">
+          <i class="ti ti-plus"></i>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ══════════ PAGE: DASHBOARD ══════════ -->
+      <div class="page active" id="page-dashboard">
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Phòng đang thuê</div>
+              <div class="stat-icon si-green"><i class="ti ti-door-enter"></i></div>
+            </div>
+            <div class="stat-value">18</div>
+            <div class="stat-change up"><i class="ti ti-trending-up"></i> +3 so với hôm qua</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Doanh thu hôm nay</div>
+              <div class="stat-icon si-blue"><i class="ti ti-coin"></i></div>
+            </div>
+            <div class="stat-value">4,2tr</div>
+            <div class="stat-change up"><i class="ti ti-trending-up"></i> +12% tuần này</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Phòng trống</div>
+              <div class="stat-icon si-amber"><i class="ti ti-home"></i></div>
+            </div>
+            <div class="stat-value">7</div>
+            <div class="stat-change neutral">Tổng 25 phòng · 72% lấp đầy</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Check-out hôm nay</div>
+              <div class="stat-icon si-red"><i class="ti ti-door-exit"></i></div>
+            </div>
+            <div class="stat-value">5</div>
+            <div class="stat-change down"><i class="ti ti-alert-circle"></i> 2 chưa thanh toán</div>
+          </div>
+        </div>
+
+        <div class="grid-65-35">
+          <!-- Room overview -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-layout-grid"></i> Sơ đồ phòng</div>
+              <a class="card-action" onclick="navigate('rooms', null)"><i class="ti ti-arrow-right"></i> Xem tất cả</a>
+            </div>
+            <div class="room-grid">
+              <div class="room-tile occupied" onclick="openRoomDetail('101')">
+                <div class="room-num">101</div>
+                <div class="room-type-small">Phòng đơn</div>
+                <div class="status-pill s-occupied"><span class="status-dot"></span>Thuê</div>
+              </div>
+              <div class="room-tile available" onclick="openRoomDetail('102')">
+                <div class="room-num">102</div>
+                <div class="room-type-small">Phòng đôi</div>
+                <div class="status-pill s-available"><span class="status-dot"></span>Trống</div>
+              </div>
+              <div class="room-tile occupied" onclick="openRoomDetail('103')">
+                <div class="room-num">103</div>
+                <div class="room-type-small">Phòng VIP</div>
+                <div class="status-pill s-occupied"><span class="status-dot"></span>Thuê</div>
+              </div>
+              <div class="room-tile cleaning" onclick="openRoomDetail('104')">
+                <div class="room-num">104</div>
+                <div class="room-type-small">Phòng đơn</div>
+                <div class="status-pill s-cleaning"><span class="status-dot"></span>Dọn</div>
+              </div>
+              <div class="room-tile available" onclick="openRoomDetail('105')">
+                <div class="room-num">105</div>
+                <div class="room-type-small">Phòng đôi</div>
+                <div class="status-pill s-available"><span class="status-dot"></span>Trống</div>
+              </div>
+              <div class="room-tile occupied" onclick="openRoomDetail('106')">
+                <div class="room-num">106</div>
+                <div class="room-type-small">Phòng đôi</div>
+                <div class="status-pill s-occupied"><span class="status-dot"></span>Thuê</div>
+              </div>
+              <div class="room-tile reserved" onclick="openRoomDetail('107')">
+                <div class="room-num">107</div>
+                <div class="room-type-small">Phòng đơn</div>
+                <div class="status-pill s-reserved"><span class="status-dot"></span>Đặt</div>
+              </div>
+              <div class="room-tile occupied" onclick="openRoomDetail('108')">
+                <div class="room-num">108</div>
+                <div class="room-type-small">Phòng VIP</div>
+                <div class="status-pill s-occupied"><span class="status-dot"></span>Thuê</div>
+              </div>
+              <div class="room-tile available" onclick="openRoomDetail('109')">
+                <div class="room-num">109</div>
+                <div class="room-type-small">Phòng đôi</div>
+                <div class="status-pill s-available"><span class="status-dot"></span>Trống</div>
+              </div>
+              <div class="room-tile cleaning" onclick="openRoomDetail('110')">
+                <div class="room-num">110</div>
+                <div class="room-type-small">Phòng đơn</div>
+                <div class="status-pill s-cleaning"><span class="status-dot"></span>Dọn</div>
+              </div>
+            </div>
+            <div style="padding: 10px 18px 14px; display:flex; gap:16px; border-top:1px solid var(--border);">
+              <span style="font-size:12px;display:flex;align-items:center;gap:5px;color:var(--text2);"><span
+                  class="dot dot-red"></span> Đang thuê (18)</span>
+              <span style="font-size:12px;display:flex;align-items:center;gap:5px;color:var(--text2);"><span
+                  class="dot dot-green"></span> Trống (7)</span>
+              <span style="font-size:12px;display:flex;align-items:center;gap:5px;color:var(--text2);"><span
+                  class="dot dot-amber"></span> Dọn phòng (3)</span>
+              <span style="font-size:12px;display:flex;align-items:center;gap:5px;color:var(--text2);"><span
+                  class="dot dot-blue"></span> Đã đặt (2)</span>
+            </div>
+          </div>
+
+          <!-- Today schedule -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-clock"></i> Lịch hôm nay</div>
+              <span class="badge badge-green">5 lượt</span>
+            </div>
+            <ul class="ci-list">
+              <li class="ci-item">
+                <div class="ci-av">NV</div>
+                <div>
+                  <div class="ci-name">Nguyễn Văn A</div>
+                  <div class="ci-sub">P.102 · 1 đêm · 350.000đ</div>
+                </div>
+                <div class="ci-right">
+                  <div class="ci-time">08:30</div><span class="badge badge-green">Check-in</span>
+                </div>
+              </li>
+              <li class="ci-item">
+                <div class="ci-av">TT</div>
+                <div>
+                  <div class="ci-name">Trần Thị Bình</div>
+                  <div class="ci-sub">P.105 · 2 đêm · 700.000đ</div>
+                </div>
+                <div class="ci-right">
+                  <div class="ci-time">09:00</div><span class="badge badge-blue">Đặt trước</span>
+                </div>
+              </li>
+              <li class="ci-item">
+                <div class="ci-av">LH</div>
+                <div>
+                  <div class="ci-name">Lê Hoàng Cường</div>
+                  <div class="ci-sub">P.101 · 3 đêm · 1.050.000đ</div>
+                </div>
+                <div class="ci-right">
+                  <div class="ci-time">11:00</div><span class="badge badge-red">Check-out</span>
+                </div>
+              </li>
+              <li class="ci-item">
+                <div class="ci-av">PL</div>
+                <div>
+                  <div class="ci-name">Phạm Lan Dương</div>
+                  <div class="ci-sub">P.103 · 1 đêm · 500.000đ</div>
+                </div>
+                <div class="ci-right">
+                  <div class="ci-time">14:00</div><span class="badge badge-green">Check-in</span>
+                </div>
+              </li>
+              <li class="ci-item">
+                <div class="ci-av">HM</div>
+                <div>
+                  <div class="ci-name">Hoàng Minh Em</div>
+                  <div class="ci-sub">P.106 · 2 đêm · 700.000đ</div>
+                </div>
+                <div class="ci-right">
+                  <div class="ci-time">16:30</div><span class="badge badge-red">Check-out</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- Revenue chart -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-chart-bar"></i> Doanh thu 7 ngày</div>
+              <a class="card-action" onclick="navigate('revenue', null)">Xem chi tiết <i
+                  class="ti ti-arrow-right"></i></a>
+            </div>
+            <div class="mini-chart-wrap">
+              <div class="chart-meta">
+                <div>Tuần này: <span class="chart-total">28.400.000đ</span></div>
+                <span class="up" style="font-size:12px;"><i class="ti ti-trending-up"></i> +8% so với tuần trước</span>
+              </div>
+              <div class="chart-bars">
+                <div class="bar-col">
+                  <div class="bar-val-top">3.2tr</div>
+                  <div class="bar-fill" style="height:52%;"></div>
+                  <div class="bar-lbl">T2</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-val-top">2.8tr</div>
+                  <div class="bar-fill" style="height:44%;"></div>
+                  <div class="bar-lbl">T3</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-val-top">4.1tr</div>
+                  <div class="bar-fill" style="height:65%;"></div>
+                  <div class="bar-lbl">T4</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-val-top">3.7tr</div>
+                  <div class="bar-fill" style="height:58%;"></div>
+                  <div class="bar-lbl">T5</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-val-top">5.2tr</div>
+                  <div class="bar-fill hi" style="height:84%;"></div>
+                  <div class="bar-lbl">T6</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-val-top">5.0tr</div>
+                  <div class="bar-fill" style="height:80%;"></div>
+                  <div class="bar-lbl">T7</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-val-top">4.4tr</div>
+                  <div class="bar-fill" style="height:70%;"></div>
+                  <div class="bar-lbl">CN</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent payments -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-receipt"></i> Thanh toán gần đây</div>
+              <a class="card-action" onclick="navigate('invoices', null)">Xem tất cả <i
+                  class="ti ti-arrow-right"></i></a>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Phòng</th>
+                  <th>Khách</th>
+                  <th>Số tiền</th>
+                  <th>Hình thức</th>
+                  <th>TT</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>P.101</td>
+                  <td class="td-name">Lê Hoàng C.</td>
+                  <td style="font-weight:600;">1.050.000đ</td>
+                  <td><span class="badge badge-green">Tiền mặt</span></td>
+                  <td><span class="badge badge-green">Xong</span></td>
+                </tr>
+                <tr>
+                  <td>P.104</td>
+                  <td class="td-name">Bùi Thị F.</td>
+                  <td style="font-weight:600;">700.000đ</td>
+                  <td><span class="badge badge-blue">CK Ngân hàng</span></td>
+                  <td><span class="badge badge-green">Xong</span></td>
+                </tr>
+                <tr>
+                  <td>P.107</td>
+                  <td class="td-name">Đỗ Văn G.</td>
+                  <td style="font-weight:600;">500.000đ</td>
+                  <td><span class="badge badge-amber">Thẻ</span></td>
+                  <td><span class="badge badge-amber">Chờ</span></td>
+                </tr>
+                <tr>
+                  <td>P.110</td>
+                  <td class="td-name">Vũ Thị H.</td>
+                  <td style="font-weight:600;">1.400.000đ</td>
+                  <td><span class="badge badge-blue">CK Ngân hàng</span></td>
+                  <td><span class="badge badge-red">Chưa TT</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /dashboard -->
+
+      <!-- ══════════ PAGE: ROOMS ══════════ -->
+      <div class="page" id="page-rooms">
+        <div class="filter-bar">
+          <div class="filter-tab active" onclick="filterRooms('all', this)">Tất cả (25)</div>
+          <div class="filter-tab" onclick="filterRooms('available', this)">Trống (7)</div>
+          <div class="filter-tab" onclick="filterRooms('occupied', this)">Đang thuê (18)</div>
+          <div class="filter-tab" onclick="filterRooms('cleaning', this)">Dọn phòng (3)</div>
+          <div style="margin-left:auto;">
+            <button class="btn btn-primary" onclick="openAddRoomModal()"><i class="ti ti-plus"></i> Thêm phòng</button>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:0;">
+          <!-- Occupancy ring -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-chart-donut"></i> Tỉ lệ lấp đầy</div>
+            </div>
+            <div class="occ-ring">
+              <svg width="90" height="90" viewBox="0 0 90 90" class="ring">
+                <circle class="ring-bg" cx="45" cy="45" r="36" />
+                <circle class="ring-fill" cx="45" cy="45" r="36" stroke-dasharray="162 226" stroke-dashoffset="0" />
+              </svg>
+              <div>
+                <div style="font-size:28px;font-weight:700;color:var(--text);line-height:1;">72%</div>
+                <div style="font-size:12px;color:var(--text3);margin-top:4px;">Lấp đầy hôm nay</div>
+                <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px;">
+                  <div style="display:flex;align-items:center;gap:8px;font-size:12px;"><span class="dot dot-red"></span>
+                    Đang thuê: 18</div>
+                  <div style="display:flex;align-items:center;gap:8px;font-size:12px;"><span
+                      class="dot dot-green"></span> Phòng trống: 7</div>
+                  <div style="display:flex;align-items:center;gap:8px;font-size:12px;"><span
+                      class="dot dot-amber"></span> Đang dọn: 3</div>
+                  <div style="display:flex;align-items:center;gap:8px;font-size:12px;"><span
+                      class="dot dot-blue"></span> Đã đặt trước: 2</div>
+                </div>
+              </div>
+              <div style="margin-left:auto;display:flex;flex-direction:column;gap:8px;min-width:120px;">
+                <div class="detail-item">
+                  <div class="detail-lbl">Phòng đơn</div>
+                  <div class="detail-val" style="font-size:13px;font-weight:600;">10 phòng</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-lbl">Phòng đôi</div>
+                  <div class="detail-val" style="font-size:13px;font-weight:600;">10 phòng</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-lbl">Phòng VIP</div>
+                  <div class="detail-val" style="font-size:13px;font-weight:600;">5 phòng</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick actions -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-bolt"></i> Thao tác nhanh</div>
+            </div>
+            <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <button class="btn btn-outline" style="justify-content:center;height:54px;flex-direction:column;gap:3px;"
+                onclick="navigate('checkin', null)">
+                <i class="ti ti-door-enter" style="font-size:20px;color:var(--accent);"></i>
+                <span style="font-size:11.5px;">Check-in mới</span>
+              </button>
+              <button class="btn btn-outline" style="justify-content:center;height:54px;flex-direction:column;gap:3px;"
+                onclick="navigate('checkin', null)">
+                <i class="ti ti-door-exit" style="font-size:20px;color:#A32D2D;"></i>
+                <span style="font-size:11.5px;">Check-out</span>
+              </button>
+              <button class="btn btn-outline" style="justify-content:center;height:54px;flex-direction:column;gap:3px;"
+                onclick="openAddRoomModal()">
+                <i class="ti ti-plus" style="font-size:20px;color:#185FA5;"></i>
+                <span style="font-size:11.5px;">Thêm phòng</span>
+              </button>
+              <button class="btn btn-outline" style="justify-content:center;height:54px;flex-direction:column;gap:3px;"
+                onclick="navigate('invoices', null)">
+                <i class="ti ti-receipt" style="font-size:20px;color:#854F0B;"></i>
+                <span style="font-size:11.5px;">Xuất hóa đơn</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;" id="rooms-card">
+          <div class="card-header">
+            <div class="card-title"><i class="ti ti-list"></i> Danh sách phòng</div>
+            <div class="search-wrap">
+              <i class="ti ti-search search-icon"></i>
+              <input class="search-input" style="width:200px;" type="text" placeholder="Tìm phòng...">
+            </div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Phòng</th>
+                <th>Loại</th>
+                <th>Giá/đêm</th>
+                <th>Trạng thái</th>
+                <th>Khách hiện tại</th>
+                <th>Check-out</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="rooms-tbody">
+              <tr>
+                <td class="td-name">P.101</td>
+                <td>Phòng đôi</td>
+                <td>350.000đ</td>
+                <td><span class="badge badge-red"><span class="dot dot-red"
+                      style="width:6px;height:6px;background:#E24B4A;margin-right:3px;border-radius:50%;display:inline-block;"></span>Đang
+                    thuê</span></td>
+                <td>Nguyễn Văn A</td>
+                <td class="td-muted">22/05/2026</td>
+                <td><button class="btn btn-outline btn-sm" onclick="openRoomDetail('101')"><i
+                      class="ti ti-eye"></i></button></td>
+              </tr>
+              <tr>
+                <td class="td-name">P.102</td>
+                <td>Phòng đơn</td>
+                <td>280.000đ</td>
+                <td><span class="badge badge-green">Trống</span></td>
+                <td class="td-muted">—</td>
+                <td class="td-muted">—</td>
+                <td><button class="btn btn-primary btn-sm" onclick="navigate('checkin', null)"><i
+                      class="ti ti-door-enter"></i> Check-in</button></td>
+              </tr>
+              <tr>
+                <td class="td-name">P.103</td>
+                <td>VIP Suite</td>
+                <td>650.000đ</td>
+                <td><span class="badge badge-red">Đang thuê</span></td>
+                <td>Trần Thị Bình</td>
+                <td class="td-muted">24/05/2026</td>
+                <td><button class="btn btn-outline btn-sm" onclick="openRoomDetail('103')"><i
+                      class="ti ti-eye"></i></button></td>
+              </tr>
+              <tr>
+                <td class="td-name">P.104</td>
+                <td>Phòng đơn</td>
+                <td>280.000đ</td>
+                <td><span class="badge badge-amber">Dọn phòng</span></td>
+                <td class="td-muted">—</td>
+                <td class="td-muted">—</td>
+                <td><button class="btn btn-outline btn-sm"><i class="ti ti-edit"></i></button></td>
+              </tr>
+              <tr>
+                <td class="td-name">P.105</td>
+                <td>Phòng đôi</td>
+                <td>350.000đ</td>
+                <td><span class="badge badge-green">Trống</span></td>
+                <td class="td-muted">—</td>
+                <td class="td-muted">—</td>
+                <td><button class="btn btn-primary btn-sm" onclick="navigate('checkin', null)"><i
+                      class="ti ti-door-enter"></i> Check-in</button></td>
+              </tr>
+              <tr>
+                <td class="td-name">P.106</td>
+                <td>Phòng đôi</td>
+                <td>350.000đ</td>
+                <td><span class="badge badge-red">Đang thuê</span></td>
+                <td>Lê Hoàng Cường</td>
+                <td class="td-muted">23/05/2026</td>
+                <td><button class="btn btn-outline btn-sm" onclick="openRoomDetail('106')"><i
+                      class="ti ti-eye"></i></button></td>
+              </tr>
+              <tr>
+                <td class="td-name">P.107</td>
+                <td>Phòng đơn</td>
+                <td>280.000đ</td>
+                <td><span class="badge badge-blue">Đã đặt</span></td>
+                <td>Phạm Lan D.</td>
+                <td class="td-muted">25/05/2026</td>
+                <td><button class="btn btn-outline btn-sm"><i class="ti ti-edit"></i></button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /rooms -->
+
+      <!-- ══════════ PAGE: CHECK-IN/OUT ══════════ -->
+      <div class="page" id="page-checkin">
+        <div class="grid-2">
+          <!-- Check-in form -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-door-enter"></i> Làm thủ tục Check-in</div>
+            </div>
+            <div style="padding:18px;">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Họ và tên khách *</label>
+                  <input class="form-control" type="text" placeholder="Nguyễn Văn A" id="ci-name">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">CCCD / CMND *</label>
+                  <input class="form-control" type="text" placeholder="0123456789" id="ci-id">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Số điện thoại</label>
+                  <input class="form-control" type="text" placeholder="0901234567">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Địa chỉ</label>
+                  <input class="form-control" type="text" placeholder="TP. Cần Thơ">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Chọn phòng *</label>
+                  <select class="form-control" id="ci-room" onchange="updatePrice()">
+                    <option value="">— Chọn phòng —</option>
+                    <option value="102" data-price="280000">P.102 — Phòng đơn — 280.000đ/đêm</option>
+                    <option value="105" data-price="350000">P.105 — Phòng đôi — 350.000đ/đêm</option>
+                    <option value="108" data-price="650000">P.108 — VIP Suite — 650.000đ/đêm</option>
+                    <option value="109" data-price="350000">P.109 — Phòng đôi — 350.000đ/đêm</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Số đêm *</label>
+                  <input class="form-control" type="number" value="1" min="1" id="ci-nights" oninput="updatePrice()">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Ngày check-in</label>
+                  <input class="form-control" type="date" value="2026-05-22" id="ci-date">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Hình thức thanh toán</label>
+                  <select class="form-control">
+                    <option>Tiền mặt</option>
+                    <option>Chuyển khoản</option>
+                    <option>Thẻ ngân hàng</option>
+                  </select>
+                </div>
+                <div class="form-group full">
+                  <label class="form-label">Ghi chú</label>
+                  <textarea class="form-control" placeholder="Yêu cầu đặc biệt, ghi chú..."></textarea>
+                </div>
+              </div>
+              <div
+                style="margin-top:14px;padding:14px;background:var(--accent-light);border-radius:var(--radius);display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:13px;color:var(--accent-text);font-weight:500;">Tổng tiền:</span>
+                <span style="font-size:20px;font-weight:700;color:var(--accent);" id="ci-total">0đ</span>
+              </div>
+              <div style="margin-top:14px;display:flex;gap:10px;">
+                <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="doCheckin()">
+                  <i class="ti ti-check"></i> Xác nhận Check-in
+                </button>
+                <button class="btn btn-outline" style="flex:0 0 auto;">
+                  <i class="ti ti-printer"></i> In phiếu
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Current guests -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-list-check"></i> Khách đang lưu trú</div>
+              <span class="badge badge-green">18 khách</span>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Phòng</th>
+                  <th>Tên khách</th>
+                  <th>Check-in</th>
+                  <th>Check-out</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="td-name">P.101</td>
+                  <td>Nguyễn Văn A</td>
+                  <td class="td-muted">19/05</td>
+                  <td class="td-muted">22/05</td>
+                  <td><button class="btn btn-danger btn-sm" onclick="doCheckout('P.101', 'Nguyễn Văn A')"><i
+                        class="ti ti-door-exit"></i> Out</button></td>
+                </tr>
+                <tr>
+                  <td class="td-name">P.103</td>
+                  <td>Trần Thị Bình</td>
+                  <td class="td-muted">21/05</td>
+                  <td class="td-muted">24/05</td>
+                  <td><button class="btn btn-danger btn-sm" onclick="doCheckout('P.103', 'Trần Thị Bình')"><i
+                        class="ti ti-door-exit"></i> Out</button></td>
+                </tr>
+                <tr>
+                  <td class="td-name">P.106</td>
+                  <td>Lê Hoàng Cường</td>
+                  <td class="td-muted">20/05</td>
+                  <td class="td-muted">23/05</td>
+                  <td><button class="btn btn-danger btn-sm" onclick="doCheckout('P.106', 'Lê Hoàng Cường')"><i
+                        class="ti ti-door-exit"></i> Out</button></td>
+                </tr>
+                <tr>
+                  <td class="td-name">P.108</td>
+                  <td>Phạm Lan Dương</td>
+                  <td class="td-muted">22/05</td>
+                  <td class="td-muted">25/05</td>
+                  <td><button class="btn btn-danger btn-sm" onclick="doCheckout('P.108', 'Phạm Lan Dương')"><i
+                        class="ti ti-door-exit"></i> Out</button></td>
+                </tr>
+                <tr>
+                  <td class="td-name">P.110</td>
+                  <td>Hoàng Minh Em</td>
+                  <td class="td-muted">20/05</td>
+                  <td class="td-muted">22/05</td>
+                  <td><button class="btn btn-danger btn-sm" onclick="doCheckout('P.110', 'Hoàng Minh Em')"><i
+                        class="ti ti-door-exit"></i> Out</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /checkin -->
+
+      <!-- ══════════ PAGE: CUSTOMERS ══════════ -->
+      <div class="page" id="page-customers">
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <i class="ti ti-search search-icon"></i>
+            <input class="search-input" type="text" placeholder="Tìm theo tên, CCCD, SĐT...">
+          </div>
+          <div style="margin-left:auto;">
+            <button class="btn btn-primary" onclick="showToast('Mở form thêm khách hàng', 'ti-user-plus')"><i
+                class="ti ti-user-plus"></i> Thêm khách hàng</button>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="grid-template-columns: repeat(3,1fr);">
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Tổng khách hàng</div>
+              <div class="stat-icon si-blue"><i class="ti ti-users"></i></div>
+            </div>
+            <div class="stat-value">248</div>
+            <div class="stat-change up"><i class="ti ti-trending-up"></i> +12 tháng này</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Khách thường xuyên</div>
+              <div class="stat-icon si-purple"><i class="ti ti-star"></i></div>
+            </div>
+            <div class="stat-value">34</div>
+            <div class="stat-change neutral">Hơn 3 lần lưu trú</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Khách mới tháng này</div>
+              <div class="stat-icon si-green"><i class="ti ti-user-plus"></i></div>
+            </div>
+            <div class="stat-value">18</div>
+            <div class="stat-change up"><i class="ti ti-trending-up"></i> +5 so với tháng trước</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="ti ti-users"></i> Danh sách khách hàng</div>
+            <div class="filter-tab active" style="font-size:11px;">Tất cả</div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Khách hàng</th>
+                <th>CCCD</th>
+                <th>Điện thoại</th>
+                <th>Địa chỉ</th>
+                <th>Lần lưu trú</th>
+                <th>Tổng chi tiêu</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:9px;">
+                    <div class="ci-av" style="width:32px;height:32px;font-size:12px;">NV</div>
+                    <div class="td-name">Nguyễn Văn A</div>
+                  </div>
+                </td>
+                <td class="td-muted">079123456789</td>
+                <td>0901234567</td>
+                <td class="td-muted">TP. Cần Thơ</td>
+                <td><span class="badge badge-green">5 lần</span></td>
+                <td style="font-weight:600;">3.500.000đ</td>
+                <td><button class="btn btn-outline btn-sm" onclick="showToast('Xem hồ sơ khách hàng', 'ti-user')"><i
+                      class="ti ti-eye"></i></button></td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:9px;">
+                    <div class="ci-av" style="width:32px;height:32px;font-size:12px;">TT</div>
+                    <div class="td-name">Trần Thị Bình</div>
+                  </div>
+                </td>
+                <td class="td-muted">048123456789</td>
+                <td>0912345678</td>
+                <td class="td-muted">TP. HCM</td>
+                <td><span class="badge badge-blue">2 lần</span></td>
+                <td style="font-weight:600;">1.400.000đ</td>
+                <td><button class="btn btn-outline btn-sm"><i class="ti ti-eye"></i></button></td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:9px;">
+                    <div class="ci-av" style="width:32px;height:32px;font-size:12px;">LH</div>
+                    <div class="td-name">Lê Hoàng Cường</div>
+                  </div>
+                </td>
+                <td class="td-muted">058987654321</td>
+                <td>0933456789</td>
+                <td class="td-muted">Hà Nội</td>
+                <td><span class="badge badge-purple">8 lần</span></td>
+                <td style="font-weight:600;">7.200.000đ</td>
+                <td><button class="btn btn-outline btn-sm"><i class="ti ti-eye"></i></button></td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:9px;">
+                    <div class="ci-av" style="width:32px;height:32px;font-size:12px;">PL</div>
+                    <div class="td-name">Phạm Lan Dương</div>
+                  </div>
+                </td>
+                <td class="td-muted">012345678901</td>
+                <td>0944567890</td>
+                <td class="td-muted">Đà Nẵng</td>
+                <td><span class="badge badge-green">3 lần</span></td>
+                <td style="font-weight:600;">2.100.000đ</td>
+                <td><button class="btn btn-outline btn-sm"><i class="ti ti-eye"></i></button></td>
+              </tr>
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:9px;">
+                    <div class="ci-av" style="width:32px;height:32px;font-size:12px;">HM</div>
+                    <div class="td-name">Hoàng Minh Em</div>
+                  </div>
+                </td>
+                <td class="td-muted">034567890123</td>
+                <td>0955678901</td>
+                <td class="td-muted">Kiên Giang</td>
+                <td><span class="badge badge-gray">1 lần</span></td>
+                <td style="font-weight:600;">700.000đ</td>
+                <td><button class="btn btn-outline btn-sm"><i class="ti ti-eye"></i></button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /customers -->
+
+      <!-- ══════════ PAGE: INVOICES ══════════ -->
+      <div class="page" id="page-invoices">
+        <div class="stats-grid" style="grid-template-columns: repeat(4,1fr);">
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Tổng hóa đơn tháng này</div>
+              <div class="stat-icon si-blue"><i class="ti ti-receipt"></i></div>
+            </div>
+            <div class="stat-value">87</div>
+            <div class="stat-change up">+14 so với tháng trước</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Đã thanh toán</div>
+              <div class="stat-icon si-green"><i class="ti ti-check"></i></div>
+            </div>
+            <div class="stat-value">81</div>
+            <div class="stat-change up">93% tỉ lệ</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Chưa thanh toán</div>
+              <div class="stat-icon si-red"><i class="ti ti-clock"></i></div>
+            </div>
+            <div class="stat-value">6</div>
+            <div class="stat-change down">2 quá hạn</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Doanh thu tháng này</div>
+              <div class="stat-icon si-amber"><i class="ti ti-coin"></i></div>
+            </div>
+            <div class="stat-value">86,4tr</div>
+            <div class="stat-change up">+9% so với T4</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="ti ti-receipt"></i> Danh sách hóa đơn</div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-outline btn-sm"><i class="ti ti-download"></i> Xuất Excel</button>
+              <button class="btn btn-primary btn-sm" onclick="openInvoiceModal()"><i class="ti ti-plus"></i> Tạo hóa
+                đơn</button>
+            </div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mã HĐ</th>
+                <th>Phòng</th>
+                <th>Khách hàng</th>
+                <th>Ngày tạo</th>
+                <th>Số tiền</th>
+                <th>Hình thức</th>
+                <th>Trạng thái</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-muted">#HĐ-0087</td>
+                <td class="td-name">P.101</td>
+                <td>Lê Hoàng Cường</td>
+                <td class="td-muted">22/05/2026</td>
+                <td style="font-weight:600;">1.050.000đ</td>
+                <td><span class="badge badge-green">Tiền mặt</span></td>
+                <td><span class="badge badge-green">Đã TT</span></td>
+                <td><button class="btn btn-outline btn-sm" onclick="openInvoiceDetail()"><i
+                      class="ti ti-eye"></i></button></td>
+              </tr>
+              <tr>
+                <td class="td-muted">#HĐ-0086</td>
+                <td class="td-name">P.104</td>
+                <td>Bùi Thị F.</td>
+                <td class="td-muted">22/05/2026</td>
+                <td style="font-weight:600;">700.000đ</td>
+                <td><span class="badge badge-blue">Chuyển khoản</span></td>
+                <td><span class="badge badge-green">Đã TT</span></td>
+                <td><button class="btn btn-outline btn-sm"><i class="ti ti-eye"></i></button></td>
+              </tr>
+              <tr>
+                <td class="td-muted">#HĐ-0085</td>
+                <td class="td-name">P.107</td>
+                <td>Đỗ Văn G.</td>
+                <td class="td-muted">21/05/2026</td>
+                <td style="font-weight:600;">500.000đ</td>
+                <td><span class="badge badge-amber">Thẻ</span></td>
+                <td><span class="badge badge-amber">Chờ xử lý</span></td>
+                <td><button class="btn btn-outline btn-sm"><i class="ti ti-eye"></i></button></td>
+              </tr>
+              <tr>
+                <td class="td-muted">#HĐ-0084</td>
+                <td class="td-name">P.110</td>
+                <td>Vũ Thị H.</td>
+                <td class="td-muted">20/05/2026</td>
+                <td style="font-weight:600;">1.400.000đ</td>
+                <td><span class="badge badge-blue">Chuyển khoản</span></td>
+                <td><span class="badge badge-red">Chưa TT</span></td>
+                <td><button class="btn btn-primary btn-sm" onclick="showToast('Gửi nhắc nhở thanh toán', 'ti-send')"><i
+                      class="ti ti-send"></i> Nhắc</button></td>
+              </tr>
+              <tr>
+                <td class="td-muted">#HĐ-0083</td>
+                <td class="td-name">P.103</td>
+                <td>Trần Thị Bình</td>
+                <td class="td-muted">21/05/2026</td>
+                <td style="font-weight:600;">700.000đ</td>
+                <td><span class="badge badge-green">Tiền mặt</span></td>
+                <td><span class="badge badge-green">Đã TT</span></td>
+                <td><button class="btn btn-outline btn-sm"><i class="ti ti-eye"></i></button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /invoices -->
+
+      <!-- ══════════ PAGE: REVENUE ══════════ -->
+      <div class="page" id="page-revenue">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Doanh thu tháng 5</div>
+              <div class="stat-icon si-green"><i class="ti ti-coin"></i></div>
+            </div>
+            <div class="stat-value">86,4tr</div>
+            <div class="stat-change up"><i class="ti ti-trending-up"></i> +9% so với T4</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Doanh thu quý 2</div>
+              <div class="stat-icon si-blue"><i class="ti ti-chart-bar"></i></div>
+            </div>
+            <div class="stat-value">238tr</div>
+            <div class="stat-change up"><i class="ti ti-trending-up"></i> +15% so với Q1</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Trung bình/ngày</div>
+              <div class="stat-icon si-amber"><i class="ti ti-calendar-stats"></i></div>
+            </div>
+            <div class="stat-value">2,88tr</div>
+            <div class="stat-change neutral">Tháng hiện tại</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Tỉ lệ lấp đầy TB</div>
+              <div class="stat-icon si-purple"><i class="ti ti-percentage"></i></div>
+            </div>
+            <div class="stat-value">74%</div>
+            <div class="stat-change up"><i class="ti ti-trending-up"></i> +6% so với T4</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-chart-bar"></i> Doanh thu theo tháng (2026)</div>
+            </div>
+            <div class="mini-chart-wrap">
+              <div class="chart-bars" style="height:120px;margin-top:8px;">
+                <div class="bar-col">
+                  <div class="bar-val-top">68tr</div>
+                  <div class="bar-fill" style="height:58%;"></div>
+                  <div class="bar-lbl">T1</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-val-top">72tr</div>
+                  <div class="bar-fill" style="height:62%;"></div>
+                  <div class="bar-lbl">T2</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-val-top">78tr</div>
+                  <div class="bar-fill" style="height:67%;"></div>
+                  <div class="bar-lbl">T3</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-val-top">79tr</div>
+                  <div class="bar-fill" style="height:68%;"></div>
+                  <div class="bar-lbl">T4</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-val-top">86tr</div>
+                  <div class="bar-fill hi" style="height:74%;"></div>
+                  <div class="bar-lbl">T5</div>
+                </div>
+                <div class="bar-col">
+                  <div class="bar-val-top" style="color:var(--text3);font-style:italic;"></div>
+                  <div class="bar-fill" style="height:10%;background:var(--border);"></div>
+                  <div class="bar-lbl" style="color:var(--text3);">T6</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-chart-pie"></i> Doanh thu theo loại phòng</div>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:12px;">
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px;">
+                  <span>Phòng đôi</span><span style="font-weight:600;">42.000.000đ <span
+                      class="td-muted">(49%)</span></span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width:49%;"></div>
+                </div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px;">
+                  <span>Phòng đơn</span><span style="font-weight:600;">25.000.000đ <span
+                      class="td-muted">(29%)</span></span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width:29%;background:#378ADD;"></div>
+                </div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px;">
+                  <span>VIP Suite</span><span style="font-weight:600;">19.400.000đ <span
+                      class="td-muted">(22%)</span></span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width:22%;background:#EF9F27;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /revenue -->
+
+      <!-- ══════════ PAGE: REPORTS ══════════ -->
+      <div class="page" id="page-reports">
+        <div class="grid-3">
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Tổng lượt khách YTD</div>
+              <div class="stat-icon si-blue"><i class="ti ti-users"></i></div>
+            </div>
+            <div class="stat-value">1.284</div>
+            <div class="stat-change up">+18% so với 2025</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Thời gian lưu trú TB</div>
+              <div class="stat-icon si-green"><i class="ti ti-clock"></i></div>
+            </div>
+            <div class="stat-value">2,3 đêm</div>
+            <div class="stat-change neutral">Từ đầu năm</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-row">
+              <div class="stat-label">Giá trị đơn TB</div>
+              <div class="stat-icon si-amber"><i class="ti ti-coin"></i></div>
+            </div>
+            <div class="stat-value">812k</div>
+            <div class="stat-change up">+7% so với 2025</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="ti ti-table"></i> Báo cáo tháng 5/2026</div>
+            <button class="btn btn-outline btn-sm"><i class="ti ti-download"></i> Tải PDF</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Chỉ tiêu</th>
+                <th>Tháng 4</th>
+                <th>Tháng 5</th>
+                <th>Tăng/Giảm</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Tổng lượt khách</td>
+                <td class="td-muted">217</td>
+                <td style="font-weight:500;">248</td>
+                <td class="up">+31 (+14%)</td>
+              </tr>
+              <tr>
+                <td>Doanh thu</td>
+                <td class="td-muted">79.200.000đ</td>
+                <td style="font-weight:500;">86.400.000đ</td>
+                <td class="up">+7.200.000đ (+9%)</td>
+              </tr>
+              <tr>
+                <td>Tỉ lệ lấp đầy TB</td>
+                <td class="td-muted">68%</td>
+                <td style="font-weight:500;">74%</td>
+                <td class="up">+6%</td>
+              </tr>
+              <tr>
+                <td>Thời gian lưu trú TB</td>
+                <td class="td-muted">2,1 đêm</td>
+                <td style="font-weight:500;">2,3 đêm</td>
+                <td class="up">+0.2 đêm</td>
+              </tr>
+              <tr>
+                <td>Khách hàng mới</td>
+                <td class="td-muted">13</td>
+                <td style="font-weight:500;">18</td>
+                <td class="up">+5 (+38%)</td>
+              </tr>
+              <tr>
+                <td>Hóa đơn chưa thanh toán</td>
+                <td class="td-muted">8</td>
+                <td style="font-weight:500;">6</td>
+                <td class="up">-2 (cải thiện)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /reports -->
+
+      <!-- ══════════ PAGE: CALENDAR ══════════ -->
+      <div class="page" id="page-calendar">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="ti ti-calendar"></i> Lịch đặt phòng — Tháng 5/2026</div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-outline btn-sm"><i class="ti ti-chevron-left"></i> Tháng trước</button>
+              <button class="btn btn-outline btn-sm">Tháng sau <i class="ti ti-chevron-right"></i></button>
+            </div>
+          </div>
+          <div style="padding:16px;">
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;">
+              <div style="text-align:center;font-size:11px;font-weight:600;color:var(--text3);padding:8px 0;">CN</div>
+              <div style="text-align:center;font-size:11px;font-weight:600;color:var(--text3);padding:8px 0;">T2</div>
+              <div style="text-align:center;font-size:11px;font-weight:600;color:var(--text3);padding:8px 0;">T3</div>
+              <div style="text-align:center;font-size:11px;font-weight:600;color:var(--text3);padding:8px 0;">T4</div>
+              <div style="text-align:center;font-size:11px;font-weight:600;color:var(--text3);padding:8px 0;">T5</div>
+              <div style="text-align:center;font-size:11px;font-weight:600;color:var(--text3);padding:8px 0;">T6</div>
+              <div style="text-align:center;font-size:11px;font-weight:600;color:var(--text3);padding:8px 0;">T7</div>
+            </div>
+            <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header">
+            <div class="card-title"><i class="ti ti-list"></i> Đặt phòng trong tháng</div>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mã đặt</th>
+                <th>Khách</th>
+                <th>Phòng</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-muted">#DP-041</td>
+                <td class="td-name">Nguyễn Văn A</td>
+                <td>P.102</td>
+                <td class="td-muted">22/05</td>
+                <td class="td-muted">23/05</td>
+                <td><span class="badge badge-green">Đã check-in</span></td>
+              </tr>
+              <tr>
+                <td class="td-muted">#DP-042</td>
+                <td class="td-name">Trần Thị Bình</td>
+                <td>P.105</td>
+                <td class="td-muted">24/05</td>
+                <td class="td-muted">26/05</td>
+                <td><span class="badge badge-blue">Đã xác nhận</span></td>
+              </tr>
+              <tr>
+                <td class="td-muted">#DP-043</td>
+                <td class="td-name">Phạm Quốc C</td>
+                <td>P.108</td>
+                <td class="td-muted">25/05</td>
+                <td class="td-muted">27/05</td>
+                <td><span class="badge badge-amber">Chờ xác nhận</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /calendar -->
+
+      <!-- ══════════ PAGE: SETTINGS ══════════ -->
+      <div class="page" id="page-settings">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-building"></i> Thông tin nhà nghỉ</div>
+            </div>
+            <div style="padding:18px;">
+              <div class="form-grid">
+                <div class="form-group full"><label class="form-label">Tên nhà nghỉ</label><input class="form-control"
+                    value="Nhà Nghỉ Bình An"></div>
+                <div class="form-group full"><label class="form-label">Địa chỉ</label><input class="form-control"
+                    value="123 Nguyễn Trãi, Ninh Kiều, Cần Thơ"></div>
+                <div class="form-group"><label class="form-label">Điện thoại</label><input class="form-control"
+                    value="0292 3456789"></div>
+                <div class="form-group"><label class="form-label">Email</label><input class="form-control"
+                    value="binhan@gmail.com"></div>
+                <div class="form-group"><label class="form-label">Giờ check-in</label><input class="form-control"
+                    type="time" value="14:00"></div>
+                <div class="form-group"><label class="form-label">Giờ check-out</label><input class="form-control"
+                    type="time" value="12:00"></div>
+              </div>
+              <div style="margin-top:14px;">
+                <button class="btn btn-primary" onclick="showToast('Đã lưu thông tin nhà nghỉ', 'ti-check')"><i
+                    class="ti ti-device-floppy"></i> Lưu thay đổi</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-user-cog"></i> Tài khoản quản trị</div>
+            </div>
+            <div style="padding:18px;">
+              <div class="form-grid">
+                <div class="form-group full"><label class="form-label">Họ tên</label><input class="form-control"
+                    value="Quản Trị Viên"></div>
+                <div class="form-group"><label class="form-label">Tên đăng nhập</label><input class="form-control"
+                    value="admin"></div>
+                <div class="form-group"><label class="form-label">Email</label><input class="form-control"
+                    value="admin@binhan.vn"></div>
+                <div class="form-group"><label class="form-label">Mật khẩu mới</label><input class="form-control"
+                    type="password" placeholder="Để trống nếu không đổi"></div>
+                <div class="form-group"><label class="form-label">Xác nhận mật khẩu</label><input class="form-control"
+                    type="password" placeholder=""></div>
+              </div>
+              <div style="margin-top:14px;">
+                <button class="btn btn-primary" onclick="showToast('Đã cập nhật tài khoản', 'ti-check')"><i
+                    class="ti ti-device-floppy"></i> Cập nhật</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-coin"></i> Cài đặt giá phòng</div>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Loại phòng</th>
+                  <th>Giá/đêm</th>
+                  <th>Giá theo giờ</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="td-name">Phòng đơn</td>
+                  <td><input class="form-control" style="width:120px;height:30px;" value="280.000đ"></td>
+                  <td><input class="form-control" style="width:120px;height:30px;" value="60.000đ/giờ"></td>
+                  <td><button class="btn btn-outline btn-sm" onclick="showToast('Đã lưu giá phòng đơn', 'ti-check')"><i
+                        class="ti ti-check"></i></button></td>
+                </tr>
+                <tr>
+                  <td class="td-name">Phòng đôi</td>
+                  <td><input class="form-control" style="width:120px;height:30px;" value="350.000đ"></td>
+                  <td><input class="form-control" style="width:120px;height:30px;" value="80.000đ/giờ"></td>
+                  <td><button class="btn btn-outline btn-sm" onclick="showToast('Đã lưu giá phòng đôi', 'ti-check')"><i
+                        class="ti ti-check"></i></button></td>
+                </tr>
+                <tr>
+                  <td class="td-name">VIP Suite</td>
+                  <td><input class="form-control" style="width:120px;height:30px;" value="650.000đ"></td>
+                  <td><input class="form-control" style="width:120px;height:30px;" value="120.000đ/giờ"></td>
+                  <td><button class="btn btn-outline btn-sm" onclick="showToast('Đã lưu giá VIP Suite', 'ti-check')"><i
+                        class="ti ti-check"></i></button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i class="ti ti-database"></i> Sao lưu dữ liệu</div>
+            </div>
+            <div style="padding:18px;display:flex;flex-direction:column;gap:12px;">
+              <div
+                style="background:var(--surface2);border-radius:var(--radius);padding:14px;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <div style="font-size:13px;font-weight:500;">Sao lưu tự động</div>
+                  <div style="font-size:12px;color:var(--text3);">Mỗi ngày lúc 02:00</div>
+                </div>
+                <span class="badge badge-green">Đang bật</span>
+              </div>
+              <div
+                style="background:var(--surface2);border-radius:var(--radius);padding:14px;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <div style="font-size:13px;font-weight:500;">Sao lưu gần nhất</div>
+                  <div style="font-size:12px;color:var(--text3);">22/05/2026 02:00:14</div>
+                </div>
+                <button class="btn btn-outline btn-sm"><i class="ti ti-download"></i> Tải xuống</button>
+              </div>
+              <button class="btn btn-primary" onclick="showToast('Đang sao lưu dữ liệu...', 'ti-database')"><i
+                  class="ti ti-cloud-upload"></i> Sao lưu ngay</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /settings -->
+
+    </div><!-- /content -->
+  </div><!-- /main-wrap -->
+
+  <!-- ══════════════ MODALS ══════════════ -->
+
+  <!-- Room Detail Modal -->
+  <div class="modal-backdrop" id="modal-room">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-room-title">Chi tiết phòng 101</div>
+        <div class="modal-close" onclick="closeModal('modal-room')"><i class="ti ti-x"></i></div>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;gap:12px;margin-bottom:16px;">
+          <span class="badge badge-red" id="modal-room-status">Đang thuê</span>
+          <span class="badge badge-gray">Phòng đôi</span>
+          <span class="badge badge-amber">Tầng 1</span>
+        </div>
+        <div class="detail-row">
+          <div class="detail-item">
+            <div class="detail-lbl">Khách hiện tại</div>
+            <div class="detail-val" id="modal-guest">Nguyễn Văn A</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-lbl">Giá/đêm</div>
+            <div class="detail-val" style="color:var(--accent);">350.000đ</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-lbl">Check-in</div>
+            <div class="detail-val" style="font-size:14px;">19/05/2026</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-lbl">Check-out</div>
+            <div class="detail-val" style="font-size:14px;">22/05/2026</div>
+          </div>
+        </div>
+        <div style="background:var(--surface2);border-radius:var(--radius);padding:14px;margin-bottom:16px;">
+          <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">Tiện nghi phòng</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <span class="badge badge-gray"><i class="ti ti-air-conditioning" style="font-size:13px;"></i> Điều
+              hòa</span>
+            <span class="badge badge-gray"><i class="ti ti-wifi" style="font-size:13px;"></i> WiFi</span>
+            <span class="badge badge-gray"><i class="ti ti-device-tv" style="font-size:13px;"></i> TV 32"</span>
+            <span class="badge badge-gray"><i class="ti ti-bath" style="font-size:13px;"></i> Phòng tắm riêng</span>
+            <span class="badge badge-gray"><i class="ti ti-fridge" style="font-size:13px;"></i> Tủ lạnh mini</span>
+          </div>
+        </div>
+        <div class="inv-row"><span>3 đêm × 350.000đ</span><span>1.050.000đ</span></div>
+        <div class="inv-row"><span>Dịch vụ khác</span><span>0đ</span></div>
+        <div class="inv-row"><span style="font-weight:600;">Tổng cộng</span><span class="inv-total">1.050.000đ</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modal-room')">Đóng</button>
+        <button class="btn btn-danger" onclick="doCheckout('P.101', 'Nguyễn Văn A'); closeModal('modal-room')"><i
+            class="ti ti-door-exit"></i> Check-out</button>
+        <button class="btn btn-primary"
+          onclick="showToast('Đang in hóa đơn...', 'ti-printer'); closeModal('modal-room')"><i
+            class="ti ti-printer"></i> In hóa đơn</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Room Modal -->
+  <div class="modal-backdrop" id="modal-add-room">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Thêm phòng mới</div>
+        <div class="modal-close" onclick="closeModal('modal-add-room')"><i class="ti ti-x"></i></div>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Số phòng *</label><input class="form-control"
+              placeholder="VD: 111"></div>
+          <div class="form-group"><label class="form-label">Loại phòng *</label>
+            <select class="form-control">
+              <option>Phòng đơn</option>
+              <option>Phòng đôi</option>
+              <option>VIP Suite</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Tầng</label>
+            <select class="form-control">
+              <option>Tầng 1</option>
+              <option>Tầng 2</option>
+              <option>Tầng 3</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Giá/đêm *</label><input class="form-control"
+              placeholder="350000"></div>
+          <div class="form-group"><label class="form-label">Giá theo giờ</label><input class="form-control"
+              placeholder="80000"></div>
+          <div class="form-group"><label class="form-label">Trạng thái</label>
+            <select class="form-control">
+              <option>Trống</option>
+              <option>Dọn phòng</option>
+              <option>Bảo trì</option>
+            </select>
+          </div>
+          <div class="form-group full"><label class="form-label">Mô tả / Tiện nghi</label>
+            <textarea class="form-control" placeholder="Điều hòa, WiFi, TV, ..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modal-add-room')">Hủy</button>
+        <button class="btn btn-primary"
+          onclick="showToast('Đã thêm phòng mới thành công!', 'ti-check'); closeModal('modal-add-room')"><i
+            class="ti ti-plus"></i> Thêm phòng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Booking Modal -->
+  <div class="modal-backdrop" id="modal-add">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Đặt phòng mới</div>
+        <div class="modal-close" onclick="closeModal('modal-add')"><i class="ti ti-x"></i></div>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Họ tên khách *</label><input class="form-control"
+              placeholder="Nguyễn Văn A"></div>
+          <div class="form-group"><label class="form-label">Số điện thoại</label><input class="form-control"
+              placeholder="0901234567"></div>
+          <div class="form-group"><label class="form-label">Chọn phòng *</label>
+            <select class="form-control">
+              <option>P.102 — Phòng đơn</option>
+              <option>P.105 — Phòng đôi</option>
+              <option>P.108 — VIP Suite</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Số đêm</label><input class="form-control" type="number"
+              value="1" min="1"></div>
+          <div class="form-group"><label class="form-label">Ngày check-in</label><input class="form-control" type="date"
+              value="2026-05-22"></div>
+          <div class="form-group"><label class="form-label">Thanh toán</label>
+            <select class="form-control">
+              <option>Tiền mặt</option>
+              <option>Chuyển khoản</option>
+              <option>Thẻ</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modal-add')">Hủy</button>
+        <button class="btn btn-primary"
+          onclick="showToast('Đã tạo đặt phòng thành công!', 'ti-check'); closeModal('modal-add')"><i
+            class="ti ti-check"></i> Xác nhận</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invoice Detail Modal -->
+  <div class="modal-backdrop" id="modal-invoice">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Hóa đơn #HĐ-0087</div>
+        <div class="modal-close" onclick="closeModal('modal-invoice')"><i class="ti ti-x"></i></div>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;justify-content:space-between;margin-bottom:18px;">
+          <div>
+            <div style="font-size:12px;color:var(--text3);">Nhà Nghỉ Bình An</div>
+            <div style="font-size:11px;color:var(--text3);">123 Nguyễn Trãi, Ninh Kiều, Cần Thơ</div>
+          </div>
+          <span class="badge badge-green">Đã thanh toán</span>
+        </div>
+        <div class="detail-row">
+          <div class="detail-item">
+            <div class="detail-lbl">Khách hàng</div>
+            <div class="detail-val" style="font-size:14px;">Lê Hoàng Cường</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-lbl">Phòng</div>
+            <div class="detail-val" style="font-size:14px;">P.101</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-lbl">Check-in</div>
+            <div class="detail-val" style="font-size:13px;">19/05/2026 14:00</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-lbl">Check-out</div>
+            <div class="detail-val" style="font-size:13px;">22/05/2026 12:00</div>
+          </div>
+        </div>
+        <div style="margin-top:4px;">
+          <div class="inv-row"><span>Tiền phòng (3 đêm × 350.000đ)</span><span>1.050.000đ</span></div>
+          <div class="inv-row"><span>Dịch vụ bổ sung</span><span>0đ</span></div>
+          <div class="inv-row"><span>Thuế & phí</span><span>0đ</span></div>
+          <div class="inv-row" style="margin-top:8px;padding-top:12px;border-top:2px solid var(--border);">
+            <span>TỔNG CỘNG</span><span class="inv-total" style="font-size:18px;">1.050.000đ</span>
+          </div>
+        </div>
+        <div
+          style="margin-top:14px;background:var(--accent-light);border-radius:var(--radius);padding:12px;font-size:12.5px;color:var(--accent-text);">
+          <i class="ti ti-check-circle" style="font-size:15px;vertical-align:-2px;"></i>
+          Đã thanh toán bằng <strong>Tiền mặt</strong> vào lúc 11:35 ngày 22/05/2026
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modal-invoice')">Đóng</button>
+        <button class="btn btn-primary"
+          onclick="showToast('Đang in hóa đơn...', 'ti-printer'); closeModal('modal-invoice')"><i
+            class="ti ti-printer"></i> In hóa đơn</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <i class="ti ti-check" id="toast-icon"></i>
+    <span id="toast-text">Thao tác thành công</span>
+  </div>
+
+  <script>
+    // ── Navigation ───────────────────────────────────────────
+    const headings = {
+      dashboard: ['Dashboard', 'Tổng quan hôm nay'],
+      rooms: ['Quản lý phòng', 'Danh sách & trạng thái phòng'],
+      checkin: ['Check-in / Check-out', 'Thủ tục nhận & trả phòng'],
+      customers: ['Khách hàng', 'Danh sách khách hàng'],
+      invoices: ['Hóa đơn', 'Quản lý thanh toán'],
+      revenue: ['Doanh thu', 'Thống kê tài chính'],
+      reports: ['Báo cáo', 'Phân tích tổng hợp'],
+      calendar: ['Lịch đặt phòng', 'Quản lý đặt trước'],
+      settings: ['Cài đặt', 'Cấu hình hệ thống'],
+    };
+
+    function navigate(id, el) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const page = document.getElementById('page-' + id);
+      if (page) page.classList.add('active');
+      if (el) el.classList.add('active');
+      else {
+        document.querySelectorAll('.nav-item').forEach(n => {
+          if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) n.classList.add('active');
+        });
+      }
+      if (headings[id]) {
+        document.getElementById('page-heading').textContent = headings[id][0];
+        document.getElementById('page-breadcrumb').textContent = headings[id][1];
+      }
+    }
+
+    // ── Modals ───────────────────────────────────────────────
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+    document.querySelectorAll('.modal-backdrop').forEach(b => {
+      b.addEventListener('click', function (e) {
+        if (e.target === this) this.classList.remove('open');
+      });
+    });
+
+    function openRoomDetail(num) {
+      document.getElementById('modal-room-title').textContent = 'Chi tiết phòng ' + num;
+      openModal('modal-room');
+    }
+    function openAddRoomModal() { openModal('modal-add-room'); }
+    function openAddModal() { openModal('modal-add'); }
+    function openInvoiceModal() { openModal('modal-add'); }
+    function openInvoiceDetail() { openModal('modal-invoice'); }
+
+    // ── Toast ────────────────────────────────────────────────
+    let toastTimer;
+    function showToast(msg, icon) {
+      const t = document.getElementById('toast');
+      document.getElementById('toast-text').textContent = msg;
+      if (icon) document.getElementById('toast-icon').className = 'ti ' + icon;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+    }
+
+    // ── Check-in price calculator ───────────────────────────
+    function updatePrice() {
+      const sel = document.getElementById('ci-room');
+      const nights = parseInt(document.getElementById('ci-nights').value) || 0;
+      const opt = sel.options[sel.selectedIndex];
+      const price = parseInt(opt.dataset.price || 0);
+      const total = price * nights;
+      const fmt = total > 0 ? total.toLocaleString('vi-VN') + 'đ' : '0đ';
+      document.getElementById('ci-total').textContent = fmt;
+    }
+
+    function doCheckin() {
+      const name = document.getElementById('ci-name').value.trim();
+      const room = document.getElementById('ci-room').value;
+      if (!name || !room) { showToast('Vui lòng điền đầy đủ thông tin!', 'ti-alert-circle'); return; }
+      showToast('Check-in thành công: ' + name, 'ti-check');
+      document.getElementById('ci-name').value = '';
+      document.getElementById('ci-id').value = '';
+      document.getElementById('ci-room').value = '';
+      document.getElementById('ci-total').textContent = '0đ';
+    }
+
+    function doCheckout(room, name) {
+      showToast('Check-out ' + name + ' — ' + room + ' thành công', 'ti-door-exit');
+    }
+
+    // ── Filter rooms ─────────────────────────────────────────
+    function filterRooms(type, el) {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      const rows = document.querySelectorAll('#rooms-tbody tr');
+      rows.forEach(r => {
+        if (type === 'all') { r.style.display = ''; return; }
+        const badge = r.querySelector('.badge');
+        const txt = badge ? badge.textContent.toLowerCase() : '';
+        const show = (type === 'available' && txt.includes('trống')) ||
+          (type === 'occupied' && txt.includes('thuê')) ||
+          (type === 'cleaning' && txt.includes('dọn'));
+        r.style.display = show ? '' : 'none';
+      });
+    }
+
+    // ── Calendar ─────────────────────────────────────────────
+    function buildCalendar() {
+      const grid = document.getElementById('cal-grid');
+      if (!grid) return;
+      const today = 22;
+      const booked = [19, 20, 21, 22, 23, 24, 25, 26];
+      const checkout = [22, 23];
+      let html = '';
+      // May 2026 starts Thursday (day 4), offset 4 empty cells
+      for (let i = 0; i < 4; i++) html += '<div></div>';
+      for (let d = 1; d <= 31; d++) {
+        const isToday = d === today;
+        const isCO = checkout.includes(d);
+        const isBk = booked.includes(d);
+        let bg = 'background:white;border:1px solid var(--border);';
+        let col = 'color:var(--text);';
+        if (isToday) bg = 'background:var(--accent);border:1px solid var(--accent);', col = 'color:white;';
+        else if (isCO) bg = 'background:#FCEBEB;border:1px solid #F7C1C1;', col = 'color:#A32D2D;';
+        else if (isBk) bg = 'background:#E1F5EE;border:1px solid #9FE1CB;', col = 'color:#0F6E56;';
+        html += `<div style="${bg}${col} border-radius:7px;padding:8px 4px;text-align:center;font-size:13px;font-weight:${isToday ? 700 : 500};cursor:pointer;" onclick="showToast('Ngày ${d}/5/2026', 'ti-calendar')">${d}</div>`;
+      }
+      grid.innerHTML = html;
+    }
+
+    buildCalendar();
+
+    // ESC closes modals
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-backdrop.open').forEach(m => m.classList.remove('open'));
+      }
+    });
+  </script>
+</body>
+
 </html>
