@@ -14,7 +14,7 @@ export default function App() {
           <div className="sidebar-brand">
             <span className="brand-icon">🏨</span>
             <div>
-              <div className="brand-name">NHÀ NGHỈ</div>
+              <div className="brand-name">NHÀ NGHỈ 79</div>
               <div
                 style={{
                   fontSize: 10,
