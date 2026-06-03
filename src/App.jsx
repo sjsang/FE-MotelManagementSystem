@@ -1,130 +1,152 @@
-import { useState, useCallback } from "react";
-import globalStyle from "./utils/globalStyle";
-import ModalAddBooking from "./components/Modal/ModalAddBooking";
-import ModalAddRoom from "./components/Modal/ModalAddRoom";
-import ModalInvoice from "./components/Modal/ModalInvoice";
-import ModalRoomDetail from "./components/Modal/ModalRoomDetail";
-import PageDashboard from "./pages/PageDashboard"
-import PageCalendar from "./pages/PageCalendar"
-import PageCheckin from "./pages/PageCheckInOut"
-import PageCustomers from "./pages/PageCustomers"
-import PageInvoices from "./pages/PageInvoices"
-import PageReports from "./pages/PageReports"
-import PageRooms from "./pages/PageRooms"
-import PageRevenue from "./pages/PageRevenue"
-import PageSettings from "./pages/PageSettings"
-import Sidebar from "./components/Sidebar"
-import Topbar from "./components/Topbar"
-import Toast from "./components/Toast"
+import React from "react";
+import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
+import RoomMap from "./pages/RoomMap";
+import RoomManagement from "./pages/RoomManagement";
+import PriceManagement from "./pages/PriceManagement";
+import BookingHistory from "./pages/BookingHistory";
+import "./styles/App.css";
 
 export default function App() {
-  const [activePage, setActivePage] = useState("dashboard");
-  const [toast, setToast] = useState({
-    msg: "",
-    icon: "ti-check",
-    show: false,
-  });
-  const [modal, setModal] = useState({
-    roomDetail: false,
-    addRoom: false,
-    addBooking: false,
-    invoice: false,
-  });
-  const [selectedRoom, setSelectedRoom] = useState("101");
-  const toastTimer = useState(null);
-
-  const showToast = useCallback((msg, icon = "ti-check") => {
-    setToast({ msg, icon, show: true });
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(
-      () => setToast((t) => ({ ...t, show: false })),
-      2800
-    );
-  }, []);
-
-  const openModal = (key) => setModal((m) => ({ ...m, [key]: true }));
-  const closeModal = (key) => setModal((m) => ({ ...m, [key]: false }));
-
-  const openRoomDetail = (num) => {
-    setSelectedRoom(num);
-    openModal("roomDetail");
-  };
-
-  const pageMap = {
-    dashboard: (
-      <PageDashboard
-        onNavigate={setActivePage}
-        onOpenRoomDetail={openRoomDetail}
-        onOpenAddRoomModal={() => openModal("addRoom")}
-        showToast={showToast}
-      />
-    ),
-    rooms: (
-      <PageRooms
-        onNavigate={setActivePage}
-        onOpenRoomDetail={openRoomDetail}
-        onOpenAddRoomModal={() => openModal("addRoom")}
-        showToast={showToast}
-      />
-    ),
-    checkin: <PageCheckin showToast={showToast} />,
-    customers: <PageCustomers showToast={showToast} />,
-    invoices: (
-      <PageInvoices
-        onOpenInvoiceDetail={() => openModal("invoice")}
-        showToast={showToast}
-      />
-    ),
-    revenue: <PageRevenue />,
-    reports: <PageReports />,
-    calendar: <PageCalendar showToast={showToast} />,
-    settings: <PageSettings showToast={showToast} />,
-  };
-
   return (
-    <>
-      <style>{globalStyle}</style>
-
-      <div className="flex min-h-screen overflow-hidden">
-        <Sidebar activePage={activePage} onNavigate={setActivePage} />
-
-        <div className="ml-(--sidebar-w) flex-1 flex flex-col h-screen overflow-hidden bg-(--bg)">
-          <Topbar
-            activePage={activePage}
-            onAddClick={() => openModal("addBooking")}
-            showToast={showToast}
-          />
-          <div className="flex-1 overflow-y-auto py-5.5 px-6">
-            {pageMap[activePage]}
+    <BrowserRouter>
+      <div className="app-layout">
+        <aside className="sidebar">
+          <div className="sidebar-brand">
+            <span className="brand-icon">🏨</span>
+            <div>
+              <div className="brand-name">NHÀ NGHỈ</div>
+              <div
+                style={{
+                  fontSize: 10,
+                  color: "rgba(255,255,255,0.35)",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Hệ thống quản lý
+              </div>
+            </div>
           </div>
-        </div>
+          <nav className="sidebar-nav">
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: "rgba(255,255,255,0.25)",
+                letterSpacing: "0.1em",
+                padding: "8px 12px 4px",
+                textTransform: "uppercase",
+              }}
+            >
+              TỔNG QUAN
+            </div>
+            <NavLink
+              to="/"
+              end
+              className={({ isActive }) =>
+                isActive ? "nav-item active" : "nav-item"
+              }
+            >
+              <span className="nav-icon">⊞</span> Sơ đồ phòng
+            </NavLink>
+
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: "rgba(255,255,255,0.25)",
+                letterSpacing: "0.1em",
+                padding: "12px 12px 4px",
+                textTransform: "uppercase",
+              }}
+            >
+              QUẢN LÝ
+            </div>
+            <NavLink
+              to="/rooms"
+              className={({ isActive }) =>
+                isActive ? "nav-item active" : "nav-item"
+              }
+            >
+              <span className="nav-icon">🚪</span> Quản lý phòng
+            </NavLink>
+            <NavLink
+              to="/prices"
+              className={({ isActive }) =>
+                isActive ? "nav-item active" : "nav-item"
+              }
+            >
+              <span className="nav-icon">💰</span> Bảng giá
+            </NavLink>
+
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: "rgba(255,255,255,0.25)",
+                letterSpacing: "0.1em",
+                padding: "12px 12px 4px",
+                textTransform: "uppercase",
+              }}
+            >
+              BÁO CÁO
+            </div>
+            <NavLink
+              to="/history"
+              className={({ isActive }) =>
+                isActive ? "nav-item active" : "nav-item"
+              }
+            >
+              <span className="nav-icon">📋</span> Lịch sử
+            </NavLink>
+          </nav>
+
+          {/* Bottom user section */}
+          <div
+            style={{
+              padding: "14px 16px",
+              borderTop: "1px solid rgba(255,255,255,0.07)",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: "50%",
+                background: "var(--sidebar-active-bg)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 14,
+                fontWeight: 700,
+                color: "#fff",
+                flexShrink: 0,
+              }}
+            >
+              QT
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>
+                Quản Trị Viên
+              </div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
+                Administrator
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<RoomMap />} />
+            <Route path="/rooms" element={<RoomManagement />} />
+            <Route path="/prices" element={<PriceManagement />} />
+            <Route path="/history" element={<BookingHistory />} />
+          </Routes>
+        </main>
       </div>
-
-      {/* Modals */}
-      <ModalRoomDetail
-        open={modal.roomDetail}
-        onClose={() => closeModal("roomDetail")}
-        roomNum={selectedRoom}
-        showToast={showToast}
-      />
-      <ModalAddRoom
-        open={modal.addRoom}
-        onClose={() => closeModal("addRoom")}
-        showToast={showToast}
-      />
-      <ModalAddBooking
-        open={modal.addBooking}
-        onClose={() => closeModal("addBooking")}
-        showToast={showToast}
-      />
-      <ModalInvoice
-        open={modal.invoice}
-        onClose={() => closeModal("invoice")}
-        showToast={showToast}
-      />
-
-      {/* Toast */}
-      <Toast msg={toast.msg} icon={toast.icon} show={toast.show} />
-    </>
+    </BrowserRouter>
   );
 }
