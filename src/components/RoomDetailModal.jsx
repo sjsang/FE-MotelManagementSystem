@@ -15,12 +15,19 @@ function calcElapsed(checkIn) {
 }
 
 export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut, onRefresh, addToast }) {
-  const booking = room.currentBooking;
+  const [booking, setBooking] = useState(room.currentBooking);
   const [services, setServices] = useState(booking?.services || []);
   const [elapsed, setElapsed] = useState(calcElapsed(booking?.checkIn));
   const [newService, setNewService] = useState({ name: '', price: '', quantity: 1 });
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState('info'); // 'info' | 'services' | 'checkout'
+
+  useEffect(() => {
+    setBooking(room.currentBooking);
+    setServices(room.currentBooking?.services || []);
+    setElapsed(calcElapsed(room.currentBooking?.checkIn));
+    setTab('info');
+  }, [room.currentBooking]);
 
   useEffect(() => {
     const t = setInterval(() => setElapsed(calcElapsed(booking?.checkIn)), 30000);
@@ -71,6 +78,21 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
     } catch { addToast('Lỗi lưu dịch vụ', 'error'); }
   };
 
+  const handleReport = async () => {
+    setLoading(true);
+    try {
+      const now = new Date();
+      const res = await updateBooking(booking._id, { is_reported: true, reported: now });
+      setBooking(res.data);
+      addToast('Đã ghi nhận khai báo lưu trú thành công');
+      if (onRefresh) onRefresh();
+    } catch (e) {
+      addToast('Lỗi khi ghi nhận khai báo lưu trú', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCheckOut = async () => {
     setLoading(true);
     await onCheckOut(booking._id, services, booking.notes);
@@ -94,15 +116,18 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0 24px' }}>
-          {[['info', 'Thông tin'], ['services', `Dịch vụ (${services.length})`], ['checkout', 'Check-out']].map(([key, label]) => (
-            <button key={key} onClick={() => setTab(key)}
-              style={{ padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13,
-                fontWeight: tab === key ? 600 : 400, color: tab === key ? '#8b85ff' : '#9fa3b8',
-                borderBottom: tab === key ? '2px solid #8b85ff' : '2px solid transparent',
-                marginBottom: -1, fontFamily: 'inherit' }}>
-              {label}
-            </button>
-          ))}
+          {[['info', 'Thông tin'], ['services', `Dịch vụ (${services.length})`], ['checkout', 'Check-out']].map(([key, label]) => {
+            if (key === 'checkout' && !booking?.is_reported) return null;
+            return (
+              <button key={key} onClick={() => setTab(key)}
+                style={{ padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13,
+                  fontWeight: tab === key ? 600 : 400, color: tab === key ? '#8b85ff' : '#9fa3b8',
+                  borderBottom: tab === key ? '2px solid #8b85ff' : '2px solid transparent',
+                  marginBottom: -1, fontFamily: 'inherit' }}>
+                {label}
+              </button>
+            );
+          })}
         </div>
 
         <div className="modal-body">
@@ -111,15 +136,15 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 {[
                   ['Khách', booking.guestName],
-                  ['SĐT', booking.guestPhone || '--'],
-                  ['CMND', booking.guestId || '--'],
+                  ['Khai báo công an', booking.is_reported ? `Đã khai báo (${formatTime(booking.reported)})` : 'Chưa khai báo'],
+                  ['CMND / Hộ chiếu', booking.guestId || '--'],
                   ['Loại', booking.bookingType === 'hourly' ? 'Nghỉ giờ' : booking.bookingType === 'overnight' ? 'Qua đêm' : 'Ngày đêm'],
                   ['Ca', booking.shift === 'night' ? 'Ca đêm' : 'Ca ngày'],
                   ['Giá cơ bản', fmt(booking.basePrice)],
                 ].map(([label, value]) => (
                   <div key={label} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: '10px 12px' }}>
                     <div style={{ fontSize: 11, color: '#6b6f84', marginBottom: 2 }}>{label}</div>
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>{value}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: label === 'Khai báo công an' ? (booking.is_reported ? '#10b981' : '#f59e0b') : 'inherit' }}>{value}</div>
                   </div>
                 ))}
               </div>
@@ -231,10 +256,16 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
             </button>
           )}
           {tab !== 'checkout' && (
-            <button className="btn" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}
-              onClick={() => setTab('checkout')}>
-              Chuyển sang Check-out →
-            </button>
+            !booking.is_reported ? (
+              <button className="btn btn-success" onClick={handleReport} disabled={loading} style={{ background: '#2e7d52', borderColor: '#2e7d52', color: '#ffffff' }}>
+                {loading ? '...' : '👮 Đã khai báo lưu trú'}
+              </button>
+            ) : (
+              <button className="btn" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}
+                onClick={() => setTab('checkout')}>
+                Chuyển sang Check-out →
+              </button>
+            )
           )}
         </div>
       </div>
