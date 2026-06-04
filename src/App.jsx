@@ -7,6 +7,13 @@ import BookingHistory from "./pages/BookingHistory";
 import CustomerManagement from "./pages/CustomerManagement";
 import Auth from "./pages/Auth";
 import "./styles/App.css";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import GridViewIcon from "@mui/icons-material/GridView";
+import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
+import PriceChangeIcon from "@mui/icons-material/PriceChange";
+import PeopleIcon from "@mui/icons-material/People";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import HistoryIcon from "@mui/icons-material/History";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -31,7 +38,9 @@ export default function App() {
       <div className="app-layout">
         <aside className="sidebar">
           <div className="sidebar-brand">
-            <span className="brand-icon">🏨</span>
+            <span className="brand-icon">
+              <DashboardIcon />
+            </span>
             <div>
               <div className="brand-name">NHÀ NGHỈ 79</div>
               <div
@@ -65,7 +74,10 @@ export default function App() {
                 isActive ? "nav-item active" : "nav-item"
               }
             >
-              <span className="nav-icon">⊞</span> Sơ đồ phòng
+              <span className="nav-icon">
+                <GridViewIcon />
+              </span>{" "}
+              Sơ đồ phòng
             </NavLink>
 
             <div
@@ -86,7 +98,10 @@ export default function App() {
                 isActive ? "nav-item active" : "nav-item"
               }
             >
-              <span className="nav-icon">🚪</span> Quản lý phòng
+              <span className="nav-icon">
+                <MeetingRoomIcon />
+              </span>{" "}
+              Quản lý phòng
             </NavLink>
             <NavLink
               to="/prices"
@@ -94,7 +109,10 @@ export default function App() {
                 isActive ? "nav-item active" : "nav-item"
               }
             >
-              <span className="nav-icon">💰</span> Bảng giá
+              <span className="nav-icon">
+                <PriceChangeIcon />
+              </span>{" "}
+              Bảng giá
             </NavLink>
             <NavLink
               to="/customers"
@@ -102,7 +120,10 @@ export default function App() {
                 isActive ? "nav-item active" : "nav-item"
               }
             >
-              <span className="nav-icon">👥</span> Khách lưu trú
+              <span className="nav-icon">
+                <PeopleIcon />
+              </span>{" "}
+              Khách lưu trú
             </NavLink>
 
             <div
@@ -123,7 +144,10 @@ export default function App() {
                 isActive ? "nav-item active" : "nav-item"
               }
             >
-              <span className="nav-icon">📋</span> Lịch sử
+              <span className="nav-icon">
+                <HistoryIcon />
+              </span>{" "}
+              Lịch sử
             </NavLink>
           </nav>
 
