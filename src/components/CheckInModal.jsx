@@ -19,6 +19,32 @@ function getPricePreview(priceConfig, roomType, bookingType, shift) {
   return null;
 }
 
+function getHourlyHint(priceConfig, roomType, shift) {
+  if (!priceConfig) return null;
+  try {
+    const prices = shift === "night" ? priceConfig.nightShift : priceConfig.dayShift;
+    const tp = roomType === "double" ? prices.double : prices.single;
+    const first = tp.hourly_first;
+    const extra = tp.hourly_extra;
+    const firstLimit = tp.hourly_first_limit; // phút, nếu có
+    if (shift === "day") {
+      const parts = [];
+      if (firstLimit && first)
+        parts.push(`≤${firstLimit}p: ${(first / 1000).toFixed(0)}k`);
+      if (tp.hourly_2h) parts.push(`≤2h: ${(tp.hourly_2h / 1000).toFixed(0)}k`);
+      if (extra) parts.push(`+${(extra / 1000).toFixed(0)}k/giờ`);
+      return parts.length ? parts.join(" • ") : null;
+    } else {
+      const parts = [];
+      if (first) parts.push(`Từ ${(first / 1000).toFixed(0)}k`);
+      if (extra) parts.push(`+${(extra / 1000).toFixed(0)}k/giờ`);
+      return parts.length ? parts.join(" • ") : null;
+    }
+  } catch {
+    return null;
+  }
+}
+
 function SearchableCustomerSelect({ label, customers, selectedCustomer, onSelect, onClear, excludeId }) {
   const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -197,7 +223,11 @@ export default function CheckInModal({ room, priceConfig, onClose, onSubmit }) {
   };
 
   const pricePreview = getPricePreview(priceConfig, room.type, form.bookingType, form.shift);
-  const fmt = (n) => n ? n.toLocaleString('vi-VN') + 'đ' : '';
+  const hourlyHint =
+    form.bookingType === "hourly"
+      ? getHourlyHint(priceConfig, room.type, form.shift)
+      : null;
+  const fmt = (n) => (n ? n.toLocaleString("vi-VN") + "đ" : "");
 
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -277,11 +307,9 @@ export default function CheckInModal({ room, priceConfig, onClose, onSubmit }) {
             </div>
           )}
 
-          {form.bookingType === 'hourly' && (
+          {hourlyHint && (
             <div style={{ background: 'rgba(245,158,11,0.08)', borderRadius: 8, padding: '10px 12px', marginBottom: 14, fontSize: 12.5, color: '#f59e0b' }}>
-              {form.shift === 'day'
-                ? '≤30p: 80k • ≤2h: 100k • Thêm +20k/giờ'
-                : 'Từ 120k/h • Thêm +40k/giờ'}
+              {hourlyHint}
             </div>
           )}
 
