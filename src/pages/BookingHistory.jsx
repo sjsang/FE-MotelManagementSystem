@@ -80,11 +80,13 @@ export default function BookingHistory() {
           <div>
             <div className="form-label">Từ ngày</div>
             <input type="date" className="form-control" value={filter.from}
+              min="1900-01-01"
               onChange={e => setFilter(f => ({ ...f, from: e.target.value }))} style={{ width: 160 }} />
           </div>
           <div>
             <div className="form-label">Đến ngày</div>
             <input type="date" className="form-control" value={filter.to}
+              min="1900-01-01"
               onChange={e => setFilter(f => ({ ...f, to: e.target.value }))} style={{ width: 160 }} />
           </div>
           <div>

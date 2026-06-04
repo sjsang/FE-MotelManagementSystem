@@ -1,12 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
 import RoomMap from "./pages/RoomMap";
 import RoomManagement from "./pages/RoomManagement";
 import PriceManagement from "./pages/PriceManagement";
 import BookingHistory from "./pages/BookingHistory";
+import CustomerManagement from "./pages/CustomerManagement";
+import Auth from "./pages/Auth";
 import "./styles/App.css";
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem("token")
+  );
+
+  const handleAuthSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
+  };
+
+  if (!isAuthenticated) {
+    return <Auth onAuthSuccess={handleAuthSuccess} />;
+  }
+
   return (
     <BrowserRouter>
       <div className="app-layout">
@@ -77,6 +96,14 @@ export default function App() {
             >
               <span className="nav-icon">💰</span> Bảng giá
             </NavLink>
+            <NavLink
+              to="/customers"
+              className={({ isActive }) =>
+                isActive ? "nav-item active" : "nav-item"
+              }
+            >
+              <span className="nav-icon">👥</span> Khách lưu trú
+            </NavLink>
 
             <div
               style={{
@@ -100,7 +127,7 @@ export default function App() {
             </NavLink>
           </nav>
 
-          {/* Bottom user section */}
+          {/* Bottom user section with logout button */}
           <div
             style={{
               padding: "14px 16px",
@@ -127,7 +154,7 @@ export default function App() {
             >
               QT
             </div>
-            <div>
+            <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>
                 Quản Trị Viên
               </div>
@@ -135,6 +162,34 @@ export default function App() {
                 Administrator
               </div>
             </div>
+            <button
+              onClick={handleLogout}
+              title="Đăng xuất"
+              style={{
+                background: "rgba(239, 68, 68, 0.15)",
+                border: "none",
+                width: 32,
+                height: 32,
+                borderRadius: "8px",
+                color: "#f87171",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 14,
+                transition: "all 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#dc2626";
+                e.currentTarget.style.color = "#fff";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(239, 68, 68, 0.15)";
+                e.currentTarget.style.color = "#f87171";
+              }}
+            >
+              ➔
+            </button>
           </div>
         </aside>
 
@@ -143,6 +198,7 @@ export default function App() {
             <Route path="/" element={<RoomMap />} />
             <Route path="/rooms" element={<RoomManagement />} />
             <Route path="/prices" element={<PriceManagement />} />
+            <Route path="/customers" element={<CustomerManagement />} />
             <Route path="/history" element={<BookingHistory />} />
           </Routes>
         </main>

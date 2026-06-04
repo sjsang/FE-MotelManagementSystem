@@ -1,11 +1,24 @@
 import axios from 'axios';
 
-
-// Thay đổi ở đây:
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 const api = axios.create({ baseURL: BASE });
 
-// ... Các hàm Rooms, Bookings, Prices giữ nguyên
+// Tự động đính kèm JWT token vào header của tất cả request
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Auth
+export const login = (data) => api.post('/auth/login', data);
+export const register = (data) => api.post('/auth/register', data);
+export const getUserInfo = () => api.get('/auth/me');
 
 // Rooms
 export const getRooms = () => api.get('/rooms');
@@ -26,3 +39,11 @@ export const getPrices = () => api.get('/prices');
 export const createPrice = (data) => api.post('/prices', data);
 export const updatePrice = (id, data) => api.put(`/prices/${id}`, data);
 export const deletePrice = (id) => api.delete(`/prices/${id}`);
+
+// Customers
+export const getCustomers = () => api.get('/customers');
+export const getCustomerById = (id) => api.get(`/customers/${id}`);
+export const getCustomerOptions = () => api.get('/customers/options');
+export const createCustomer = (data) => api.post('/customers', data);
+export const updateCustomer = (id, data) => api.put(`/customers/${id}`, data);
+export const deleteCustomer = (id) => api.delete(`/customers/${id}`);
