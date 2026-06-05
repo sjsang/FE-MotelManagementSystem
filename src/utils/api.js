@@ -41,7 +41,7 @@ export const updatePrice = (id, data) => api.put(`/prices/${id}`, data);
 export const deletePrice = (id) => api.delete(`/prices/${id}`);
 
 // Customers
-export const getCustomers = () => api.get('/customers');
+export const getCustomers = (params) => api.get("/customers", { params });
 export const getCustomerById = (id) => api.get(`/customers/${id}`);
 export const getCustomerOptions = () => api.get('/customers/options');
 export const createCustomer = (data) => api.post('/customers', data);

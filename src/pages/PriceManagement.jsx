@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { getActivePrice, updatePrice } from "../utils/api";
 import { useToast } from "../hooks/useToast";
 
-// ── Định nghĩa NGOÀI component để tránh unmount/mount mất focus ──
 const PriceField = ({ label, path, note, edited, onChange }) => {
   const value = path.split(".").reduce((obj, k) => obj?.[k], edited) ?? "";
   return (
@@ -13,9 +12,10 @@ const PriceField = ({ label, path, note, edited, onChange }) => {
         justifyContent: "space-between",
         padding: "12px 0",
         borderBottom: "1px solid rgba(255,255,255,0.05)",
+        gap: 12,
       }}
     >
-      <div>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13.5, fontWeight: 500 }}>{label}</div>
         {note && (
           <div style={{ fontSize: 11.5, color: "#6b6f84", marginTop: 2 }}>
@@ -23,11 +23,13 @@ const PriceField = ({ label, path, note, edited, onChange }) => {
           </div>
         )}
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div
+        style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}
+      >
         <input
           type="number"
           className="form-control"
-          style={{ width: 130, textAlign: "right" }}
+          style={{ width: 120, textAlign: "right" }}
           value={value}
           onChange={(e) => onChange(path, e.target.value)}
         />
@@ -104,7 +106,6 @@ export default function PriceManagement() {
 
   const fmt = (n) => (n ? n.toLocaleString("vi-VN") : "0");
 
-  // Shorthand để không phải lặp edited={edited} onChange={set} mãi
   const field = (label, path, note) => (
     <PriceField
       label={label}
@@ -146,18 +147,18 @@ export default function PriceManagement() {
 
       {/* ── TABS ── */}
       <div
-        style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}
+        style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}
       >
         {[
-          ["day", "☀️ Ca ngày (5h–23h)"],
-          ["night", "🌙 Ca đêm (23h–5h)"],
+          ["day", "☀️ Ca ngày"],
+          ["night", "🌙 Ca đêm"],
           ["services", "🛒 Dịch vụ"],
         ].map(([key, label]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
             style={{
-              padding: "8px 18px",
+              padding: "8px 16px",
               borderRadius: 8,
               border: "none",
               cursor: "pointer",
@@ -167,6 +168,7 @@ export default function PriceManagement() {
               background: tab === key ? "var(--accent)" : "var(--bg3)",
               color: tab === key ? "#fff" : "#9fa3b8",
               transition: "all 0.15s",
+              whiteSpace: "nowrap",
             }}
           >
             {label}
@@ -176,9 +178,7 @@ export default function PriceManagement() {
 
       {/* ── CA NGÀY ── */}
       {tab === "day" && (
-        <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
-        >
+        <div className="price-grid-2">
           <div className="card">
             <div style={{ fontWeight: 700, marginBottom: 4, color: "#8b85ff" }}>
               🛏 Phòng đơn – Ca ngày
@@ -214,7 +214,7 @@ export default function PriceManagement() {
             {field("Phụ thu mỗi giờ thêm", "dayShift.double.hourly_extra")}
           </div>
 
-          <div className="card" style={{ gridColumn: "span 2" }}>
+          <div className="card price-span-2">
             <div style={{ fontWeight: 700, marginBottom: 12 }}>
               ⏰ Phụ thu chung
             </div>
@@ -229,9 +229,7 @@ export default function PriceManagement() {
 
       {/* ── CA ĐÊM ── */}
       {tab === "night" && (
-        <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
-        >
+        <div className="price-grid-2">
           <div className="card">
             <div style={{ fontWeight: 700, marginBottom: 4, color: "#8b85ff" }}>
               🛏 Phòng đơn – Ca đêm
@@ -262,7 +260,7 @@ export default function PriceManagement() {
             {field("Phụ thu mỗi giờ thêm", "nightShift.double.hourly_extra")}
           </div>
 
-          <div className="card" style={{ gridColumn: "span 2" }}>
+          <div className="card price-span-2">
             <div
               style={{
                 background: "rgba(59,130,246,0.08)",
@@ -297,16 +295,7 @@ export default function PriceManagement() {
           </div>
 
           {(edited.services || []).map((svc, i) => (
-            <div
-              key={i}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "2fr 1fr 1fr auto",
-                gap: 10,
-                marginBottom: 10,
-                alignItems: "center",
-              }}
-            >
+            <div key={i} className="svc-row">
               <input
                 className="form-control"
                 placeholder="Tên dịch vụ"
@@ -332,6 +321,7 @@ export default function PriceManagement() {
                   background: "rgba(239,68,68,0.1)",
                   color: "#ef4444",
                   border: "1px solid rgba(239,68,68,0.2)",
+                  flexShrink: 0,
                 }}
                 onClick={() => removeService(i)}
               >
@@ -364,7 +354,7 @@ export default function PriceManagement() {
         </div>
       )}
 
-      {/* ── TÓM TẮT BẢNG GIÁ ── */}
+      {/* ── TÓM TẮT ── */}
       {tab !== "services" && (
         <div className="card" style={{ marginTop: 16 }}>
           <div style={{ fontWeight: 700, marginBottom: 14 }}>
@@ -404,6 +394,61 @@ export default function PriceManagement() {
           </div>
         </div>
       )}
+
+      <style>{`
+        /* Desktop: 2-col grid */
+        .price-grid-2 {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+        .price-span-2 {
+          grid-column: span 2;
+        }
+
+        /* Service row: 4 columns */
+        .svc-row {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr auto;
+          gap: 10px;
+          margin-bottom: 10px;
+          align-items: center;
+        }
+
+        /* Tablet (≤768px): single column */
+        @media (max-width: 768px) {
+          .price-grid-2 {
+            grid-template-columns: 1fr;
+          }
+          .price-span-2 {
+            grid-column: span 1;
+          }
+        }
+
+        /* Mobile (≤520px): service row stacks */
+        @media (max-width: 520px) {
+          .svc-row {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto;
+          }
+          /* Tên dịch vụ spans full width */
+          .svc-row > input:first-child {
+            grid-column: span 2;
+          }
+          /* Nút xóa căn phải */
+          .svc-row > button {
+            grid-column: 2;
+            justify-self: end;
+            width: 40px;
+          }
+
+          /* Tóm tắt: ẩn cột ít quan trọng hơn */
+          table th:nth-child(4),
+          table td:nth-child(4) {
+            display: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }
