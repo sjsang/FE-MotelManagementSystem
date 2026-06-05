@@ -762,6 +762,7 @@ export default function RoomMap() {
           priceConfig={priceConfig}
           onClose={() => setModal(null)}
           onSubmit={handleCheckIn}
+          addToast={addToast}
         />
       )}
       {modal === "detail" && selectedRoom && (

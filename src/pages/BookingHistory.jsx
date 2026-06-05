@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getBookings, getRevenue } from '../utils/api';
+import { getBookings, getRevenue, getCustomers } from '../utils/api';
 import { useToast } from '../hooks/useToast';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { exportBookingsToExcel } from '../utils/excel_bookinglist';
 
 const TYPE_LABEL = { hourly: 'Nghỉ giờ', overnight: 'Qua đêm', fullday: 'Ngày đêm' };
 const STATUS_LABEL = { active: 'Đang ở', completed: 'Đã trả', cancelled: 'Hủy' };
@@ -37,6 +38,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 export default function BookingHistory() {
   const [bookings, setBookings] = useState([]);
   const [revenue, setRevenue] = useState(null);
+  const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({ status: '', from: weekAgo(), to: today() });
   const { addToast, ToastContainer } = useToast();
@@ -44,12 +46,14 @@ export default function BookingHistory() {
   const load = async () => {
     setLoading(true);
     try {
-      const [bRes, rRes] = await Promise.all([
+      const [bRes, rRes, cRes] = await Promise.all([
         getBookings({ status: filter.status || undefined }),
         getRevenue({ from: filter.from, to: filter.to + 'T23:59:59' }),
+        getCustomers(),
       ]);
       setBookings(bRes.data);
       setRevenue(rRes.data);
+      setCustomers(cRes.data || []);
     } catch { addToast('Lỗi tải dữ liệu', 'error'); }
     finally { setLoading(false); }
   };
@@ -143,7 +147,17 @@ export default function BookingHistory() {
 
       {/* Bookings table */}
       <div className="card">
-        <div style={{ fontWeight: 700, marginBottom: 14 }}>Danh sách booking</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          <div style={{ fontWeight: 700 }}>Danh sách booking</div>
+          <button 
+            className="btn btn-success btn-sm"
+            onClick={() => exportBookingsToExcel(bookings, customers)}
+            disabled={bookings.length === 0}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+          >
+            📥 Xuất Danh sách booking
+          </button>
+        </div>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 40, color: '#6b6f84' }}>Đang tải...</div>
         ) : (

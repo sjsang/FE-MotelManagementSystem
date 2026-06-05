@@ -101,12 +101,24 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
 
   const availableServices = priceConfig?.services || [];
 
+  const names = booking.guestName ? booking.guestName.split(',').map(s => s.trim()) : [];
+  const ids = booking.guestId ? booking.guestId.split(',').map(s => s.trim()) : [];
+  const guestsCombined = [];
+  const maxLen = Math.max(names.length, ids.length);
+  for (let i = 0; i < maxLen; i++) {
+    const name = names[i] || '';
+    const id = ids[i] || '';
+    if (name || id) {
+      guestsCombined.push({ name, id });
+    }
+  }
+
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxWidth: 560 }}>
+      <div className="modal" style={{ maxWidth: 680 }}>
         <div className="modal-header">
           <div>
-            <div className="modal-title">Phòng {room.roomNumber} — {booking.guestName}</div>
+            <div className="modal-title">Phòng {room.roomNumber} — Chi tiết lưu trú</div>
             <div style={{ fontSize: 12, color: '#9fa3b8', marginTop: 2 }}>
               Check-in: {formatTime(booking.checkIn)} • Đã ở: {elapsed.text}
             </div>
@@ -133,11 +145,57 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
         <div className="modal-body">
           {tab === 'info' && (
             <div>
+              {/* Danh sách khách lưu trú */}
+              <div style={{
+                background: 'rgba(46, 125, 82, 0.04)',
+                border: '1.5px solid rgba(46, 125, 82, 0.15)',
+                borderRadius: 12,
+                padding: '14px 16px',
+                marginBottom: 14
+              }}>
+                <div style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: 'var(--accent)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  marginBottom: 10
+                }}>
+                  Khách lưu trú ({guestsCombined.length})
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {guestsCombined.map((g, idx) => (
+                    <div key={idx} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      fontSize: 13.5,
+                      borderBottom: idx < guestsCombined.length - 1 ? '1px dashed var(--border)' : 'none',
+                      paddingBottom: idx < guestsCombined.length - 1 ? 8 : 0
+                    }}>
+                      <span style={{ fontWeight: 600, color: 'var(--text)' }}>
+                        👤 {g.name || 'Chưa cập nhật tên'}
+                      </span>
+                      {g.id && (
+                        <span style={{
+                          fontSize: 11.5,
+                          color: 'var(--text2)',
+                          background: 'var(--bg3)',
+                          padding: '2px 8px',
+                          borderRadius: 6,
+                          fontWeight: 500
+                        }}>
+                          ID/CCCD/Hộ chiếu: {g.id}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 {[
-                  ['Khách', booking.guestName],
                   ['Khai báo công an', booking.is_reported ? `Đã khai báo (${formatTime(booking.reported)})` : 'Chưa khai báo'],
-                  ['CMND / Hộ chiếu', booking.guestId || '--'],
                   ['Loại', booking.bookingType === 'hourly' ? 'Nghỉ giờ' : booking.bookingType === 'overnight' ? 'Qua đêm' : 'Ngày đêm'],
                   ['Ca', booking.shift === 'night' ? 'Ca đêm' : 'Ca ngày'],
                   ['Giá cơ bản', fmt(booking.basePrice)],
