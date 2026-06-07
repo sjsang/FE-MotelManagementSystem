@@ -236,7 +236,7 @@ export default function BookingHistory() {
         getCustomers(),
       ]);
       setRevenue(rRes.data);
-      setCustomers(cRes.data || []);
+      setCustomers(Array.isArray(cRes.data) ? cRes.data : (cRes.data?.data || []));
     } catch {
       addToast("Lỗi tải doanh thu", "error");
     } finally {
