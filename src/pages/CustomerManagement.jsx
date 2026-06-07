@@ -30,8 +30,11 @@ export default function CustomerManagement() {
         getCustomers(),
         getCustomerOptions(),
       ]);
-      setCustomers(custRes.data);
-      setOptions(optRes.data);
+
+      const validCustomers = Array.isArray(custRes.data) ? custRes.data : (custRes.data?.data || []);
+      setCustomers(validCustomers);
+
+      setOptions(optRes.data || { nationalities: [], provinces: [], visaTypes: [] });
     } catch (e) {
       addToast("Không thể tải danh sách khách hàng hoặc cấu hình", "error");
     } finally {

@@ -175,7 +175,7 @@ function SearchableCustomerSelect({ label, customers, selectedCustomer, onSelect
             </div>
           )}
         </div>
-        
+
         <button
           type="button"
           className="btn btn-success"
@@ -232,14 +232,14 @@ export default function CheckInModal({ room, priceConfig, onClose, onSubmit, add
   // Tải danh sách khách hàng và các cấu hình dropdown
   useEffect(() => {
     getCustomers().then(res => {
-      setCustomers(res.data || []);
+      setCustomers(Array.isArray(res.data) ? res.data : (res.data?.data || []));
     }).catch(err => {
       console.error('Không thể tải danh sách khách hàng:', err);
     });
 
     getCustomerOptions().then(res => {
       setCustomerOptions(res.data || { nationalities: [], provinces: [], visaTypes: [] });
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -252,9 +252,9 @@ export default function CheckInModal({ room, priceConfig, onClose, onSubmit, add
 
       // Tải lại danh sách khách hàng
       const custRes = await getCustomers();
-      const updatedList = custRes.data || [];
+      const updatedList = Array.isArray(custRes.data) ? custRes.data : (custRes.data?.data || []);
       setCustomers(updatedList);
-      
+
       // Tìm khách hàng vừa thêm để gắn vào slot chọn hiện tại
       const newCustomer = updatedList.find(c => c.cccd === payload.cccd || (payload.passport && c.passport === payload.passport));
       if (newCustomer) {
@@ -279,7 +279,7 @@ export default function CheckInModal({ room, priceConfig, onClose, onSubmit, add
       alert('Vui lòng chọn ít nhất một Khách hàng');
       return;
     }
-    
+
     setLoading(true);
 
     const guestNames = activeGuests.map(g => g.hoten).join(', ');
@@ -315,9 +315,9 @@ export default function CheckInModal({ room, priceConfig, onClose, onSubmit, add
             </div>
             <button className="modal-close" onClick={onClose}>✕</button>
           </div>
-          
+
           <div className="modal-body" ref={guestsContainerRef} style={{ overflowY: 'auto', flex: 1 }}>
-            
+
             {/* Vùng chọn danh sách khách hàng */}
             <div style={{ marginBottom: '14px' }}>
               {selectedGuests.map((guest, idx) => (
@@ -403,7 +403,7 @@ export default function CheckInModal({ room, priceConfig, onClose, onSubmit, add
                 onChange={e => set('notes', e.target.value)} />
             </div>
           </div>
-          
+
           <div className="modal-footer">
             <button className="btn btn-ghost" onClick={onClose}>Hủy</button>
             <button className="btn btn-success" onClick={handleSubmit} disabled={loading}>

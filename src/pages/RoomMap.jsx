@@ -487,7 +487,8 @@ export default function RoomMap() {
   const loadRooms = useCallback(async () => {
     try {
       const res = await getRooms();
-      setRooms(res.data);
+      const validData = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+      setRooms(validData);
     } catch {
       addToast("Không thể tải danh sách phòng", "error");
     } finally {
@@ -499,7 +500,7 @@ export default function RoomMap() {
     loadRooms();
     getActivePrice()
       .then((r) => setPriceConfig(r.data))
-      .catch(() => {});
+      .catch(() => { });
     const interval = setInterval(loadRooms, 30000);
     return () => clearInterval(interval);
   }, [loadRooms]);
