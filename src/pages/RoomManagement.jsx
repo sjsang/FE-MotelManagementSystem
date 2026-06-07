@@ -20,9 +20,13 @@ export default function RoomManagement() {
   const load = async () => {
     try {
       const res = await getRooms();
-      setRooms(res.data);
-    } catch { addToast('Lỗi tải danh sách phòng', 'error'); }
-    finally { setLoading(false); }
+      const validData = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+      setRooms(validData);
+    } catch {
+      addToast("Lỗi tải danh sách phòng", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
