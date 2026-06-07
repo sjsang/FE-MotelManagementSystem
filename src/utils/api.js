@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const BASE = import.meta.env.VITE_API_URL;
 const api = axios.create({ baseURL: BASE });
 
 // Tự động đính kèm JWT token vào header của tất cả request
@@ -41,7 +41,7 @@ export const updatePrice = (id, data) => api.put(`/prices/${id}`, data);
 export const deletePrice = (id) => api.delete(`/prices/${id}`);
 
 // Customers
-export const getCustomers = () => api.get('/customers');
+export const getCustomers = (params) => api.get("/customers", { params });
 export const getCustomerById = (id) => api.get(`/customers/${id}`);
 export const getCustomerOptions = () => api.get('/customers/options');
 export const createCustomer = (data) => api.post('/customers', data);

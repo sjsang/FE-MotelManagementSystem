@@ -9,6 +9,10 @@ import {
 import { useToast } from "../hooks/useToast";
 import CheckInModal from "../components/CheckInModal";
 import RoomDetailModal from "../components/RoomDetailModal";
+import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import PersonIcon from "@mui/icons-material/Person";
+import CleaningServicesIcon from "@mui/icons-material/CleaningServices";
 
 const STATUS_LABEL = {
   available: "Trống",
@@ -555,84 +559,6 @@ export default function RoomMap() {
     >
       <ToastContainer />
 
-      {/* Page Header */}
-      <div
-        style={{
-          background: "#fff",
-          borderBottom: "1.5px solid #e8f0fe",
-          padding: "20px 28px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          position: "sticky",
-          top: 0,
-          zIndex: 10,
-          boxShadow: "0 2px 12px rgba(37,99,235,0.06)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 12,
-              background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 18,
-              boxShadow: "0 4px 12px rgba(37,99,235,0.35)",
-            }}
-          >
-            🏨
-          </div>
-          <div>
-            <div
-              style={{
-                fontSize: 18,
-                fontWeight: 800,
-                color: "#0f172a",
-                letterSpacing: "-0.03em",
-              }}
-            >
-              Sơ đồ phòng
-            </div>
-            <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 1 }}>
-              Nhấn vào phòng để check-in / xem chi tiết
-            </div>
-          </div>
-        </div>
-
-        <button
-          onClick={loadRooms}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
-            color: "#fff",
-            border: "none",
-            borderRadius: 10,
-            padding: "8px 16px",
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: "pointer",
-            boxShadow: "0 3px 10px rgba(37,99,235,0.3)",
-            transition: "all 0.2s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-1px)";
-            e.currentTarget.style.boxShadow = "0 6px 16px rgba(37,99,235,0.4)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "";
-            e.currentTarget.style.boxShadow = "0 3px 10px rgba(37,99,235,0.3)";
-          }}
-        >
-          <span style={{ fontSize: 15 }}>↻</span> Làm mới
-        </button>
-      </div>
-
       <div style={{ padding: "24px 28px 0" }}>
         {/* Stats */}
         <div
@@ -647,27 +573,30 @@ export default function RoomMap() {
             label="Tổng phòng"
             value={stats.total}
             color="#2563eb"
-            icon="🏠"
+            icon={<MeetingRoomIcon />}
           />
+
           <StatCard
             label="Đang trống"
             value={stats.available}
             color="#16a34a"
-            icon="✅"
+            icon={<CheckCircleIcon />}
             sub="Sẵn sàng nhận khách"
           />
+
           <StatCard
             label="Có khách"
             value={stats.occupied}
             color="#dc2626"
-            icon="👤"
+            icon={<PersonIcon />}
             sub="Đang sử dụng"
           />
+
           <StatCard
             label="Dọn phòng"
             value={stats.cleaning}
             color="#d97706"
-            icon="🧹"
+            icon={<CleaningServicesIcon />}
             sub="Đang dọn dẹp"
           />
         </div>
