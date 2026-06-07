@@ -47,3 +47,9 @@ export const getCustomerOptions = () => api.get('/customers/options');
 export const createCustomer = (data) => api.post('/customers', data);
 export const updateCustomer = (id, data) => api.put(`/customers/${id}`, data);
 export const deleteCustomer = (id) => api.delete(`/customers/${id}`);
+
+// Invoices
+export const createInvoice = (data) => api.post('/invoices', data);
+export const getInvoices = (params) => api.get('/invoices', { params });
+export const getInvoiceById = (id) => api.get(`/invoices/${id}`);
+export const cancelInvoice = (id, data) => api.patch(`/invoices/${id}/cancel`, data);
