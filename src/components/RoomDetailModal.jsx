@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { updateBooking } from '../utils/api';
-import InvoiceModal from '../pages/Invoice/InvoiceModal';
+import InvoiceDetailModal from '../pages/Invoice/InvoiceDetailModal';
 function formatTime(dateStr) {
   if (!dateStr) return '--';
   const d = new Date(dateStr);
@@ -20,8 +20,13 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
   const [elapsed, setElapsed] = useState(calcElapsed(booking?.checkIn));
   const [newService, setNewService] = useState({ name: '', price: '', quantity: 1 });
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState('info'); // 'info' | 'services' | 'checkout'
-  const [completedBooking, setCompletedBooking] = useState(null);
+  const [tab, setTab] = useState('info');
+  const [createdInvoice, setCreatedInvoice] = useState(null);
+
+  // --- Các state mới phục vụ chốt Bill ---
+  const [discount, setDiscount] = useState(0);
+  const [taxInput, setTaxInput] = useState('');
+  const [taxType, setTaxType] = useState('percent'); // 'percent' | 'vnd'
 
   useEffect(() => {
     setBooking(room.currentBooking);
@@ -54,6 +59,14 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
   const fmt = (n) => (n || 0).toLocaleString('vi-VN') + 'đ';
   const serviceTotal = services.reduce((s, sv) => s + sv.price * sv.quantity, 0);
   const estimatedTotal = (booking.basePrice || 0) + serviceTotal;
+
+  // Tự động tính toán thuế ra VNĐ dựa theo loại
+  const taxVnd = taxType === 'percent'
+    ? Math.round(estimatedTotal * (Number(taxInput || 0) / 100))
+    : Number(taxInput || 0);
+
+  // Tổng thực thu cuối cùng
+  const finalTotal = Math.max(0, estimatedTotal - discount) + taxVnd;
 
   const addServiceFromList = (svc) => {
     const exists = services.find(s => s.name === svc.name);
@@ -94,20 +107,22 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
     }
   };
 
-  // SỬA handleCheckOut thành:
+  // Sửa hàm handleCheckOut:
   const handleCheckOut = async () => {
     setLoading(true);
     try {
-      const result = await onCheckOut(booking._id, services, booking.notes);
-      // onCheckOut phải trả về booking đã completed
-      if (result) setCompletedBooking(result);
+      const invoiceData = await onCheckOut(booking._id, services, booking.notes, discount, taxVnd);
+      if (invoiceData) {
+        setCreatedInvoice(invoiceData); // Hứng data để bật modal
+      }
+    } catch (e) {
+      addToast("Lỗi check-out", "error");
     } finally {
       setLoading(false);
     }
   };
 
   const availableServices = priceConfig?.services || [];
-
   const names = booking.guestName ? booking.guestName.split(',').map(s => s.trim()) : [];
   const ids = booking.guestId ? booking.guestId.split(',').map(s => s.trim()) : [];
   const guestsCombined = [];
@@ -115,9 +130,7 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
   for (let i = 0; i < maxLen; i++) {
     const name = names[i] || '';
     const id = ids[i] || '';
-    if (name || id) {
-      guestsCombined.push({ name, id });
-    }
+    if (name || id) guestsCombined.push({ name, id });
   }
 
   return (
@@ -154,49 +167,15 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
         <div className="modal-body">
           {tab === 'info' && (
             <div>
-              {/* Danh sách khách lưu trú */}
-              <div style={{
-                background: 'rgba(46, 125, 82, 0.04)',
-                border: '1.5px solid rgba(46, 125, 82, 0.15)',
-                borderRadius: 12,
-                padding: '14px 16px',
-                marginBottom: 14
-              }}>
-                <div style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: 'var(--accent)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  marginBottom: 10
-                }}>
+              <div style={{ background: 'rgba(46, 125, 82, 0.04)', border: '1.5px solid rgba(46, 125, 82, 0.15)', borderRadius: 12, padding: '14px 16px', marginBottom: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
                   Khách lưu trú ({guestsCombined.length})
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {guestsCombined.map((g, idx) => (
-                    <div key={idx} style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      fontSize: 13.5,
-                      borderBottom: idx < guestsCombined.length - 1 ? '1px dashed var(--border)' : 'none',
-                      paddingBottom: idx < guestsCombined.length - 1 ? 8 : 0
-                    }}>
-                      <span style={{ fontWeight: 600, color: 'var(--text)' }}>
-                        👤 {g.name || 'Chưa cập nhật tên'}
-                      </span>
-                      {g.id && (
-                        <span style={{
-                          fontSize: 11.5,
-                          color: 'var(--text2)',
-                          background: 'var(--bg3)',
-                          padding: '2px 8px',
-                          borderRadius: 6,
-                          fontWeight: 500
-                        }}>
-                          ID/CCCD/Hộ chiếu: {g.id}
-                        </span>
-                      )}
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13.5, borderBottom: idx < guestsCombined.length - 1 ? '1px dashed var(--border)' : 'none', paddingBottom: idx < guestsCombined.length - 1 ? 8 : 0 }}>
+                      <span style={{ fontWeight: 600, color: 'var(--text)' }}>👤 {g.name || 'Chưa cập nhật tên'}</span>
+                      {g.id && <span style={{ fontSize: 11.5, color: 'var(--text2)', background: 'var(--bg3)', padding: '2px 8px', borderRadius: 6, fontWeight: 500 }}>ID/CCCD/Hộ chiếu: {g.id}</span>}
                     </div>
                   ))}
                 </div>
@@ -225,17 +204,13 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
 
           {tab === 'services' && (
             <div>
-              {/* Preset services */}
               {availableServices.length > 0 && (
                 <div style={{ marginBottom: 14 }}>
                   <div style={{ fontSize: 12, color: '#6b6f84', marginBottom: 8 }}>Thêm nhanh:</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {availableServices.map((svc, i) => (
                       <button key={i} onClick={() => addServiceFromList(svc)}
-                        style={{
-                          padding: '5px 12px', background: 'rgba(108,99,255,0.1)', border: '1px solid rgba(108,99,255,0.2)',
-                          borderRadius: 20, color: '#8b85ff', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit'
-                        }}>
+                        style={{ padding: '5px 12px', background: 'rgba(108,99,255,0.1)', border: '1px solid rgba(108,99,255,0.2)', borderRadius: 20, color: '#8b85ff', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
                         + {svc.name} ({(svc.price).toLocaleString('vi-VN')}đ)
                       </button>
                     ))}
@@ -243,40 +218,30 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
                 </div>
               )}
 
-              {/* Custom service */}
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto auto', gap: 8, marginBottom: 14, alignItems: 'end' }}>
                 <div>
                   <div style={{ fontSize: 11, color: '#6b6f84', marginBottom: 4 }}>Tên dịch vụ</div>
-                  <input className="form-control" placeholder="Khác..." value={newService.name}
-                    onChange={e => setNewService(s => ({ ...s, name: e.target.value }))} />
+                  <input className="form-control" placeholder="Khác..." value={newService.name} onChange={e => setNewService(s => ({ ...s, name: e.target.value }))} />
                 </div>
                 <div>
                   <div style={{ fontSize: 11, color: '#6b6f84', marginBottom: 4 }}>Giá (đ)</div>
-                  <input className="form-control" type="number" placeholder="0" value={newService.price}
-                    onChange={e => setNewService(s => ({ ...s, price: e.target.value }))} />
+                  <input className="form-control" type="number" placeholder="0" value={newService.price} onChange={e => setNewService(s => ({ ...s, price: e.target.value }))} />
                 </div>
                 <div>
                   <div style={{ fontSize: 11, color: '#6b6f84', marginBottom: 4 }}>SL</div>
-                  <input className="form-control" type="number" min="1" value={newService.quantity}
-                    onChange={e => setNewService(s => ({ ...s, quantity: e.target.value }))}
-                    style={{ width: 60 }} />
+                  <input className="form-control" type="number" min="1" value={newService.quantity} onChange={e => setNewService(s => ({ ...s, quantity: e.target.value }))} style={{ width: 60 }} />
                 </div>
                 <button className="btn btn-primary btn-sm" onClick={addCustomService} style={{ alignSelf: 'flex-end' }}>+</button>
               </div>
 
-              {/* Service list */}
               {services.length > 0 ? (
                 <div>
                   {services.map((s, i) => (
-                    <div key={i} style={{
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)'
-                    }}>
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <span style={{ fontSize: 13 }}>{s.name} x{s.quantity}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <span style={{ fontSize: 13, fontWeight: 600 }}>{(s.price * s.quantity).toLocaleString('vi-VN')}đ</span>
-                        <button onClick={() => removeService(i)}
-                          style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 16 }}>✕</button>
+                        <button onClick={() => removeService(i)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 16 }}>✕</button>
                       </div>
                     </div>
                   ))}
@@ -295,7 +260,7 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
           {tab === 'checkout' && (
             <div>
               <div style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, padding: 16, marginBottom: 16 }}>
-                <div style={{ fontSize: 13, color: '#9fa3b8', marginBottom: 12 }}>Tổng kết thanh toán (ước tính)</div>
+                <div style={{ fontSize: 13, color: '#9fa3b8', marginBottom: 12 }}>Tổng kết thanh toán</div>
                 {[
                   ['Giá phòng cơ bản', fmt(booking.basePrice)],
                   ['Dịch vụ', fmt(serviceTotal)],
@@ -305,15 +270,89 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
                     <span style={{ fontSize: 13 }}>{val}</span>
                   </div>
                 ))}
+
                 <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 10, marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 15, fontWeight: 700 }}>Ước tính</span>
-                  <span style={{ fontSize: 18, fontWeight: 800, color: '#10b981' }}>{fmt(estimatedTotal)}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700 }}>Tổng cộng (Ước tính)</span>
+                  <span style={{ fontSize: 15, fontWeight: 700 }}>{fmt(estimatedTotal)}</span>
                 </div>
-                <div style={{ fontSize: 11.5, color: '#6b6f84', marginTop: 6 }}>* Giờ phụ thu sẽ được tính chính xác khi checkout</div>
+
+                {/* Ô nhập Giảm giá */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#f87171' }}>Giảm giá (đ)</span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={discount === 0 ? '' : discount.toLocaleString('vi-VN')}
+                    onChange={e => {
+                      const rawValue = e.target.value.replace(/\D/g, '');
+                      if (!rawValue) { setDiscount(0); return; }
+                      const num = Number(rawValue);
+                      if (num <= estimatedTotal) { setDiscount(num); }
+                      else { setDiscount(estimatedTotal); }
+                    }}
+                    placeholder="0"
+                    style={{ width: 110, textAlign: 'right', padding: '6px 10px', borderColor: 'rgba(248,113,113,0.3)' }}
+                  />
+                </div>
+
+                {/* Ô nhập Thuế / VAT */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#f59e0b' }}>Thuế / VAT</span>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <select
+                      className="form-control"
+                      value={taxType}
+                      onChange={e => {
+                        setTaxType(e.target.value);
+                        setTaxInput(''); // Reset ô nhập khi đổi loại
+                      }}
+                      style={{ width: 60, padding: '6px 4px', borderColor: 'rgba(245,158,11,0.3)', color: '#f59e0b', fontWeight: 600 }}
+                    >
+                      <option value="percent">%</option>
+                      <option value="vnd">VNĐ</option>
+                    </select>
+
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={taxType === 'percent' ? taxInput : (taxInput === '' ? '' : Number(taxInput).toLocaleString('vi-VN'))}
+                      onChange={e => {
+                        const rawValue = e.target.value.replace(/\D/g, '');
+                        if (!rawValue) { setTaxInput(''); return; }
+
+                        if (taxType === 'percent' && Number(rawValue) > 100) {
+                          setTaxInput('100');
+                        } else {
+                          setTaxInput(rawValue);
+                        }
+                      }}
+                      placeholder="0"
+                      style={{ width: 100, textAlign: 'right', padding: '6px 10px', borderColor: 'rgba(245,158,11,0.3)' }}
+                    />
+                  </div>
+                </div>
+
+                {taxType === 'percent' && taxInput > 0 && (
+                  <div style={{ textAlign: 'right', fontSize: 11.5, color: '#f59e0b', marginTop: 4, fontWeight: 600 }}>
+                    ≈ + {fmt(taxVnd)}
+                  </div>
+                )}
+
+                {/* Thực thu */}
+                <div style={{ borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: 12, marginTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 15, fontWeight: 700 }}>Thực thu</span>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: '#10b981' }}>
+                    {fmt(finalTotal)}
+                  </span>
+                </div>
+
+                <div style={{ fontSize: 11.5, color: '#6b6f84', marginTop: 10, textAlign: 'center' }}>
+                  * Giờ phụ thu chính xác sẽ tự động chốt khi Check-out
+                </div>
               </div>
 
               <div style={{ background: 'rgba(239,68,68,0.07)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#f87171', marginBottom: 16 }}>
-                ⚠️ Sau khi check-out, phòng sẽ chuyển sang trạng thái "Dọn phòng"
+                ⚠️ Xác nhận Check-out sẽ tự động trả phòng và chốt Hóa đơn
               </div>
             </div>
           )}
@@ -332,23 +371,22 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
                 {loading ? '...' : '👮 Đã khai báo lưu trú'}
               </button>
             ) : (
-              <button className="btn" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}
-                onClick={() => setTab('checkout')}>
+              <button className="btn" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }} onClick={() => setTab('checkout')}>
                 Chuyển sang Check-out →
               </button>
             )
           )}
         </div>
       </div>
-      {completedBooking && (
-        <InvoiceModal
-          booking={completedBooking}
-          onClose={() => setCompletedBooking(null)}
-          onDone={() => { setCompletedBooking(null); onClose(); }}
+
+      {createdInvoice && (
+        <InvoiceDetailModal
+          invoice={createdInvoice}
+          onClose={() => { setCreatedInvoice(null); onClose(); }} // Đóng cả RoomDetailModal
+          onCancel={() => { setCreatedInvoice(null); onClose(); }}
           addToast={addToast}
         />
       )}
     </div>
-
   );
 }

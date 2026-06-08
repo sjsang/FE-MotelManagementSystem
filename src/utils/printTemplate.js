@@ -1,38 +1,38 @@
 // Đường dẫn: src/utils/printTemplate.js
 
 export function buildPrintHTML(invoice) {
-    const fmt = n => (n || 0).toLocaleString('vi-VN') + 'đ';
+  const fmt = n => (n || 0).toLocaleString('vi-VN') + 'đ';
 
-    const fmtDate = d => d ? new Date(d).toLocaleString('vi-VN', {
-        hour: '2-digit', minute: '2-digit',
-        day: '2-digit', month: '2-digit', year: 'numeric'
-    }) : '--';
+  const fmtDate = d => d ? new Date(d).toLocaleString('vi-VN', {
+    hour: '2-digit', minute: '2-digit',
+    day: '2-digit', month: '2-digit', year: 'numeric'
+  }) : '--';
 
-    // Hàm tính thời gian sử dụng (ngày - giờ - phút)
-    const calculateUsageTime = (start, end) => {
-        if (!start || !end) return '--';
-        const diffMs = new Date(end) - new Date(start);
-        if (diffMs <= 0) return '0 phút';
+  // Hàm tính thời gian sử dụng (ngày - giờ - phút)
+  const calculateUsageTime = (start, end) => {
+    if (!start || !end) return '--';
+    const diffMs = new Date(end) - new Date(start);
+    if (diffMs <= 0) return '0 phút';
 
-        const totalMins = Math.floor(diffMs / 60000); // Đổi ra tổng số phút
-        const d = Math.floor(totalMins / 1440); // 1 ngày = 1440 phút
-        const h = Math.floor((totalMins % 1440) / 60);
-        const m = totalMins % 60;
+    const totalMins = Math.floor(diffMs / 60000); // Đổi ra tổng số phút
+    const d = Math.floor(totalMins / 1440); // 1 ngày = 1440 phút
+    const h = Math.floor((totalMins % 1440) / 60);
+    const m = totalMins % 60;
 
-        let res = [];
-        if (d > 0) res.push(`${d} ngày`);
-        if (h > 0) res.push(`${h} giờ`);
-        if (m > 0 || (d === 0 && h === 0)) res.push(`${m} phút`);
+    let res = [];
+    if (d > 0) res.push(`${d} ngày`);
+    if (h > 0) res.push(`${h} giờ`);
+    if (m > 0 || (d === 0 && h === 0)) res.push(`${m} phút`);
 
-        return res.join(' ');
-    };
+    return res.join(' ');
+  };
 
-    const usageTimeStr = calculateUsageTime(invoice.checkIn, invoice.checkOut);
+  const usageTimeStr = calculateUsageTime(invoice.checkIn, invoice.checkOut);
 
-    const pmLabel = { cash: 'Tiền mặt', transfer: 'Chuyển khoản', card: 'Thẻ' };
-    const btLabel = { hourly: 'Nghỉ giờ', overnight: 'Qua đêm', fullday: 'Ngày đêm (24h)' };
+  const pmLabel = { cash: 'Tiền mặt', transfer: 'Chuyển khoản', card: 'Thẻ' };
+  const btLabel = { hourly: 'Nghỉ giờ', overnight: 'Qua đêm', fullday: 'Ngày đêm (24h)' };
 
-    const serviceRows = (invoice.services || []).map(s => `
+  const serviceRows = (invoice.services || []).map(s => `
         <tr>
             <td>${s.name}</td>
             <td style="text-align:center">${s.quantity}</td>
@@ -41,7 +41,7 @@ export function buildPrintHTML(invoice) {
         </tr>
     `).join('');
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8"/>
@@ -51,6 +51,7 @@ export function buildPrintHTML(invoice) {
     body { font-family: 'Times New Roman', serif; font-size: 13px; color: #111; padding: 32px; max-width: 400px; margin: 0 auto; }
     .center { text-align: center; }
     .hotel-name { font-size: 18px; font-weight: bold; letter-spacing: 1px; }
+    .hotel-address { font-size: 12px; margin-top: 4px; color: #333; }
     .invoice-title { font-size: 15px; font-weight: bold; margin: 12px 0 4px; }
     .invoice-num { font-size: 12px; color: #555; }
     hr { border: none; border-top: 1px dashed #aaa; margin: 12px 0; }
@@ -61,6 +62,7 @@ export function buildPrintHTML(invoice) {
     td { padding: 4px 6px; border-bottom: 1px dotted #eee; }
     .total-row { font-size: 15px; font-weight: bold; }
     .paid-row { font-size: 15px; font-weight: bold; }
+    .qr-section { text-align: center; margin: 16px 0; }
     .footer { margin-top: 20px; font-size: 11px; color: #888; text-align: center; }
     @media print { body { padding: 16px; } }
   </style>
@@ -68,6 +70,7 @@ export function buildPrintHTML(invoice) {
 <body>
   <div class="center">
     <div class="hotel-name">NHÀ NGHỈ 79</div>
+    <div class="hotel-address">Ấp 7, Xã Khánh An - U Minh, Cà Mau</div>
     <div class="invoice-title">HÓA ĐƠN</div>
     <div class="invoice-num">${invoice.invoiceNumber}</div>
   </div>
@@ -97,16 +100,42 @@ export function buildPrintHTML(invoice) {
 
   <hr/>
 
-  <div class="row total-row"><span>Tổng cộng</span><span>${fmt(invoice.totalAmount)}</span></div>
-  ${invoice.discount > 0 ? `<div class="row paid-row" style="margin-top:6px"><span>GIẢM GIÁ</span><span>- ${fmt(invoice.discount)}</span></div>` : ''}
-  <div class="row paid-row" style="margin-top:6px"><span>THỰC THU</span><span>${fmt(invoice.paidAmount)}</span></div>
-
+<div class="row total-row"><span>Tổng cộng</span><span>${fmt(invoice.totalAmount)}</span></div>
+  ${invoice.discount > 0 ? `<div class="row paid-row" style="margin-top:6px; font-size: 15px; color: #f87171;"><span>GIẢM GIÁ</span><span>- ${fmt(invoice.discount)}</span></div>` : ''}
+  ${invoice.tax > 0 ? `<div class="row paid-row" style="margin-top:6px; font-size: 15px; color: #f59e0b;"><span>THUẾ (VAT)</span><span>+ ${fmt(invoice.tax)}</span></div>` : ''}
+  <div class="row paid-row" style="margin-top:6px; font-size: 17px; color: #1a7a50;"><span>THỰC THU</span><span>${fmt(invoice.paidAmount)}</span></div>
   <hr/>
+
+  <!-- Phần hiển thị QR Code -->
+  ${invoice.paidAmount > 0 ? `
+  <div class="qr-section">
+      <div style="font-size: 12px; font-weight: bold; margin-bottom: 6px;">QUÉT MÃ ĐỂ THANH TOÁN</div>
+      
+      <!-- Đổi sang API QR cực kỳ ổn định, bỏ dấu cách ở nội dung chuyển khoản -->
+      <img src="https://qr.sepay.vn/img?acc=945331109&bank=MBBank&amount=${invoice.paidAmount}&des=${invoice.invoiceNumber}" 
+           alt="QR Code Thanh Toán" 
+           style="width: 150px; height: 150px; display: block; margin: 0 auto; object-fit: contain;" />
+           
+      <div style="font-size: 12px; margin-top: 6px; color: #333;">
+          Ngân hàng: <b>MB Bank</b><br/>
+          STK: <b>945331109</b>
+      </div>
+  </div>
+  <hr/>
+  ` : ''}
 
   <div class="footer">
     ${invoice.issuedBy ? `Nhân viên: ${invoice.issuedBy} •` : ''} ${fmtDate(invoice.issuedAt)}<br/>
     Cảm ơn quý khách!
   </div>
+
+  <script>
+    window.onload = function() {
+        setTimeout(function() {
+            window.print();
+        }, 300);
+    };
+  </script>
 </body>
 </html>`;
 }

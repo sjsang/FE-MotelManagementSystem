@@ -5,6 +5,7 @@ import {
   checkOut,
   updateBooking,
   getActivePrice,
+  createInvoice,
 } from "../utils/api";
 import { useToast } from "../hooks/useToast";
 import CheckInModal from "../components/CheckInModal";
@@ -523,15 +524,25 @@ export default function RoomMap() {
     }
   };
 
-  // SỬA handleCheckOut trong RoomMap.jsx thành:
-  const handleCheckOut = async (bookingId, services, notes) => {
+  const handleCheckOut = async (bookingId, services, notes, discount, taxVnd) => {
     try {
-      const res = await checkOut(bookingId, { services, notes });
-      addToast(`Check-out thành công`);
-      loadRooms();
-      return res.data; // trả về booking completed để InvoiceModal dùng
+      // 1. Chốt trả phòng
+      await checkOut(bookingId, { services, notes });
+
+      // 2. Tự động tạo hóa đơn
+      const resInvoice = await createInvoice({
+        bookingId,
+        discount,
+        tax: taxVnd,
+      });
+
+      addToast(`Check-out và tạo hóa đơn thành công`);
+      loadRooms(); // Tải lại sơ đồ phòng
+
+      // 3. Trả về data hóa đơn để RoomDetailModal bật lên
+      return resInvoice.data;
     } catch (e) {
-      addToast(e.response?.data?.error || 'Lỗi check-out', 'error');
+      addToast(e.response?.data?.message || e.response?.data?.error || 'Lỗi check-out', 'error');
       return null;
     }
   };

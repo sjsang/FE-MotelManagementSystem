@@ -52,7 +52,6 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
         win.document.write(buildPrintHTML(invoice));
         win.document.close();
         win.focus();
-        win.print();
     };
 
     return (
@@ -124,6 +123,14 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
                                 </div>
                             )}
 
+                            {/* Thêm dòng hiển thị Thuế */}
+                            {invoice.tax > 0 && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                                    <span style={{ fontWeight: 600, color: '#f59e0b' }}>Thuế / VAT</span>
+                                    <span style={{ fontWeight: 600, color: '#f59e0b' }}>+ {fmt(invoice.tax)}</span>
+                                </div>
+                            )}
+
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontWeight: 700, fontSize: 15 }}>Thực thu</span>
                                 <span style={{ fontWeight: 800, fontSize: 20, color: '#10b981' }}>{fmt(invoice.paidAmount)}</span>
@@ -172,7 +179,7 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
 
                 <div className="modal-footer">
                     <button className="btn btn-ghost" onClick={onClose}>Đóng</button>
-                    <button className="btn btn-primary" onClick={handlePrint}>🖨️ In lại</button>
+                    <button className="btn btn-primary" onClick={handlePrint}>🖨️ In hóa đơn</button>
                 </div>
             </div>
         </div>
