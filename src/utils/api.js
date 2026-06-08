@@ -15,6 +15,18 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Tự động đăng xuất nếu token hết hạn hoặc không khớp chữ ký (401 Unauthorized)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+      window.location.reload();
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Auth
 export const login = (data) => api.post('/auth/login', data);
 export const register = (data) => api.post('/auth/register', data);
