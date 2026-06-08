@@ -10,6 +10,7 @@ import "./styles/App.css";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import GridViewIcon from "@mui/icons-material/GridView";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
+import ReceiptIcon from '@mui/icons-material/Receipt';
 import PriceChangeIcon from "@mui/icons-material/PriceChange";
 import PeopleIcon from "@mui/icons-material/People";
 import HistoryIcon from "@mui/icons-material/History";
@@ -17,6 +18,7 @@ import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import Revenue from "./pages/Revenue";
+import InvoiceHistory from "./pages/Invoice/InvoiceHistory";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -92,6 +94,13 @@ export default function App() {
           <PeopleIcon />
         </span>{" "}
         Khách lưu trú
+      </NavLink>
+      <NavLink
+        to="/invoices"
+        className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
+        onClick={closeSidebar}
+      >
+        <span className="nav-icon"><ReceiptIcon /></span> Hóa đơn
       </NavLink>
 
       <div className="nav-section-label" style={{ paddingTop: 12 }}>
@@ -202,7 +211,6 @@ export default function App() {
                   letterSpacing: "0.05em",
                 }}
               >
-                Hệ thống quản lý
               </div>
             </div>
           </div>
@@ -219,6 +227,7 @@ export default function App() {
             <Route path="/prices" element={<PriceManagement />} />
             <Route path="/customers" element={<CustomerManagement />} />
             <Route path="/history" element={<BookingHistory />} />
+            <Route path="/invoices" element={<InvoiceHistory />} />
             <Route path="/revenue" element={<Revenue />} />
           </Routes>
         </main>

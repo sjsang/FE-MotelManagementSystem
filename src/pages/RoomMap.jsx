@@ -515,7 +515,7 @@ export default function RoomMap() {
   const handleCheckIn = async (formData) => {
     try {
       await checkIn({ roomId: selectedRoom._id, ...formData });
-      addToast(`✅ Check-in phòng ${selectedRoom.roomNumber} thành công`);
+      addToast(`Check-in phòng ${selectedRoom.roomNumber} thành công`);
       setModal(null);
       loadRooms();
     } catch (e) {
@@ -523,16 +523,19 @@ export default function RoomMap() {
     }
   };
 
+  // SỬA handleCheckOut trong RoomMap.jsx thành:
   const handleCheckOut = async (bookingId, services, notes) => {
     try {
-      await checkOut(bookingId, { services, notes });
-      addToast(`✅ Check-out thành công`);
-      setModal(null);
+      const res = await checkOut(bookingId, { services, notes });
+      addToast(`Check-out thành công`);
       loadRooms();
+      return res.data; // trả về booking completed để InvoiceModal dùng
     } catch (e) {
-      addToast(e.response?.data?.error || "Lỗi check-out", "error");
+      addToast(e.response?.data?.error || 'Lỗi check-out', 'error');
+      return null;
     }
   };
+
 
   const handleMarkCleaning = async (room) => {
     try {

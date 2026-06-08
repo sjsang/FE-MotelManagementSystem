@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { updateBooking } from '../utils/api';
-
+import InvoiceModal from '../pages/Invoice/InvoiceModal';
 function formatTime(dateStr) {
   if (!dateStr) return '--';
   const d = new Date(dateStr);
@@ -21,6 +21,7 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
   const [newService, setNewService] = useState({ name: '', price: '', quantity: 1 });
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState('info'); // 'info' | 'services' | 'checkout'
+  const [completedBooking, setCompletedBooking] = useState(null);
 
   useEffect(() => {
     setBooking(room.currentBooking);
@@ -93,10 +94,16 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
     }
   };
 
+  // SỬA handleCheckOut thành:
   const handleCheckOut = async () => {
     setLoading(true);
-    await onCheckOut(booking._id, services, booking.notes);
-    setLoading(false);
+    try {
+      const result = await onCheckOut(booking._id, services, booking.notes);
+      // onCheckOut phải trả về booking đã completed
+      if (result) setCompletedBooking(result);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const availableServices = priceConfig?.services || [];
@@ -132,10 +139,12 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
             if (key === 'checkout' && !booking?.is_reported) return null;
             return (
               <button key={key} onClick={() => setTab(key)}
-                style={{ padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13,
+                style={{
+                  padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13,
                   fontWeight: tab === key ? 600 : 400, color: tab === key ? '#8b85ff' : '#9fa3b8',
                   borderBottom: tab === key ? '2px solid #8b85ff' : '2px solid transparent',
-                  marginBottom: -1, fontFamily: 'inherit' }}>
+                  marginBottom: -1, fontFamily: 'inherit'
+                }}>
                 {label}
               </button>
             );
@@ -223,8 +232,10 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {availableServices.map((svc, i) => (
                       <button key={i} onClick={() => addServiceFromList(svc)}
-                        style={{ padding: '5px 12px', background: 'rgba(108,99,255,0.1)', border: '1px solid rgba(108,99,255,0.2)',
-                          borderRadius: 20, color: '#8b85ff', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
+                        style={{
+                          padding: '5px 12px', background: 'rgba(108,99,255,0.1)', border: '1px solid rgba(108,99,255,0.2)',
+                          borderRadius: 20, color: '#8b85ff', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit'
+                        }}>
                         + {svc.name} ({(svc.price).toLocaleString('vi-VN')}đ)
                       </button>
                     ))}
@@ -257,8 +268,10 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
               {services.length > 0 ? (
                 <div>
                   {services.map((s, i) => (
-                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div key={i} style={{
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)'
+                    }}>
                       <span style={{ fontSize: 13 }}>{s.name} x{s.quantity}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <span style={{ fontSize: 13, fontWeight: 600 }}>{(s.price * s.quantity).toLocaleString('vi-VN')}đ</span>
@@ -327,6 +340,15 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
           )}
         </div>
       </div>
+      {completedBooking && (
+        <InvoiceModal
+          booking={completedBooking}
+          onClose={() => setCompletedBooking(null)}
+          onDone={() => { setCompletedBooking(null); onClose(); }}
+          addToast={addToast}
+        />
+      )}
     </div>
+
   );
 }
