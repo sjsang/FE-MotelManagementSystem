@@ -15,7 +15,7 @@ function getPricePreview(priceConfig, roomType, bookingType, shift) {
     const tp = roomType === 'double' ? prices.double : prices.single;
     if (bookingType === 'fullday') return tp.fullday;
     if (bookingType === 'overnight') return tp.overnight;
-    if (bookingType === 'hourly') return shift === 'night' ? tp.hourly_first : (tp.hourly_first || 80000);
+    if (bookingType === 'hourly') return tp.hourly_first || null;
   } catch { return null; }
   return null;
 }
@@ -248,7 +248,6 @@ export default function CheckInModal({ room, priceConfig, onClose, onSubmit, add
     try {
       const res = await createCustomer(payload);
       if (addToast) addToast('Thêm khách hàng mới thành công');
-      else alert('Thêm khách hàng mới thành công');
 
       // Tải lại danh sách khách hàng
       const custRes = await getCustomers();
@@ -268,7 +267,6 @@ export default function CheckInModal({ room, priceConfig, onClose, onSubmit, add
     } catch (err) {
       const errMsg = err.response?.data?.message || 'Lỗi khi tạo khách hàng';
       if (addToast) addToast(errMsg, 'error');
-      else alert(errMsg);
       return false;
     }
   };
@@ -276,7 +274,7 @@ export default function CheckInModal({ room, priceConfig, onClose, onSubmit, add
   const handleSubmit = async () => {
     const activeGuests = selectedGuests.filter(g => g !== null);
     if (activeGuests.length === 0) {
-      alert('Vui lòng chọn ít nhất một Khách hàng');
+      if (addToast) addToast('Vui lòng chọn ít nhất một khách hàng', 'error');
       return;
     }
 
@@ -368,7 +366,7 @@ export default function CheckInModal({ room, priceConfig, onClose, onSubmit, add
 
             <div className="input-row" style={{ marginTop: 14 }}>
               <div className="form-group">
-                <label className="form-label">Loại phòng</label>
+                <label className="form-label">Loại thuê</label>
                 <select className="form-control" value={form.bookingType}
                   onChange={e => set('bookingType', e.target.value)}>
                   {BOOKING_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}

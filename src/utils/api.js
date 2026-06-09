@@ -37,10 +37,11 @@ export const getRooms = () => api.get('/rooms');
 export const createRoom = (data) => api.post('/rooms', data);
 export const updateRoom = (id, data) => api.put(`/rooms/${id}`, data);
 export const deleteRoom = (id) => api.delete(`/rooms/${id}`);
-
 // Bookings
 export const getBookings = (params) => api.get('/bookings', { params });
+export const getBookingById = (id) => api.get(`/bookings/${id}`); // Mới thêm
 export const checkIn = (data) => api.post('/bookings/checkin', data);
+export const previewCheckout = (bookingId) => api.get(`/bookings/preview-checkout/${bookingId}`); // Mới thêm
 export const checkOut = (bookingId, data) => api.post(`/bookings/checkout/${bookingId}`, data);
 export const updateBooking = (id, data) => api.put(`/bookings/${id}`, data);
 export const getRevenue = (params) => api.get('/bookings/stats/revenue', { params });

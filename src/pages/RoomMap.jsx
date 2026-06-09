@@ -6,6 +6,7 @@ import {
   updateBooking,
   getActivePrice,
   createInvoice,
+  updateRoom,
 } from "../utils/api";
 import { useToast } from "../hooks/useToast";
 import CheckInModal from "../components/CheckInModal";
@@ -14,6 +15,7 @@ import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PersonIcon from "@mui/icons-material/Person";
 import CleaningServicesIcon from "@mui/icons-material/CleaningServices";
+import PricingCalculator from "../components/PricingCalculator/PricingCalculator";
 
 const STATUS_LABEL = {
   available: "Trống",
@@ -484,7 +486,7 @@ export default function RoomMap() {
   const [modal, setModal] = useState(null);
   const [priceConfig, setPriceConfig] = useState(null);
   const { addToast, ToastContainer } = useToast();
-
+  const [showPricing, setShowPricing] = useState(false);
   const loadRooms = useCallback(async () => {
     try {
       const res = await getRooms();
@@ -550,12 +552,11 @@ export default function RoomMap() {
 
   const handleMarkCleaning = async (room) => {
     try {
-      const res = await import("../utils/api");
-      await res.updateRoom(room._id, { status: "available" });
+      await updateRoom(room._id, { status: 'available' });
       addToast(`Phòng ${room.roomNumber} đã sẵn sàng`);
       loadRooms();
     } catch {
-      addToast("Lỗi cập nhật", "error");
+      addToast('Lỗi cập nhật', 'error');
     }
   };
 
@@ -627,50 +628,53 @@ export default function RoomMap() {
             border: "1.5px solid #e8f0fe",
             flexWrap: "wrap",
             boxShadow: "0 1px 4px rgba(37,99,235,0.05)",
+            alignItems: "center",        // thêm dòng này
+            justifyContent: "space-between",  // thêm dòng này
           }}
         >
-          <span
-            style={{
-              fontSize: 11.5,
-              color: "#94a3b8",
-              fontWeight: 600,
-              marginRight: 6,
-            }}
-          >
-            Chú giải:
-          </span>
-          {[
-            { color: "#2563eb", label: "Trống" },
-            { color: "#ef4444", label: "Có khách" },
-            { color: "#f59e0b", label: "Dọn phòng" },
-            { color: "#6366f1", label: "Bảo trì" },
-          ].map(({ color, label }) => (
-            <div
-              key={label}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                fontSize: 12,
-                color: "#475569",
-                background: `${color}12`,
-                padding: "3px 10px",
-                borderRadius: 20,
-                border: `1px solid ${color}30`,
-                fontWeight: 500,
-              }}
-            >
+          {/* Phần chú giải giữ nguyên */}
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+            <span style={{ fontSize: 11.5, color: "#94a3b8", fontWeight: 600, marginRight: 6 }}>
+              Chú giải:
+            </span>
+            {[
+              { color: "#2563eb", label: "Trống" },
+              { color: "#ef4444", label: "Có khách" },
+              { color: "#f59e0b", label: "Dọn phòng" },
+              { color: "#6366f1", label: "Bảo trì" },
+            ].map(({ color, label }) => (
               <div
+                key={label}
                 style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: color,
+                  display: "flex", alignItems: "center", gap: 5,
+                  fontSize: 12, color: "#475569",
+                  background: `${color}12`, padding: "3px 10px",
+                  borderRadius: 20, border: `1px solid ${color}30`, fontWeight: 500,
                 }}
-              />
-              {label}
-            </div>
-          ))}
+              >
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
+                {label}
+              </div>
+            ))}
+          </div>
+
+          {/* Nút mới */}
+          <button
+            onClick={() => setShowPricing(true)}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              fontSize: 13, fontWeight: 500, color: "#2563eb",
+              background: "#eff6ff", border: "1px solid #bfdbfe",
+              borderRadius: 8, padding: "5px 14px", cursor: "pointer",
+              whiteSpace: "nowrap", flexShrink: 0,
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = "#dbeafe"}
+            onMouseLeave={(e) => e.currentTarget.style.background = "#eff6ff"}
+          >
+            <span style={{ fontSize: 15 }}>🧮</span>
+            Tính tiền
+          </button>
         </div>
 
         {/* Floor Sections */}
@@ -718,6 +722,43 @@ export default function RoomMap() {
           onRefresh={loadRooms}
           addToast={addToast}
         />
+      )}
+      {showPricing && (
+        <div
+          onClick={(e) => e.target === e.currentTarget && setShowPricing(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 1000,
+            background: "rgba(0,0,0,0.45)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: 16,
+          }}
+        >
+          <div style={{
+            background: "#fff", borderRadius: 14,
+            width: "100%", maxWidth: 600,
+            maxHeight: "90vh", overflow: "hidden",
+            display: "flex", flexDirection: "column",
+          }}>
+            <div style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              padding: "14px 18px", borderBottom: "0.5px solid rgba(0,0,0,0.1)",
+            }}>
+              <span style={{ fontWeight: 600, fontSize: 15 }}>Máy tính tiền phòng</span>
+              <button
+                onClick={() => setShowPricing(false)}
+                style={{
+                  background: "none", border: "none",
+                  fontSize: 22, cursor: "pointer", color: "#94a3b8", lineHeight: 1,
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ overflowY: "auto", flex: 1 }}>
+              <PricingCalculator />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
