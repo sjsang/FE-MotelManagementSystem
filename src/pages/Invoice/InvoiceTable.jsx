@@ -1,7 +1,5 @@
 import React from 'react';
 
-const PAYMENT_LABEL = { cash: 'Tiền mặt', transfer: 'Chuyển khoản', card: 'Thẻ' };
-const PAYMENT_COLOR = { cash: '#10b981', transfer: '#3b82f6', card: '#8b85ff' };
 const STATUS_STYLE = {
     issued: { color: '#10b981', bg: 'rgba(16,185,129,0.12)', label: 'Đã xuất' },
     cancelled: { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', label: 'Đã hủy' },
@@ -27,10 +25,10 @@ export default function InvoiceTable({ loading, invoices, setSelected, page, tot
                                     <th>Số hóa đơn</th>
                                     <th>Phòng</th>
                                     <th>Khách</th>
-                                    <th>Check-out</th>
                                     <th>Thực thu</th>
+                                    <th>Nhận phòng</th>
+                                    <th>Trả phòng</th>
                                     <th>Trạng thái</th>
-                                    <th>Xuất lúc</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -45,34 +43,31 @@ export default function InvoiceTable({ loading, invoices, setSelected, page, tot
                                     return (
                                         <tr key={inv._id} onClick={() => setSelected(inv)} style={{ cursor: 'pointer' }}>
                                             <td>
-                                                <span style={{ fontWeight: 700, fontSize: 13, fontFamily: 'monospace', color: '#8b85ff' }}>
+                                                <span style={{ fontWeight: 700, fontSize: 13, color: '#8b85ff' }}>
                                                     {inv.invoiceNumber}
                                                 </span>
                                             </td>
                                             <td>
                                                 <span style={{ fontWeight: 700 }}>{inv.roomNumber}</span>
-                                                <div style={{ fontSize: 11, color: '#6b6f84' }}>
-                                                    {inv.roomType === 'double' ? 'Đôi' : 'Đơn'}
-                                                </div>
+
                                             </td>
                                             <td>
                                                 <div style={{ fontWeight: 600 }}>{inv.guestName}</div>
-                                                {inv.guestId && <div style={{ fontSize: 11, color: '#6b6f84' }}>{inv.guestId}</div>}
+
                                             </td>
-                                            <td style={{ fontSize: 12.5 }}>{fmtDate(inv.checkOut)}</td>
+
 
                                             <td>
                                                 <span style={{ fontWeight: 700, color: '#10b981' }}>{fmt(inv.paidAmount)}</span>
-                                                {inv.discount > 0 && (
-                                                    <div style={{ fontSize: 11, color: '#6b6f84' }}>Giảm: {fmt(inv.discount)}</div>
-                                                )}
+
                                             </td>
+                                            <td style={{ fontSize: 12.5 }}>{fmtDate(inv.checkIn)}</td>
+                                            <td style={{ fontSize: 12.5 }}>{fmtDate(inv.issuedAt)}</td>
                                             <td>
                                                 <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: ss.bg, color: ss.color }}>
                                                     {ss.label}
                                                 </span>
                                             </td>
-                                            <td style={{ fontSize: 12.5 }}>{fmtDate(inv.issuedAt)}</td>
                                         </tr>
                                     );
                                 })}

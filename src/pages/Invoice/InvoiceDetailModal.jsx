@@ -59,7 +59,7 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
             <div className="modal" style={{ maxWidth: 500 }}>
                 <div className="modal-header">
                     <div>
-                        <div className="modal-title">🧾 {invoice.invoiceNumber}</div>
+                        <div className="modal-title">{invoice.invoiceNumber}</div>
                         <div style={{ fontSize: 12, color: '#9fa3b8', marginTop: 2 }}>
                             Xuất lúc {fmtDate(invoice.issuedAt)}
                             {invoice.issuedBy && ` • ${invoice.issuedBy}`}
@@ -157,7 +157,7 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
                             {!showCancelForm ? (
                                 <button onClick={() => setShowCancelForm(true)}
                                     style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', borderRadius: 8, padding: '7px 14px', fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
-                                    🗑 Hủy hóa đơn
+                                    Hủy hóa đơn
                                 </button>
                             ) : (
                                 <div style={{ background: 'rgba(239,68,68,0.07)', borderRadius: 10, padding: '12px 14px' }}>
@@ -179,7 +179,7 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
 
                 <div className="modal-footer">
                     <button className="btn btn-ghost" onClick={onClose}>Đóng</button>
-                    <button className="btn btn-primary" onClick={handlePrint}>🖨️ In hóa đơn</button>
+                    <button className="btn btn-primary" onClick={handlePrint}>In hóa đơn</button>
                 </div>
             </div>
         </div>
