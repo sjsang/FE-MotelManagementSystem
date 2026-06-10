@@ -366,18 +366,26 @@ export default function CheckInModal({ room, priceConfig, onClose, onSubmit, add
 
             <div className="input-row" style={{ marginTop: 14 }}>
               <div className="form-group">
-                <label className="form-label">Loại thuê</label>
-                <select className="form-control" value={form.bookingType}
-                  onChange={e => set('bookingType', e.target.value)}>
-                  {BOOKING_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                <label className="form-label">Ca</label>
+                <select className="form-control" value={form.shift}
+                  onChange={e => {
+                    const newShift = e.target.value;
+                    set('shift', newShift);
+                    if (newShift === 'night') {
+                      set('bookingType', 'hourly');
+                    }
+                  }}>
+                  <option value="day">☀️ Ca ngày (5h–23h)</option>
+                  <option value="night">🌙 Ca đêm (23h–5h)</option>
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Ca</label>
-                <select className="form-control" value={form.shift}
-                  onChange={e => set('shift', e.target.value)}>
-                  <option value="day">☀️ Ca ngày (5h–23h)</option>
-                  <option value="night">🌙 Ca đêm (23h–5h)</option>
+                <label className="form-label">Loại thuê</label>
+                <select className="form-control" value={form.bookingType}
+                  onChange={e => set('bookingType', e.target.value)}>
+                  {BOOKING_TYPES.filter(t => form.shift !== 'night' || t.value === 'hourly').map(t => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
                 </select>
               </div>
             </div>

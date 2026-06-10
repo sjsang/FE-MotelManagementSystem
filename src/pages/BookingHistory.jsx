@@ -446,91 +446,63 @@ export default function BookingHistory() {
             {/* Trạng thái */}
             <div>
               <div className="form-label">Trạng thái</div>
-              <div style={{ display: "flex", gap: 6 }}>
-                {[
-                  ["", "Tất cả"],
-                  ["active", "Đang ở"],
-                  ["completed", "Đã trả"],
-                  ["cancelled", "Hủy"],
-                ].map(([v, l]) => (
-                  <button
-                    key={v}
-                    onClick={() => setF("status", v)}
-                    className={`btn btn-sm ${
-                      filter.status === v ? "btn-primary" : "btn-ghost"
-                    }`}
-                  >
-                    {l}
-                  </button>
-                ))}
-              </div>
+              <select
+                className="form-control"
+                value={filter.status}
+                onChange={(e) => setF("status", e.target.value)}
+                style={{ width: 130 }}
+              >
+                <option value="">Tất cả</option>
+                <option value="active">Đang ở</option>
+                <option value="completed">Đã trả</option>
+                <option value="cancelled">Hủy</option>
+              </select>
             </div>
 
             {/* Loại booking */}
             <div>
               <div className="form-label">Loại đặt phòng</div>
-              <div style={{ display: "flex", gap: 6 }}>
-                {[
-                  ["", "Tất cả"],
-                  ["hourly", "Nghỉ giờ"],
-                  ["overnight", "Qua đêm"],
-                  ["fullday", "Ngày đêm"],
-                ].map(([v, l]) => (
-                  <button
-                    key={v}
-                    onClick={() => setF("bookingType", v)}
-                    className={`btn btn-sm ${
-                      filter.bookingType === v ? "btn-primary" : "btn-ghost"
-                    }`}
-                  >
-                    {l}
-                  </button>
-                ))}
-              </div>
+              <select
+                className="form-control"
+                value={filter.bookingType}
+                onChange={(e) => setF("bookingType", e.target.value)}
+                style={{ width: 145 }}
+              >
+                <option value="">Tất cả</option>
+                <option value="hourly">Nghỉ giờ</option>
+                <option value="overnight">Qua đêm</option>
+                <option value="fullday">Ngày đêm</option>
+              </select>
             </div>
 
             {/* Loại phòng */}
             <div>
               <div className="form-label">Loại phòng</div>
-              <div style={{ display: "flex", gap: 6 }}>
-                {[
-                  ["", "Tất cả"],
-                  ["single", "Phòng đơn"],
-                  ["double", "Phòng đôi"],
-                ].map(([v, l]) => (
-                  <button
-                    key={v}
-                    onClick={() => setF("room_type", v)}
-                    className={`btn btn-sm ${
-                      filter.room_type === v ? "btn-primary" : "btn-ghost"
-                    }`}
-                  >
-                    {l}
-                  </button>
-                ))}
-              </div>
+              <select
+                className="form-control"
+                value={filter.room_type}
+                onChange={(e) => setF("room_type", e.target.value)}
+                style={{ width: 130 }}
+              >
+                <option value="">Tất cả</option>
+                <option value="single">Phòng đơn</option>
+                <option value="double">Phòng đôi</option>
+              </select>
             </div>
 
             {/* Ca */}
             <div>
               <div className="form-label">Ca</div>
-              <div style={{ display: "flex", gap: 6 }}>
-                {[
-                  ["", "Tất cả"],
-                  ["day", "Ca ngày"],
-                  ["night", "Ca đêm"],
-                ].map(([v, l]) => (
-                  <button
-                    key={v}
-                    onClick={() => setF("shift", v)}
-                    className={`btn btn-sm ${
-                      filter.shift === v ? "btn-primary" : "btn-ghost"
-                    }`}
-                  >
-                    {l}
-                  </button>
-                ))}
-              </div>
+              <select
+                className="form-control"
+                value={filter.shift}
+                onChange={(e) => setF("shift", e.target.value)}
+                style={{ width: 120 }}
+              >
+                <option value="">Tất cả</option>
+                <option value="day">Ca ngày</option>
+                <option value="night">Ca đêm</option>
+              </select>
             </div>
 
             {/* Nút reset */}

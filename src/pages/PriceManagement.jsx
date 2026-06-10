@@ -2,6 +2,12 @@ import React, { useState, useEffect } from "react";
 import { getActivePrice, updatePrice } from "../utils/api";
 import { useToast } from "../hooks/useToast";
 
+const formatNumberWithDots = (val) => {
+  if (val === null || val === undefined || val === "") return "";
+  const str = val.toString().replace(/\D/g, "");
+  return str.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
+
 const PriceField = ({ label, path, note, edited, onChange }) => {
   const value = path.split(".").reduce((obj, k) => obj?.[k], edited) ?? "";
   return (
@@ -27,11 +33,11 @@ const PriceField = ({ label, path, note, edited, onChange }) => {
         style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}
       >
         <input
-          type="number"
+          type="text"
           className="form-control"
           style={{ width: 120, textAlign: "right" }}
-          value={value}
-          onChange={(e) => onChange(path, e.target.value)}
+          value={formatNumberWithDots(value)}
+          onChange={(e) => onChange(path, e.target.value.replace(/\D/g, ""))}
         />
         <span style={{ fontSize: 12, color: "#6b6f84", width: 16 }}>đ</span>
       </div>
@@ -304,10 +310,11 @@ export default function PriceManagement() {
               />
               <input
                 className="form-control"
-                type="number"
+                type="text"
                 placeholder="Giá"
-                value={svc.price ?? ""}
-                onChange={(e) => setService(i, "price", e.target.value)}
+                value={formatNumberWithDots(svc.price)}
+                onChange={(e) => setService(i, "price", e.target.value.replace(/\D/g, ""))}
+                style={{ textAlign: "right" }}
               />
               <input
                 className="form-control"
