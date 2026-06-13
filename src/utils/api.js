@@ -53,6 +53,10 @@ export const createPrice = (data) => api.post('/prices', data);
 export const updatePrice = (id, data) => api.put(`/prices/${id}`, data);
 export const deletePrice = (id) => api.delete(`/prices/${id}`);
 
+// Price services (dịch vụ trong bảng giá)
+export const addPriceService = (priceId, data) => api.post(`/prices/${priceId}/services`, data);
+export const deletePriceService = (priceId, serviceId) => api.delete(`/prices/${priceId}/services/${serviceId}`);
+
 // Customers
 export const getCustomers = (params) => api.get("/customers", { params });
 export const getCustomerById = (id) => api.get(`/customers/${id}`);

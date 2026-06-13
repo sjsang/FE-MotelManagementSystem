@@ -180,7 +180,7 @@ export default function RoomManagement() {
                             {room.roomNumber}
                           </span>
                         </td>
-                        <td>{room.type === "single" ? "🛏 Đơn" : "🛏🛏 Đôi"}</td>
+                        <td>{room.type === "single" ? "Đơn" : "🛏🛏 Đôi"}</td>
                         <td>
                           <span
                             className={`badge ${STATUS_CLASS[room.status]}`}
@@ -203,7 +203,7 @@ export default function RoomManagement() {
                               className="btn btn-ghost btn-sm"
                               onClick={() => openEdit(room)}
                             >
-                              ✏️ Sửa
+                              Cập nhật
                             </button>
                             <button
                               className="btn btn-sm"
@@ -214,7 +214,7 @@ export default function RoomManagement() {
                               }}
                               onClick={() => handleDelete(room)}
                             >
-                              🗑
+                              Xóa
                             </button>
                           </div>
                         </td>
@@ -257,7 +257,7 @@ export default function RoomManagement() {
                           marginTop: 6,
                         }}
                       >
-                        📝 {room.notes}
+                        {room.notes}
                       </div>
                     )}
                     <div className="rm-room-card-actions">
@@ -266,7 +266,7 @@ export default function RoomManagement() {
                         style={{ flex: 1 }}
                         onClick={() => openEdit(room)}
                       >
-                        ✏️ Sửa
+                        Sửa
                       </button>
                       <button
                         className="btn btn-sm"
@@ -278,7 +278,7 @@ export default function RoomManagement() {
                         }}
                         onClick={() => handleDelete(room)}
                       >
-                        🗑 Xóa
+                        Xóa
                       </button>
                     </div>
                   </div>
@@ -334,8 +334,8 @@ export default function RoomManagement() {
                   value={form.type}
                   onChange={(e) => set("type", e.target.value)}
                 >
-                  <option value="single">🛏 Phòng đơn</option>
-                  <option value="double">🛏🛏 Phòng đôi</option>
+                  <option value="single">Phòng đơn</option>
+                  <option value="double">Phòng đôi</option>
                 </select>
               </div>
               {editId && (

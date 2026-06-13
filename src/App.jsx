@@ -10,7 +10,7 @@ import "./styles/App.css";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import GridViewIcon from "@mui/icons-material/GridView";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
-import ReceiptIcon from '@mui/icons-material/Receipt';
+import ReceiptIcon from "@mui/icons-material/Receipt";
 import PriceChangeIcon from "@mui/icons-material/PriceChange";
 import PeopleIcon from "@mui/icons-material/People";
 import HistoryIcon from "@mui/icons-material/History";
@@ -29,8 +29,10 @@ export default function App() {
   const handleAuthSuccess = () => setIsAuthenticated(true);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    setIsAuthenticated(false);
+    if (window.confirm("Bạn có chắc muốn đăng xuất?")) {
+      localStorage.removeItem("token");
+      setIsAuthenticated(false);
+    }
   };
 
   const closeSidebar = () => setSidebarOpen(false);
@@ -97,10 +99,15 @@ export default function App() {
       </NavLink>
       <NavLink
         to="/invoices"
-        className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
+        className={({ isActive }) =>
+          isActive ? "nav-item active" : "nav-item"
+        }
         onClick={closeSidebar}
       >
-        <span className="nav-icon"><ReceiptIcon /></span> Hóa đơn
+        <span className="nav-icon">
+          <ReceiptIcon />
+        </span>{" "}
+        Hóa đơn
       </NavLink>
 
       <div className="nav-section-label" style={{ paddingTop: 12 }}>
@@ -210,8 +217,7 @@ export default function App() {
                   color: "rgba(255,255,255,0.35)",
                   letterSpacing: "0.05em",
                 }}
-              >
-              </div>
+              ></div>
             </div>
           </div>
 

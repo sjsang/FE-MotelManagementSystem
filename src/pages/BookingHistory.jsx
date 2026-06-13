@@ -236,7 +236,9 @@ export default function BookingHistory() {
         getCustomers(),
       ]);
       setRevenue(rRes.data);
-      setCustomers(Array.isArray(cRes.data) ? cRes.data : (cRes.data?.data || []));
+      setCustomers(
+        Array.isArray(cRes.data) ? cRes.data : cRes.data?.data || []
+      );
     } catch {
       addToast("Lỗi tải doanh thu", "error");
     } finally {
@@ -324,7 +326,7 @@ export default function BookingHistory() {
               cursor: "pointer",
             }}
           >
-            📥 Xuất Excel
+            Xuất Excel
           </button>
         </div>
 
@@ -350,7 +352,7 @@ export default function BookingHistory() {
           >
             {/* Tìm kiếm */}
             <div style={{ flex: "1 1 220px" }}>
-              <div className="form-label">🔎 Tìm kiếm</div>
+              <div className="form-label"> Tìm kiếm</div>
               <div style={{ display: "flex", gap: 6 }}>
                 <input
                   type="text"

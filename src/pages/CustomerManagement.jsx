@@ -31,10 +31,14 @@ export default function CustomerManagement() {
         getCustomerOptions(),
       ]);
 
-      const validCustomers = Array.isArray(custRes.data) ? custRes.data : (custRes.data?.data || []);
+      const validCustomers = Array.isArray(custRes.data)
+        ? custRes.data
+        : custRes.data?.data || [];
       setCustomers(validCustomers);
 
-      setOptions(optRes.data || { nationalities: [], provinces: [], visaTypes: [] });
+      setOptions(
+        optRes.data || { nationalities: [], provinces: [], visaTypes: [] }
+      );
     } catch (e) {
       addToast("Không thể tải danh sách khách hàng hoặc cấu hình", "error");
     } finally {
@@ -164,14 +168,13 @@ export default function CustomerManagement() {
           </div>
         </div>
         <button className="btn btn-primary" onClick={handleOpenAdd}>
-          ➕ Thêm khách hàng
+          Thêm khách hàng
         </button>
       </div>
 
       {/* Search */}
       <div className="card" style={{ padding: "14px 18px", marginBottom: 18 }}>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <span style={{ fontSize: 18 }}>🔍</span>
           <input
             className="form-control"
             placeholder="Tìm kiếm theo Tên, Số CCCD hoặc Số Hộ chiếu..."
@@ -261,14 +264,14 @@ export default function CustomerManagement() {
                             className="btn btn-ghost btn-sm"
                             onClick={() => handleOpenEdit(c)}
                           >
-                            📝 Sửa
+                            Sửa
                           </button>
                           <button
                             className="btn btn-danger btn-sm"
                             onClick={() => handleDelete(c._id, c.hoten)}
                             style={{ padding: "6px 10px", fontSize: 12 }}
                           >
-                            🗑️
+                            Xóa
                           </button>
                         </div>
                       </td>
@@ -341,14 +344,14 @@ export default function CustomerManagement() {
                       style={{ flex: 1 }}
                       onClick={() => handleOpenEdit(c)}
                     >
-                      📝 Sửa
+                      Sửa
                     </button>
                     <button
                       className="btn btn-danger btn-sm"
                       style={{ flex: 1 }}
                       onClick={() => handleDelete(c._id, c.hoten)}
                     >
-                      🗑️ Xóa
+                      Xóa
                     </button>
                   </div>
                 </div>

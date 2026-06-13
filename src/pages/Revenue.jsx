@@ -236,7 +236,9 @@ export default function Revenue() {
         getCustomers(),
       ]);
       setRevenue(rRes.data);
-      setCustomers(Array.isArray(cRes.data) ? cRes.data : (cRes.data?.data || []));
+      setCustomers(
+        Array.isArray(cRes.data) ? cRes.data : cRes.data?.data || []
+      );
     } catch {
       addToast("Lỗi tải doanh thu", "error");
     } finally {
@@ -318,7 +320,7 @@ export default function Revenue() {
             letterSpacing: "0.05em",
           }}
         >
-          📊 Kỳ thống kê doanh thu
+          Kỳ thống kê doanh thu
         </div>
         <div
           style={{
@@ -414,7 +416,7 @@ export default function Revenue() {
       {chartData.length > 0 && (
         <div className="card" style={{ marginBottom: 20 }}>
           <div style={{ fontWeight: 700, marginBottom: 16 }}>
-            📈 Doanh thu theo ngày
+            Doanh thu theo ngày
           </div>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart
