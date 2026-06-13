@@ -30,7 +30,9 @@ export default function RoomManagement() {
   const load = async () => {
     try {
       const res = await getRooms();
-      const validData = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+      const validData = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data || [];
       setRooms(validData);
     } catch {
       addToast("Lỗi tải danh sách phòng", "error");
@@ -153,7 +155,7 @@ export default function RoomManagement() {
                 marginBottom: 14,
               }}
             >
-              Tầng {floor}
+              Khu {floor === 1 ? "Trước" : "Sau"}
             </div>
 
             {/* ── Desktop: table ── */}
@@ -314,14 +316,15 @@ export default function RoomManagement() {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Tầng</label>
-                  <input
+                  <label className="form-label">Khu</label>
+                  <select
                     className="form-control"
-                    type="number"
-                    min="1"
                     value={form.floor}
                     onChange={(e) => set("floor", Number(e.target.value))}
-                  />
+                  >
+                    <option value={1}>Trước</option>
+                    <option value={2}>Sau</option>
+                  </select>
                 </div>
               </div>
               <div className="form-group">

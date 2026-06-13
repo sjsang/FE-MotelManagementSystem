@@ -380,7 +380,7 @@ function FloorSection({ floor, rooms, onRoomClick, onMarkCleaning }) {
               boxShadow: "0 3px 10px rgba(37,99,235,0.3)",
             }}
           >
-            Tầng {floor}
+            Khu {floor === 1 ? "Trước" : "Sau"}
           </div>
           <span style={{ fontSize: 12.5, color: "#94a3b8", fontWeight: 500 }}>
             {rooms.length} phòng
@@ -490,7 +490,9 @@ export default function RoomMap() {
   const loadRooms = useCallback(async () => {
     try {
       const res = await getRooms();
-      const validData = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+      const validData = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data || [];
       setRooms(validData);
     } catch {
       addToast("Không thể tải danh sách phòng", "error");
@@ -503,7 +505,7 @@ export default function RoomMap() {
     loadRooms();
     getActivePrice()
       .then((r) => setPriceConfig(r.data))
-      .catch(() => { });
+      .catch(() => {});
     const interval = setInterval(loadRooms, 30000);
     return () => clearInterval(interval);
   }, [loadRooms]);
@@ -526,7 +528,13 @@ export default function RoomMap() {
     }
   };
 
-  const handleCheckOut = async (bookingId, services, notes, discount, taxVnd) => {
+  const handleCheckOut = async (
+    bookingId,
+    services,
+    notes,
+    discount,
+    taxVnd
+  ) => {
     try {
       // 1. Chốt trả phòng
       await checkOut(bookingId, { services, notes });
@@ -544,19 +552,21 @@ export default function RoomMap() {
       // 3. Trả về data hóa đơn để RoomDetailModal bật lên
       return resInvoice.data;
     } catch (e) {
-      addToast(e.response?.data?.message || e.response?.data?.error || 'Lỗi check-out', 'error');
+      addToast(
+        e.response?.data?.message || e.response?.data?.error || "Lỗi check-out",
+        "error"
+      );
       return null;
     }
   };
 
-
   const handleMarkCleaning = async (room) => {
     try {
-      await updateRoom(room._id, { status: 'available' });
+      await updateRoom(room._id, { status: "available" });
       addToast(`Phòng ${room.roomNumber} đã sẵn sàng`);
       loadRooms();
     } catch {
-      addToast('Lỗi cập nhật', 'error');
+      addToast("Lỗi cập nhật", "error");
     }
   };
 
@@ -628,13 +638,27 @@ export default function RoomMap() {
             border: "1.5px solid #e8f0fe",
             flexWrap: "wrap",
             boxShadow: "0 1px 4px rgba(37,99,235,0.05)",
-            alignItems: "center",        // thêm dòng này
-            justifyContent: "space-between",  // thêm dòng này
+            alignItems: "center", // thêm dòng này
+            justifyContent: "space-between", // thêm dòng này
           }}
         >
           {/* Phần chú giải giữ nguyên */}
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <span style={{ fontSize: 11.5, color: "#94a3b8", fontWeight: 600, marginRight: 6 }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 11.5,
+                color: "#94a3b8",
+                fontWeight: 600,
+                marginRight: 6,
+              }}
+            >
               Chú giải:
             </span>
             {[
@@ -646,13 +670,26 @@ export default function RoomMap() {
               <div
                 key={label}
                 style={{
-                  display: "flex", alignItems: "center", gap: 5,
-                  fontSize: 12, color: "#475569",
-                  background: `${color}12`, padding: "3px 10px",
-                  borderRadius: 20, border: `1px solid ${color}30`, fontWeight: 500,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  fontSize: 12,
+                  color: "#475569",
+                  background: `${color}12`,
+                  padding: "3px 10px",
+                  borderRadius: 20,
+                  border: `1px solid ${color}30`,
+                  fontWeight: 500,
                 }}
               >
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
+                <div
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: color,
+                  }}
+                />
                 {label}
               </div>
             ))}
@@ -662,15 +699,23 @@ export default function RoomMap() {
           <button
             onClick={() => setShowPricing(true)}
             style={{
-              display: "flex", alignItems: "center", gap: 6,
-              fontSize: 13, fontWeight: 500, color: "#2563eb",
-              background: "#eff6ff", border: "1px solid #bfdbfe",
-              borderRadius: 8, padding: "5px 14px", cursor: "pointer",
-              whiteSpace: "nowrap", flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 13,
+              fontWeight: 500,
+              color: "#2563eb",
+              background: "#eff6ff",
+              border: "1px solid #bfdbfe",
+              borderRadius: 8,
+              padding: "5px 14px",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
               transition: "background 0.15s",
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = "#dbeafe"}
-            onMouseLeave={(e) => e.currentTarget.style.background = "#eff6ff"}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#dbeafe")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#eff6ff")}
           >
             <span style={{ fontSize: 15 }}>🧮</span>
             Tính tiền
@@ -727,28 +772,49 @@ export default function RoomMap() {
         <div
           onClick={(e) => e.target === e.currentTarget && setShowPricing(false)}
           style={{
-            position: "fixed", inset: 0, zIndex: 1000,
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
             background: "rgba(0,0,0,0.45)",
-            display: "flex", alignItems: "center", justifyContent: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             padding: 16,
           }}
         >
-          <div style={{
-            background: "#fff", borderRadius: 14,
-            width: "100%", maxWidth: 600,
-            maxHeight: "90vh", overflow: "hidden",
-            display: "flex", flexDirection: "column",
-          }}>
-            <div style={{
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-              padding: "14px 18px", borderBottom: "0.5px solid rgba(0,0,0,0.1)",
-            }}>
-              <span style={{ fontWeight: 600, fontSize: 15 }}>Máy tính tiền phòng</span>
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 14,
+              width: "100%",
+              maxWidth: 600,
+              maxHeight: "90vh",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "14px 18px",
+                borderBottom: "0.5px solid rgba(0,0,0,0.1)",
+              }}
+            >
+              <span style={{ fontWeight: 600, fontSize: 15 }}>
+                Máy tính tiền phòng
+              </span>
               <button
                 onClick={() => setShowPricing(false)}
                 style={{
-                  background: "none", border: "none",
-                  fontSize: 22, cursor: "pointer", color: "#94a3b8", lineHeight: 1,
+                  background: "none",
+                  border: "none",
+                  fontSize: 22,
+                  cursor: "pointer",
+                  color: "#94a3b8",
+                  lineHeight: 1,
                 }}
               >
                 ×
