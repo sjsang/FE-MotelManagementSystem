@@ -54,8 +54,8 @@ export default function App() {
       >
         <span className="nav-icon">
           <GridViewIcon />
-        </span>{" "}
-        Sơ đồ phòng
+        </span>
+        <span className="nav-label">Sơ đồ phòng</span>
       </NavLink>
 
       <div className="nav-section-label" style={{ paddingTop: 12 }}>
@@ -70,8 +70,8 @@ export default function App() {
       >
         <span className="nav-icon">
           <MeetingRoomIcon />
-        </span>{" "}
-        Quản lý phòng
+        </span>
+        <span className="nav-label">Quản lý phòng</span>
       </NavLink>
       <NavLink
         to="/prices"
@@ -82,8 +82,8 @@ export default function App() {
       >
         <span className="nav-icon">
           <PriceChangeIcon />
-        </span>{" "}
-        Bảng giá
+        </span>
+        <span className="nav-label">Bảng giá</span>
       </NavLink>
       <NavLink
         to="/customers"
@@ -94,8 +94,8 @@ export default function App() {
       >
         <span className="nav-icon">
           <PeopleIcon />
-        </span>{" "}
-        Khách lưu trú
+        </span>
+        <span className="nav-label">Khách lưu trú</span>
       </NavLink>
       <NavLink
         to="/invoices"
@@ -106,8 +106,8 @@ export default function App() {
       >
         <span className="nav-icon">
           <ReceiptIcon />
-        </span>{" "}
-        Hóa đơn
+        </span>
+        <span className="nav-label">Hóa đơn</span>
       </NavLink>
 
       <div className="nav-section-label" style={{ paddingTop: 12 }}>
@@ -122,8 +122,8 @@ export default function App() {
       >
         <span className="nav-icon">
           <HistoryIcon />
-        </span>{" "}
-        Lịch sử
+        </span>
+        <span className="nav-label">Lịch sử</span>
       </NavLink>
       <NavLink
         to="/revenue"
@@ -134,8 +134,8 @@ export default function App() {
       >
         <span className="nav-icon">
           <RequestQuoteIcon />
-        </span>{" "}
-        Doanh thu
+        </span>
+        <span className="nav-label">Doanh thu</span>
       </NavLink>
     </nav>
   );
@@ -143,7 +143,7 @@ export default function App() {
   const userFooter = (
     <div className="sidebar-user-footer">
       <div className="sidebar-avatar">QT</div>
-      <div style={{ flex: 1 }}>
+      <div className="sidebar-user-info" style={{ flex: 1 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>
           Quản Trị Viên
         </div>
@@ -190,7 +190,7 @@ export default function App() {
               NHÀ NGHỈ 79
             </span>
           </div>
-          <div style={{ width: 40 }} /> {/* spacer to center brand */}
+          <div style={{ width: 40 }} />
         </header>
 
         {/* ── Mobile overlay backdrop ── */}
@@ -239,7 +239,6 @@ export default function App() {
         </main>
       </div>
 
-      {/* ── Responsive styles injected inline so they don't require CSS file changes ── */}
       <style>{`
         /* Mobile topbar — hidden on desktop */
         .mobile-topbar {
@@ -264,6 +263,12 @@ export default function App() {
           letter-spacing: 0.1em;
           padding: 8px 12px 4px;
           text-transform: uppercase;
+        }
+
+        /* Nav label — text next to icon, toggled by tablet rail */
+        .nav-label {
+          white-space: nowrap;
+          overflow: hidden;
         }
 
         /* User footer */
@@ -312,22 +317,24 @@ export default function App() {
             width: 60px !important;
             overflow: hidden;
           }
-          .sidebar-brand,
+
+          /* Hide all text/label elements — keep only icons */
+          .nav-label,
           .nav-section-label,
-          .sidebar-user-footer > div,
-          .sidebar-user-footer .logout-btn,
-          .nav-item > *:not(.nav-icon) {
+          .sidebar-brand .brand-name,
+          .sidebar-brand > div:last-child,
+          .sidebar-user-info,
+          .logout-btn {
             display: none !important;
           }
+
+          /* Center brand icon */
           .sidebar-brand {
-            display: flex !important;
-            justify-content: center;
-            padding: 16px 0;
+            justify-content: center !important;
+            padding: 16px 0 !important;
           }
-          .brand-name,
-          .sidebar-brand > div:last-child {
-            display: none !important;
-          }
+
+          /* Center each nav item, icon only */
           .nav-item {
             justify-content: center !important;
             padding: 12px 0 !important;
@@ -335,9 +342,11 @@ export default function App() {
           .nav-icon {
             margin: 0 !important;
           }
+
+          /* Center avatar in footer */
           .sidebar-user-footer {
-            justify-content: center;
-            padding: 14px 0;
+            justify-content: center !important;
+            padding: 14px 0 !important;
           }
           .sidebar-avatar {
             width: 30px;
