@@ -70,3 +70,29 @@ export const createInvoice = (data) => api.post('/invoices', data);
 export const getInvoices = (params) => api.get('/invoices', { params });
 export const getInvoiceById = (id) => api.get(`/invoices/${id}`);
 export const cancelInvoice = (id, data) => api.patch(`/invoices/${id}/cancel`, data);
+
+// Reports
+export const getReportSummary = (params) =>
+  api.get('/reports/summary', { params });
+
+export const getDailyRevenueReport = (params) =>
+  api.get('/reports/daily', { params });
+
+export const getMonthlyRevenueReport = (params) =>
+  api.get('/reports/monthly', { params });
+
+export const getReportInvoices = (params) =>
+  api.get('/reports/invoices', { params });
+
+export const exportReportExcel = (params) =>
+  api.get('/reports/export/excel', {
+    params,
+    responseType: 'blob',
+  });
+
+// THÊM ĐOẠN NÀY VÀO DƯỚI CÙNG:
+export const exportReportBCA = (params) =>
+  api.get('/reports/export/bca', {
+    params,
+    responseType: 'blob', // Rất quan trọng để tải được file Excel về
+  });

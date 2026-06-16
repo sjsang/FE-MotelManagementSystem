@@ -14,12 +14,57 @@ function fmtDate(d) {
 export default function InvoiceTable({ loading, invoices, setSelected, page, totalPages, load }) {
     return (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <style>{`
+    @media (max-width: 768px) {
+        .responsive-table {
+            border-collapse: separate;
+            border-spacing: 0 12px; /* Tạo khoảng trống giữa các dòng (gap) */
+        }
+        .responsive-table thead {
+            display: none;
+        }
+        .responsive-table, .responsive-table tbody {
+            display: block;
+            width: 100%;
+        }
+        .responsive-table tr {
+            display: block;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05); /* Nền cho mỗi card */
+            border: 1px solid rgba(255, 255, 255, 0.1); /* Viền cho mỗi card */
+            border-radius: 0; /* Không bo góc tr để khớp với card cha */
+            margin-bottom: 8px;
+            /* Thêm shadow nhẹ để card nổi bật lên */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .responsive-table td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: right;
+            padding: 12px 16px !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+        }
+        .responsive-table td:last-child {
+            border-bottom: none !important;
+        }
+        .responsive-table td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #6b6f84;
+            font-size: 13px;
+            text-align: left;
+            margin-right: 16px;
+        }
+    }
+`}</style>
+
             {loading ? (
                 <div style={{ textAlign: 'center', padding: 50, color: '#6b6f84' }}>Đang tải...</div>
             ) : (
                 <>
-                    <div className="table-wrap">
-                        <table>
+                    <div className="table-wrap" style={{ padding: '0 16px' }}> {/* Thêm padding 2 bên cho mobile nếu cần */}
+                        <table className="responsive-table">
                             <thead>
                                 <tr>
                                     <th>Số hóa đơn</th>
@@ -34,7 +79,7 @@ export default function InvoiceTable({ loading, invoices, setSelected, page, tot
                             <tbody>
                                 {invoices.length === 0 ? (
                                     <tr>
-                                        <td colSpan={8} style={{ textAlign: 'center', color: '#6b6f84', padding: 40 }}>
+                                        <td colSpan={7} style={{ textAlign: 'center', color: '#6b6f84', padding: 40, display: 'block' }}>
                                             Không có hóa đơn nào
                                         </td>
                                     </tr>
@@ -42,28 +87,27 @@ export default function InvoiceTable({ loading, invoices, setSelected, page, tot
                                     const ss = STATUS_STYLE[inv.status];
                                     return (
                                         <tr key={inv._id} onClick={() => setSelected(inv)} style={{ cursor: 'pointer' }}>
-                                            <td>
+                                            <td data-label="Số hóa đơn">
                                                 <span style={{ fontWeight: 700, fontSize: 13, color: '#8b85ff' }}>
                                                     {inv.invoiceNumber}
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td data-label="Phòng">
                                                 <span style={{ fontWeight: 700 }}>{inv.roomNumber}</span>
-
                                             </td>
-                                            <td>
+                                            <td data-label="Khách">
                                                 <div style={{ fontWeight: 600 }}>{inv.guestName}</div>
-
                                             </td>
-
-
-                                            <td>
+                                            <td data-label="Thực thu">
                                                 <span style={{ fontWeight: 700, color: '#10b981' }}>{fmt(inv.paidAmount)}</span>
-
                                             </td>
-                                            <td style={{ fontSize: 12.5 }}>{fmtDate(inv.checkIn)}</td>
-                                            <td style={{ fontSize: 12.5 }}>{fmtDate(inv.issuedAt)}</td>
-                                            <td>
+                                            <td data-label="Nhận phòng" style={{ fontSize: 12.5 }}>
+                                                {fmtDate(inv.checkIn)}
+                                            </td>
+                                            <td data-label="Trả phòng" style={{ fontSize: 12.5 }}>
+                                                {fmtDate(inv.issuedAt)}
+                                            </td>
+                                            <td data-label="Trạng thái">
                                                 <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: ss.bg, color: ss.color }}>
                                                     {ss.label}
                                                 </span>

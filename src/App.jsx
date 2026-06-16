@@ -17,8 +17,10 @@ import HistoryIcon from "@mui/icons-material/History";
 import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
-import Revenue from "./pages/Revenue";
 import InvoiceHistory from "./pages/Invoice/InvoiceHistory";
+
+// 1. Import trang báo cáo mới từ thư mục Report
+import ReportPage from "./pages/Report";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -126,7 +128,7 @@ export default function App() {
         <span className="nav-label">Lịch sử</span>
       </NavLink>
       <NavLink
-        to="/revenue"
+        to="/reports"
         className={({ isActive }) =>
           isActive ? "nav-item active" : "nav-item"
         }
@@ -234,12 +236,15 @@ export default function App() {
             <Route path="/customers" element={<CustomerManagement />} />
             <Route path="/history" element={<BookingHistory />} />
             <Route path="/invoices" element={<InvoiceHistory />} />
-            <Route path="/revenue" element={<Revenue />} />
+
+            {/* 2. Sửa lại đường dẫn và component cho trang báo cáo */}
+            <Route path="/reports" element={<ReportPage />} />
           </Routes>
         </main>
       </div>
 
       <style>{`
+        /* CSS giữ nguyên như cũ của bạn, mình không động vào */
         /* Mobile topbar — hidden on desktop */
         .mobile-topbar {
           display: none;

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Popover, IconButton } from '@mui/material';
 import { ChevronLeft, ChevronRight, ArrowBack } from '@mui/icons-material';
+import { CalendarMonth } from '@mui/icons-material';
 import dayjs from 'dayjs';
 
 const CustomDateRangePicker = ({ open, anchorEl, onClose, initialDates, onApply }) => {
@@ -47,7 +48,7 @@ const CustomDateRangePicker = ({ open, anchorEl, onClose, initialDates, onApply 
         const endOfLastWeek = startOfLastWeek.add(6, 'day');
 
         return [
-            { label: '📅 Chọn trên lịch', value: 'custom' },
+            { label: 'Chọn trên lịch', value: 'custom', icon: <CalendarMonth style={{ fontSize: 18 }} /> },
             { label: 'Hôm nay', getDates: () => ({ start: today.format('YYYY-MM-DD'), end: today.format('YYYY-MM-DD') }) },
             { label: 'Hôm qua', getDates: () => ({ start: today.subtract(1, 'day').format('YYYY-MM-DD'), end: today.subtract(1, 'day').format('YYYY-MM-DD') }) },
             { label: 'Tuần này', getDates: () => ({ start: startOfThisWeek.format('YYYY-MM-DD'), end: endOfThisWeek.format('YYYY-MM-DD') }) },
@@ -65,16 +66,15 @@ const CustomDateRangePicker = ({ open, anchorEl, onClose, initialDates, onApply 
         if (preset.value === 'custom') {
             setView('calendar');
         } else {
-            handleApplyInternal(preset.getDates());
+            // SỬA Ở ĐÂY: Bắn kèm label ra ngoài
+            handleApplyInternal({ ...preset.getDates(), label: preset.label });
         }
     };
 
-    // LOGIC ĐÃ SỬA: Luôn luôn render chính xác 42 ngày (6 tuần x 7 ngày)
     const daysInMonth = useMemo(() => {
         const start = currentMonth.startOf('month').startOf('week');
         const days = [];
         let d = start;
-        // Fix cứng vòng lặp 42 lần
         for (let i = 0; i < 42; i++) {
             days.push(d);
             d = d.add(1, 'day');
@@ -129,7 +129,7 @@ const CustomDateRangePicker = ({ open, anchorEl, onClose, initialDates, onApply 
                                     border: 'none',
                                     background: 'transparent',
                                     fontSize: '13.5px',
-                                    color: p.value === 'custom' ? '#2563eb' : '#374151',
+                                    color: p.value === 'custom' ? '#328767' : '#374151',
                                     fontWeight: p.value === 'custom' ? '600' : '500',
                                     cursor: 'pointer',
                                     fontFamily: 'inherit',
@@ -138,7 +138,10 @@ const CustomDateRangePicker = ({ open, anchorEl, onClose, initialDates, onApply 
                                 onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f3f4f6'}
                                 onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                             >
-                                {p.label}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    {p.icon}
+                                    <span>{p.label}</span>
+                                </div>
                             </button>
                             {p.value === 'custom' && (
                                 <hr style={{ border: 'none', borderTop: '1px solid #f3f4f6', margin: '4px 0' }} />
@@ -179,7 +182,6 @@ const CustomDateRangePicker = ({ open, anchorEl, onClose, initialDates, onApply 
                             const isBetween = tempDates.start && tempDates.end && d.isAfter(dayjs(tempDates.start), 'day') && d.isBefore(dayjs(tempDates.end), 'day');
                             const isToday = d.isSame(dayjs(), 'day');
 
-                            // FIX HIỂN THỊ: Giữ nguyên khoảng trống (khung vô hình) cho các ngày không thuộc tháng
                             if (!isCurrentMonth) {
                                 return (
                                     <div key={i} className="relative py-1">
@@ -246,7 +248,8 @@ const CustomDateRangePicker = ({ open, anchorEl, onClose, initialDates, onApply 
                             <button onClick={handleClear} className="flex-1 font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors" style={{ padding: '10px 0', borderRadius: '8px', fontSize: '13px' }}>
                                 Xóa
                             </button>
-                            <button onClick={() => handleApplyInternal(tempDates)} className="flex-1 font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors" style={{ padding: '10px 0', borderRadius: '8px', fontSize: '13px' }}>
+                            {/* SỬA Ở ĐÂY: Gắn thêm label khi người dùng tự chọn ngày */}
+                            <button onClick={() => handleApplyInternal({ ...tempDates, label: '📅 Chọn trên lịch' })} className="flex-1 font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors" style={{ padding: '10px 0', borderRadius: '8px', fontSize: '13px' }}>
                                 Áp dụng
                             </button>
                         </div>
