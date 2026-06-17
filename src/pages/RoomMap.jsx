@@ -62,7 +62,7 @@ const STATUS_STYLES = {
 };
 
 /* ─── Room Card ─────────────────────────────────────────── */
-function RoomCard({ room, onClick }) {
+function RoomCard({ room, onClick, onMarkCleaning }) {
   const s = STATUS_STYLES[room.status] || STATUS_STYLES.available;
   const booking = room.currentBooking;
 
@@ -266,6 +266,44 @@ function RoomCard({ room, onClick }) {
           <span>+</span> Nhấn để nhận phòng
         </div>
       )}
+
+      {room.status === "cleaning" && onMarkCleaning && (
+        <div
+          style={{
+            marginTop: 12,
+            paddingTop: 10,
+            borderTop: "1px dashed #fde68a",
+          }}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onMarkCleaning(room);
+            }}
+            style={{
+              width: "100%",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              background: "#fffbeb",
+              color: "#b45309",
+              border: "1.5px solid #fde68a",
+              borderRadius: 10,
+              padding: "7px 0",
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "all 0.18s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#fef3c7")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#fffbeb")}
+          >
+            <span style={{ fontSize: 14 }}>✓</span>
+            Dọn xong
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -343,7 +381,6 @@ function StatCard({ label, value, color, icon, sub }) {
 function FloorSection({ floor, rooms, onRoomClick, onMarkCleaning }) {
   const occupiedCount = rooms.filter((r) => r.status === "occupied").length;
   const availableCount = rooms.filter((r) => r.status === "available").length;
-  const cleaningRooms = rooms.filter((r) => r.status === "cleaning");
 
   return (
     <div
@@ -380,7 +417,7 @@ function FloorSection({ floor, rooms, onRoomClick, onMarkCleaning }) {
               boxShadow: "0 3px 10px rgba(37,99,235,0.3)",
             }}
           >
-            Tầng {floor}
+            Khu {floor === 1 ? "Trước" : "Sau"}
           </div>
           <span style={{ fontSize: 12.5, color: "#94a3b8", fontWeight: 500 }}>
             {rooms.length} phòng
@@ -427,53 +464,14 @@ function FloorSection({ floor, rooms, onRoomClick, onMarkCleaning }) {
         }}
       >
         {rooms.map((room) => (
-          <RoomCard key={room._id} room={room} onClick={onRoomClick} />
+          <RoomCard
+            key={room._id}
+            room={room}
+            onClick={onRoomClick}
+            onMarkCleaning={onMarkCleaning}
+          />
         ))}
       </div>
-
-      {/* Cleaning quick-done */}
-      {cleaningRooms.length > 0 && (
-        <div
-          style={{
-            marginTop: 14,
-            paddingTop: 12,
-            borderTop: "1px dashed #fde68a",
-            display: "flex",
-            gap: 8,
-            flexWrap: "wrap",
-          }}
-        >
-          {cleaningRooms.map((room) => (
-            <button
-              key={room._id}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                background: "#fffbeb",
-                color: "#b45309",
-                border: "1.5px solid #fde68a",
-                borderRadius: 10,
-                padding: "6px 14px",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "all 0.18s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#fef3c7";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "#fffbeb";
-              }}
-              onClick={() => onMarkCleaning(room)}
-            >
-              <span style={{ fontSize: 14 }}>✓</span>
-              Phòng {room.roomNumber} dọn xong
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -490,7 +488,9 @@ export default function RoomMap() {
   const loadRooms = useCallback(async () => {
     try {
       const res = await getRooms();
-      const validData = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+      const validData = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data || [];
       setRooms(validData);
     } catch {
       addToast("Không thể tải danh sách phòng", "error");
@@ -503,7 +503,7 @@ export default function RoomMap() {
     loadRooms();
     getActivePrice()
       .then((r) => setPriceConfig(r.data))
-      .catch(() => { });
+      .catch(() => {});
     const interval = setInterval(loadRooms, 30000);
     return () => clearInterval(interval);
   }, [loadRooms]);
@@ -526,7 +526,13 @@ export default function RoomMap() {
     }
   };
 
-  const handleCheckOut = async (bookingId, services, notes, discount, taxVnd) => {
+  const handleCheckOut = async (
+    bookingId,
+    services,
+    notes,
+    discount,
+    taxVnd
+  ) => {
     try {
       // 1. Chốt trả phòng
       await checkOut(bookingId, { services, notes });
@@ -544,19 +550,21 @@ export default function RoomMap() {
       // 3. Trả về data hóa đơn để RoomDetailModal bật lên
       return resInvoice.data;
     } catch (e) {
-      addToast(e.response?.data?.message || e.response?.data?.error || 'Lỗi check-out', 'error');
+      addToast(
+        e.response?.data?.message || e.response?.data?.error || "Lỗi check-out",
+        "error"
+      );
       return null;
     }
   };
 
-
   const handleMarkCleaning = async (room) => {
     try {
-      await updateRoom(room._id, { status: 'available' });
+      await updateRoom(room._id, { status: "available" });
       addToast(`Phòng ${room.roomNumber} đã sẵn sàng`);
       loadRooms();
     } catch {
-      addToast('Lỗi cập nhật', 'error');
+      addToast("Lỗi cập nhật", "error");
     }
   };
 
@@ -628,13 +636,27 @@ export default function RoomMap() {
             border: "1.5px solid #e8f0fe",
             flexWrap: "wrap",
             boxShadow: "0 1px 4px rgba(37,99,235,0.05)",
-            alignItems: "center",        // thêm dòng này
-            justifyContent: "space-between",  // thêm dòng này
+            alignItems: "center", // thêm dòng này
+            justifyContent: "space-between", // thêm dòng này
           }}
         >
           {/* Phần chú giải giữ nguyên */}
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <span style={{ fontSize: 11.5, color: "#94a3b8", fontWeight: 600, marginRight: 6 }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 11.5,
+                color: "#94a3b8",
+                fontWeight: 600,
+                marginRight: 6,
+              }}
+            >
               Chú giải:
             </span>
             {[
@@ -646,13 +668,26 @@ export default function RoomMap() {
               <div
                 key={label}
                 style={{
-                  display: "flex", alignItems: "center", gap: 5,
-                  fontSize: 12, color: "#475569",
-                  background: `${color}12`, padding: "3px 10px",
-                  borderRadius: 20, border: `1px solid ${color}30`, fontWeight: 500,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  fontSize: 12,
+                  color: "#475569",
+                  background: `${color}12`,
+                  padding: "3px 10px",
+                  borderRadius: 20,
+                  border: `1px solid ${color}30`,
+                  fontWeight: 500,
                 }}
               >
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
+                <div
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: color,
+                  }}
+                />
                 {label}
               </div>
             ))}
@@ -662,15 +697,23 @@ export default function RoomMap() {
           <button
             onClick={() => setShowPricing(true)}
             style={{
-              display: "flex", alignItems: "center", gap: 6,
-              fontSize: 13, fontWeight: 500, color: "#2563eb",
-              background: "#eff6ff", border: "1px solid #bfdbfe",
-              borderRadius: 8, padding: "5px 14px", cursor: "pointer",
-              whiteSpace: "nowrap", flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 13,
+              fontWeight: 500,
+              color: "#2563eb",
+              background: "#eff6ff",
+              border: "1px solid #bfdbfe",
+              borderRadius: 8,
+              padding: "5px 14px",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
               transition: "background 0.15s",
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = "#dbeafe"}
-            onMouseLeave={(e) => e.currentTarget.style.background = "#eff6ff"}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#dbeafe")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#eff6ff")}
           >
             <span style={{ fontSize: 15 }}>🧮</span>
             Tính tiền
@@ -727,28 +770,49 @@ export default function RoomMap() {
         <div
           onClick={(e) => e.target === e.currentTarget && setShowPricing(false)}
           style={{
-            position: "fixed", inset: 0, zIndex: 1000,
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
             background: "rgba(0,0,0,0.45)",
-            display: "flex", alignItems: "center", justifyContent: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             padding: 16,
           }}
         >
-          <div style={{
-            background: "#fff", borderRadius: 14,
-            width: "100%", maxWidth: 600,
-            maxHeight: "90vh", overflow: "hidden",
-            display: "flex", flexDirection: "column",
-          }}>
-            <div style={{
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-              padding: "14px 18px", borderBottom: "0.5px solid rgba(0,0,0,0.1)",
-            }}>
-              <span style={{ fontWeight: 600, fontSize: 15 }}>Máy tính tiền phòng</span>
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 14,
+              width: "100%",
+              maxWidth: 600,
+              maxHeight: "90vh",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "14px 18px",
+                borderBottom: "0.5px solid rgba(0,0,0,0.1)",
+              }}
+            >
+              <span style={{ fontWeight: 600, fontSize: 15 }}>
+                Máy tính tiền phòng
+              </span>
               <button
                 onClick={() => setShowPricing(false)}
                 style={{
-                  background: "none", border: "none",
-                  fontSize: 22, cursor: "pointer", color: "#94a3b8", lineHeight: 1,
+                  background: "none",
+                  border: "none",
+                  fontSize: 22,
+                  cursor: "pointer",
+                  color: "#94a3b8",
+                  lineHeight: 1,
                 }}
               >
                 ×

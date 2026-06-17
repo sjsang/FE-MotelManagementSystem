@@ -30,7 +30,9 @@ export default function RoomManagement() {
   const load = async () => {
     try {
       const res = await getRooms();
-      const validData = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+      const validData = Array.isArray(res.data)
+        ? res.data
+        : res.data?.data || [];
       setRooms(validData);
     } catch {
       addToast("Lỗi tải danh sách phòng", "error");
@@ -153,7 +155,7 @@ export default function RoomManagement() {
                 marginBottom: 14,
               }}
             >
-              Tầng {floor}
+              Khu {floor === 1 ? "Trước" : "Sau"}
             </div>
 
             {/* ── Desktop: table ── */}
@@ -178,7 +180,7 @@ export default function RoomManagement() {
                             {room.roomNumber}
                           </span>
                         </td>
-                        <td>{room.type === "single" ? "🛏 Đơn" : "🛏🛏 Đôi"}</td>
+                        <td>{room.type === "single" ? "Đơn" : "🛏🛏 Đôi"}</td>
                         <td>
                           <span
                             className={`badge ${STATUS_CLASS[room.status]}`}
@@ -201,7 +203,7 @@ export default function RoomManagement() {
                               className="btn btn-ghost btn-sm"
                               onClick={() => openEdit(room)}
                             >
-                              ✏️ Sửa
+                              Cập nhật
                             </button>
                             <button
                               className="btn btn-sm"
@@ -212,7 +214,7 @@ export default function RoomManagement() {
                               }}
                               onClick={() => handleDelete(room)}
                             >
-                              🗑
+                              Xóa
                             </button>
                           </div>
                         </td>
@@ -255,7 +257,7 @@ export default function RoomManagement() {
                           marginTop: 6,
                         }}
                       >
-                        📝 {room.notes}
+                        {room.notes}
                       </div>
                     )}
                     <div className="rm-room-card-actions">
@@ -264,7 +266,7 @@ export default function RoomManagement() {
                         style={{ flex: 1 }}
                         onClick={() => openEdit(room)}
                       >
-                        ✏️ Sửa
+                        Sửa
                       </button>
                       <button
                         className="btn btn-sm"
@@ -276,7 +278,7 @@ export default function RoomManagement() {
                         }}
                         onClick={() => handleDelete(room)}
                       >
-                        🗑 Xóa
+                        Xóa
                       </button>
                     </div>
                   </div>
@@ -314,14 +316,15 @@ export default function RoomManagement() {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Tầng</label>
-                  <input
+                  <label className="form-label">Khu</label>
+                  <select
                     className="form-control"
-                    type="number"
-                    min="1"
                     value={form.floor}
                     onChange={(e) => set("floor", Number(e.target.value))}
-                  />
+                  >
+                    <option value={1}>Trước</option>
+                    <option value={2}>Sau</option>
+                  </select>
                 </div>
               </div>
               <div className="form-group">
@@ -331,8 +334,8 @@ export default function RoomManagement() {
                   value={form.type}
                   onChange={(e) => set("type", e.target.value)}
                 >
-                  <option value="single">🛏 Phòng đơn</option>
-                  <option value="double">🛏🛏 Phòng đôi</option>
+                  <option value="single">Phòng đơn</option>
+                  <option value="double">Phòng đôi</option>
                 </select>
               </div>
               {editId && (

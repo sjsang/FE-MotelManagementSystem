@@ -5,6 +5,8 @@ import CustomDateRangePicker from '../../components/DateRangePicker';
 export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, handleClearFilter }) {
     const [pickerOpen, setPickerOpen] = useState(false);
     const [pickerAnchor, setPickerAnchor] = useState(null);
+    // Thêm state lưu nhãn, mặc định là 'Tháng này'
+    const [dateLabel, setDateLabel] = useState('Tháng này');
     const dateButtonRef = useRef(null);
 
     const handleOpenPicker = () => {
@@ -14,6 +16,8 @@ export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, ha
 
     const handleApplyDates = (dates) => {
         setFilter(f => ({ ...f, from: dates.start || f.from, to: dates.end || f.to }));
+        // Hứng label từ DatePicker đẩy ra
+        setDateLabel(dates.label || '📅 Chọn trên lịch');
     };
 
     const setF = (k, v) => setFilter(f => ({ ...f, [k]: v }));
@@ -61,17 +65,24 @@ export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, ha
                         }}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                            <span style={{ fontWeight: 600, letterSpacing: '0.3px' }}>
-                                {filter.from ? dayjs(filter.from).format('DD/MM/YYYY') : '--'}
-                            </span>
-
-                            <span style={{ margin: '0 10px', color: '#6b7a90', fontWeight: 500 }}>
-                                →
-                            </span>
-
-                            <span style={{ fontWeight: 600, letterSpacing: '0.3px' }}>
-                                {filter.to ? dayjs(filter.to).format('DD/MM/YYYY') : '--'}
-                            </span>
+                            {/* LOGIC ĐIỀU KIỆN RENDER Ở ĐÂY */}
+                            {dateLabel === '📅 Chọn trên lịch' ? (
+                                <>
+                                    <span style={{ fontWeight: 600, letterSpacing: '0.3px' }}>
+                                        {filter.from ? dayjs(filter.from).format('DD/MM/YYYY') : '--'}
+                                    </span>
+                                    <span style={{ margin: '0 10px', color: '#6b7a90', fontWeight: 500 }}>
+                                        →
+                                    </span>
+                                    <span style={{ fontWeight: 600, letterSpacing: '0.3px' }}>
+                                        {filter.to ? dayjs(filter.to).format('DD/MM/YYYY') : '--'}
+                                    </span>
+                                </>
+                            ) : (
+                                <span style={{ fontWeight: 600, letterSpacing: '0.3px' }}>
+                                    {dateLabel}
+                                </span>
+                            )}
                         </div>
                     </button>
                     <CustomDateRangePicker
@@ -143,7 +154,10 @@ export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, ha
                     <button
                         className="btn btn-ghost"
                         style={{ padding: '9px 14px', height: 'fit-content' }}
-                        onClick={handleClearFilter}
+                        onClick={() => {
+                            setDateLabel('Tháng này'); // Reset lại nhãn khi bấm Xóa lọc
+                            handleClearFilter();
+                        }}
                     >
                         ↺ Xóa lọc
                     </button>
