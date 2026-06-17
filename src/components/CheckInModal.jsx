@@ -428,6 +428,7 @@ export default function CheckInModal({ room, priceConfig, onClose, onSubmit, add
             setAddingForIndex(null);
           }}
           onSave={handleCreateCustomerDirect}
+          addToast={addToast}
         />
       )}
     </>

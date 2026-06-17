@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AddressSelector from './AddressSelector';
 
 export default function AddCustomerModal({ customer = null, options = null, onClose, onSave, addToast = null }) {
@@ -28,6 +28,105 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
   const [addrDistrict, setAddrDistrict] = useState('');
   const [addrWard, setAddrWard] = useState('');
   const [loading, setLoading] = useState(false);
+  const [qrInput, setQrInput] = useState('');
+  const isScanningRef = useRef(false);
+  const qrTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (qrTimeoutRef.current) {
+        clearTimeout(qrTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const processQrCode = (value) => {
+    if (!value) return;
+
+    // Hỗ trợ tự động phân tích qua nhiều ký tự phân tách khác nhau
+    const delimiters = ['|', '\\', ';'];
+    let parts = null;
+    for (const delim of delimiters) {
+      const splitParts = value.split(delim);
+      // CCCD có từ 6 đến 7 trường thông tin (6 cho CCCD cũ, 7 cho CCCD gắn chip mới)
+      if (splitParts.length >= 6) {
+        parts = splitParts;
+        break;
+      }
+    }
+
+    if (parts) {
+      isScanningRef.current = true;
+      const cccd = parts[0] ? parts[0].trim() : '';
+      const name = parts[2] ? parts[2].trim() : '';
+      const dobStr = parts[3] ? parts[3].trim() : '';
+      const gender = parts[4] ? parts[4].trim() : 'Nam';
+      const address = parts[5] ? parts[5].trim() : '';
+      const issueDateStr = parts[6] ? parts[6].trim() : '';
+
+      // Định dạng ngày từ DDMMYYYY sang YYYY-MM-DD
+      const formatDob = (str) => {
+        if (!str) return '';
+        const cleaned = str.replace(/\D/g, '');
+        if (cleaned.length === 8) {
+          const day = cleaned.slice(0, 2);
+          const month = cleaned.slice(2, 4);
+          const year = cleaned.slice(4, 8);
+          return `${year}-${month}-${day}`;
+        }
+        return '';
+      };
+
+      const dob = formatDob(dobStr);
+      const ngaycap = formatDob(issueDateStr);
+
+      setForm(prev => ({
+        ...prev,
+        hoten: name || prev.hoten,
+        gioitinh: gender === 'Nữ' ? 'Nữ' : 'Nam',
+        ngaythangnamsinh: dob || prev.ngaythangnamsinh,
+        quoctich: 'Việt Nam',
+        cccd: cccd || prev.cccd,
+        thuongtru: address || prev.thuongtru,
+        ngaycap: ngaycap || prev.ngaycap,
+        noicap: 'Cục Cảnh sát QLHC về TTXH' // Tất cả CCCD gắn chip mới đều do Cục Cảnh sát QLHC về TTXH cấp
+      }));
+
+      setAddressMode('manual');
+      setQrInput('');
+
+      if (addToast) {
+        addToast('✅ Đã tự động điền thông tin Căn cước công dân!', 'success');
+      }
+
+      setTimeout(() => {
+        isScanningRef.current = false;
+      }, 300);
+    }
+  };
+
+  const handleQrScan = (e) => {
+    const value = e.target.value;
+    setQrInput(value);
+
+    // Debounce fallback: tự động phân tích nếu ngừng gõ 150ms
+    if (qrTimeoutRef.current) {
+      clearTimeout(qrTimeoutRef.current);
+    }
+    qrTimeoutRef.current = setTimeout(() => {
+      processQrCode(value);
+    }, 150);
+  };
+
+  const handleQrKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (qrTimeoutRef.current) {
+        clearTimeout(qrTimeoutRef.current);
+      }
+      processQrCode(e.target.value);
+    }
+  };
 
   // Khởi tạo/đồng bộ form state khi customer thay đổi (dành cho chế độ edit)
   useEffect(() => {
@@ -73,6 +172,7 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
 
   // Cập nhật trường thuongtru tự động từ AddressSelector
   useEffect(() => {
+    if (isScanningRef.current) return;
     if (addressMode === 'select' && !customer) {
       const parts = [];
       if (addrDetail.trim()) parts.push(addrDetail.trim());
@@ -157,7 +257,7 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
         showMsg(`Công dân Việt Nam phải từ 14 tuổi trở lên (sinh năm ${currentYear - 14} trở về trước)`);
         return;
       }
-      
+
       if (addressMode === 'select') {
         if (!addrProvince) { showMsg('Vui lòng chọn Tỉnh/Thành phố'); return; }
         if (!addrDistrict) { showMsg('Vui lòng chọn Quận/Huyện'); return; }
@@ -236,8 +336,30 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
           </div>
           <button type="button" className="modal-close" onClick={onClose}>✕</button>
         </div>
-        
+
         <div className="modal-body" style={{ overflowY: 'auto', flex: 1 }}>
+          {/* QR Code Scanner Input */}
+          <div className="form-group" style={{
+            marginBottom: '16px',
+            background: 'rgba(22,163,74,0.06)',
+            border: '1px dashed #16a34a',
+            borderRadius: '8px',
+            padding: '12px 14px'
+          }}>
+            <label className="form-label" style={{ color: '#16a34a', fontWeight: '700', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              Quét mã QR từ Căn cước công dân (CCCD)
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Nhấp chuột vào đây rồi quét mã QR trên CCCD..."
+              value={qrInput}
+              onChange={handleQrScan}
+              onKeyDown={handleQrKeyDown}
+              style={{ background: 'var(--bg)', borderColor: 'rgba(22,163,74,0.4)', color: 'var(--text)' }}
+            />
+          </div>
+
           <div className="input-row">
             <div className="form-group">
               <label className="form-label">Họ và tên *</label>
