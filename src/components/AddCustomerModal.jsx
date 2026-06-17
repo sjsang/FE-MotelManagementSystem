@@ -96,7 +96,7 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
       setQrInput('');
 
       if (addToast) {
-        addToast('✅ Đã tự động điền thông tin Căn cước công dân!', 'success');
+        addToast('Đã tự động điền thông tin Căn cước công dân!', 'success');
       }
 
       setTimeout(() => {
