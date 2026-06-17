@@ -320,9 +320,9 @@ export default function CustomerManagement() {
                       color: "#9fa3b8",
                     }}
                   >
-                    {c.gioitinh && <span>👤 {c.gioitinh}</span>}
+                    {c.gioitinh && <span>{c.gioitinh}</span>}
                     {c.ngaythangnamsinh && (
-                      <span>🎂 {formatDateDisplay(c.ngaythangnamsinh)}</span>
+                      <span> {formatDateDisplay(c.ngaythangnamsinh)}</span>
                     )}
                   </div>
 

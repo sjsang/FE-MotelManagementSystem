@@ -1,4 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+
+// ─── Hook: detect màn hình nhỏ ───────────────────────────────────────────────
+function useIsMobile(breakpoint = 640) {
+  const [isMobile, setIsMobile] = useState(
+    () => window.innerWidth < breakpoint
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [breakpoint]);
+  return isMobile;
+}
 import { getBookings, getRevenue, getCustomers } from "../utils/api";
 import { useToast } from "../hooks/useToast";
 import {
@@ -126,6 +140,8 @@ function FilterTag({ label, onRemove }) {
 
 // ─── Main component ──────────────────────────────────────────────────────────
 export default function BookingHistory() {
+  const isMobile = useIsMobile();
+
   // Revenue filter (độc lập với booking filter)
   const [revFilter, setRevFilter] = useState({ from: weekAgo(), to: today() });
   const [revenue, setRevenue] = useState(null);
@@ -560,133 +576,335 @@ export default function BookingHistory() {
               }`}
         </div>
 
-        {/* ── Bảng booking ── */}
+        {/* ── Bảng / Card booking ── */}
         {loading ? (
           <div style={{ textAlign: "center", padding: 40, color: "#6b6f84" }}>
             Đang tải...
           </div>
         ) : (
           <>
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Phòng</th>
-                    <th>Khách</th>
-                    <th>Loại</th>
-                    <th>Ca</th>
-                    <th>Check-in</th>
-                    <th>Check-out</th>
-                    <th>Tổng tiền</th>
-                    <th>Trạng thái</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.length === 0 ? (
+            {/* ── Desktop: bảng ── */}
+            {!isMobile && (
+              <div className="table-wrap">
+                <table>
+                  <thead>
                     <tr>
-                      <td
-                        colSpan={8}
+                      <th>Phòng</th>
+                      <th>Khách</th>
+                      <th>Loại</th>
+                      <th>Ca</th>
+                      <th>Check-in</th>
+                      <th>Check-out</th>
+                      <th>Tổng tiền</th>
+                      <th>Trạng thái</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bookings.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={8}
+                          style={{
+                            textAlign: "center",
+                            color: "#6b6f84",
+                            padding: 30,
+                          }}
+                        >
+                          Không có dữ liệu
+                        </td>
+                      </tr>
+                    ) : (
+                      bookings.map((b) => {
+                        const ss =
+                          STATUS_STYLE[b.status] || STATUS_STYLE.completed;
+                        return (
+                          <tr key={b._id}>
+                            <td>
+                              <span style={{ fontWeight: 700, fontSize: 15 }}>
+                                {b.roomNumber}
+                              </span>
+                              {b.room_type && (
+                                <div style={{ fontSize: 11, color: "#6b6f84" }}>
+                                  {b.room_type === "double" ? "Đôi" : "Đơn"}
+                                </div>
+                              )}
+                            </td>
+                            <td>
+                              <div style={{ fontWeight: 600 }}>
+                                {b.guestName}
+                              </div>
+                              {b.guestPhone && (
+                                <div
+                                  style={{ fontSize: 11.5, color: "#6b6f84" }}
+                                >
+                                  {b.guestPhone}
+                                </div>
+                              )}
+                            </td>
+                            <td>
+                              <span style={{ fontSize: 12.5 }}>
+                                {TYPE_LABEL[b.bookingType]}
+                              </span>
+                            </td>
+                            <td>
+                              <span
+                                style={{
+                                  fontSize: 11,
+                                  padding: "2px 8px",
+                                  borderRadius: 10,
+                                  fontWeight: 600,
+                                  background:
+                                    b.shift === "night"
+                                      ? "rgba(99,102,241,0.15)"
+                                      : "rgba(251,191,36,0.12)",
+                                  color:
+                                    b.shift === "night" ? "#818cf8" : "#fbbf24",
+                                }}
+                              >
+                                {SHIFT_LABEL[b.shift] || b.shift}
+                              </span>
+                            </td>
+                            <td style={{ fontSize: 12.5 }}>
+                              {fmtDate(b.checkIn)}
+                            </td>
+                            <td
+                              style={{
+                                fontSize: 12.5,
+                                color: b.checkOut ? undefined : "#6b6f84",
+                              }}
+                            >
+                              {fmtDate(b.checkOut) || "—"}
+                            </td>
+                            <td>
+                              {b.totalAmount ? (
+                                <span
+                                  style={{ fontWeight: 700, color: "#10b981" }}
+                                >
+                                  {fmt(b.totalAmount)}
+                                </span>
+                              ) : (
+                                <span
+                                  style={{ color: "#6b6f84", fontSize: 12 }}
+                                >
+                                  —
+                                </span>
+                              )}
+                            </td>
+                            <td>
+                              <span
+                                style={{
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                  padding: "3px 10px",
+                                  borderRadius: 20,
+                                  background: ss.bg,
+                                  color: ss.color,
+                                }}
+                              >
+                                {STATUS_LABEL[b.status]}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* ── Mobile: card list ── */}
+            {isMobile && (
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 10 }}
+              >
+                {bookings.length === 0 ? (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      color: "#6b6f84",
+                      padding: 30,
+                    }}
+                  >
+                    Không có dữ liệu
+                  </div>
+                ) : (
+                  bookings.map((b) => {
+                    const ss = STATUS_STYLE[b.status] || STATUS_STYLE.completed;
+                    return (
+                      <div
+                        key={b._id}
                         style={{
-                          textAlign: "center",
-                          color: "#6b6f84",
-                          padding: 30,
+                          background: "rgba(255,255,255,0.04)",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          borderRadius: 12,
+                          padding: "14px 16px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 10,
                         }}
                       >
-                        Không có dữ liệu
-                      </td>
-                    </tr>
-                  ) : (
-                    bookings.map((b) => {
-                      const ss =
-                        STATUS_STYLE[b.status] || STATUS_STYLE.completed;
-                      return (
-                        <tr key={b._id}>
-                          <td>
-                            <span style={{ fontWeight: 700, fontSize: 15 }}>
-                              {b.roomNumber}
+                        {/* Dòng 1: Phòng + Trạng thái */}
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <div>
+                            <span style={{ fontWeight: 700, fontSize: 17 }}>
+                              Phòng {b.roomNumber}
                             </span>
                             {b.room_type && (
-                              <div style={{ fontSize: 11, color: "#6b6f84" }}>
-                                {b.room_type === "double" ? "Đôi" : "Đơn"}
-                              </div>
+                              <span
+                                style={{
+                                  marginLeft: 6,
+                                  fontSize: 11,
+                                  color: "#6b6f84",
+                                }}
+                              >
+                                ({b.room_type === "double" ? "Đôi" : "Đơn"})
+                              </span>
                             )}
-                          </td>
-                          <td>
-                            <div style={{ fontWeight: 600 }}>{b.guestName}</div>
-                            {b.guestPhone && (
-                              <div style={{ fontSize: 11.5, color: "#6b6f84" }}>
-                                {b.guestPhone}
-                              </div>
-                            )}
-                          </td>
-                          <td>
-                            <span style={{ fontSize: 12.5 }}>
-                              {TYPE_LABEL[b.bookingType]}
-                            </span>
-                          </td>
-                          <td>
-                            <span
-                              style={{
-                                fontSize: 11,
-                                padding: "2px 8px",
-                                borderRadius: 10,
-                                fontWeight: 600,
-                                background:
-                                  b.shift === "night"
-                                    ? "rgba(99,102,241,0.15)"
-                                    : "rgba(251,191,36,0.12)",
-                                color:
-                                  b.shift === "night" ? "#818cf8" : "#fbbf24",
-                              }}
-                            >
-                              {SHIFT_LABEL[b.shift] || b.shift}
-                            </span>
-                          </td>
-                          <td style={{ fontSize: 12.5 }}>
-                            {fmtDate(b.checkIn)}
-                          </td>
-                          <td
+                          </div>
+                          <span
                             style={{
-                              fontSize: 12.5,
-                              color: b.checkOut ? undefined : "#6b6f84",
+                              fontSize: 12,
+                              fontWeight: 600,
+                              padding: "3px 10px",
+                              borderRadius: 20,
+                              background: ss.bg,
+                              color: ss.color,
                             }}
                           >
-                            {fmtDate(b.checkOut) || "—"}
-                          </td>
-                          <td>
-                            {b.totalAmount ? (
-                              <span
-                                style={{ fontWeight: 700, color: "#10b981" }}
-                              >
-                                {fmt(b.totalAmount)}
-                              </span>
-                            ) : (
-                              <span style={{ color: "#6b6f84", fontSize: 12 }}>
-                                —
-                              </span>
-                            )}
-                          </td>
-                          <td>
-                            <span
+                            {STATUS_LABEL[b.status]}
+                          </span>
+                        </div>
+
+                        {/* Dòng 2: Khách */}
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 14 }}>
+                            {b.guestName}
+                          </div>
+                          {b.guestPhone && (
+                            <div style={{ fontSize: 12, color: "#6b6f84" }}>
+                              {b.guestPhone}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Dòng 3: Loại + Ca */}
+                        <div
+                          style={{ display: "flex", gap: 8, flexWrap: "wrap" }}
+                        >
+                          <span
+                            style={{
+                              fontSize: 12,
+                              padding: "2px 8px",
+                              borderRadius: 8,
+                              background: "rgba(255,255,255,0.06)",
+                              color: "#c5c8d8",
+                            }}
+                          >
+                            {TYPE_LABEL[b.bookingType]}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: 11,
+                              padding: "2px 8px",
+                              borderRadius: 10,
+                              fontWeight: 600,
+                              background:
+                                b.shift === "night"
+                                  ? "rgba(99,102,241,0.15)"
+                                  : "rgba(251,191,36,0.12)",
+                              color:
+                                b.shift === "night" ? "#818cf8" : "#fbbf24",
+                            }}
+                          >
+                            {SHIFT_LABEL[b.shift] || b.shift}
+                          </span>
+                        </div>
+
+                        {/* Dòng 4: Check-in / Check-out */}
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: 8,
+                          }}
+                        >
+                          <div>
+                            <div
                               style={{
-                                fontSize: 12,
-                                fontWeight: 600,
-                                padding: "3px 10px",
-                                borderRadius: 20,
-                                background: ss.bg,
-                                color: ss.color,
+                                fontSize: 10,
+                                color: "#6b6f84",
+                                marginBottom: 2,
                               }}
                             >
-                              {STATUS_LABEL[b.status]}
+                              CHECK-IN
+                            </div>
+                            <div style={{ fontSize: 12.5 }}>
+                              {fmtDate(b.checkIn)}
+                            </div>
+                          </div>
+                          <div>
+                            <div
+                              style={{
+                                fontSize: 10,
+                                color: "#6b6f84",
+                                marginBottom: 2,
+                              }}
+                            >
+                              CHECK-OUT
+                            </div>
+                            <div
+                              style={{
+                                fontSize: 12.5,
+                                color: b.checkOut ? undefined : "#6b6f84",
+                              }}
+                            >
+                              {fmtDate(b.checkOut) || "—"}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Dòng 5: Tổng tiền */}
+                        <div
+                          style={{
+                            borderTop: "1px solid rgba(255,255,255,0.06)",
+                            paddingTop: 10,
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <span style={{ fontSize: 12, color: "#6b6f84" }}>
+                            Tổng tiền
+                          </span>
+                          {b.totalAmount ? (
+                            <span
+                              style={{
+                                fontWeight: 700,
+                                color: "#10b981",
+                                fontSize: 15,
+                              }}
+                            >
+                              {fmt(b.totalAmount)}
                             </span>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
+                          ) : (
+                            <span style={{ color: "#6b6f84", fontSize: 12 }}>
+                              —
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
 
             {/* Sentinel cho Intersection Observer */}
             <div

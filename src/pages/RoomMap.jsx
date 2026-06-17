@@ -62,7 +62,7 @@ const STATUS_STYLES = {
 };
 
 /* ─── Room Card ─────────────────────────────────────────── */
-function RoomCard({ room, onClick }) {
+function RoomCard({ room, onClick, onMarkCleaning }) {
   const s = STATUS_STYLES[room.status] || STATUS_STYLES.available;
   const booking = room.currentBooking;
 
@@ -266,6 +266,44 @@ function RoomCard({ room, onClick }) {
           <span>+</span> Nhấn để nhận phòng
         </div>
       )}
+
+      {room.status === "cleaning" && onMarkCleaning && (
+        <div
+          style={{
+            marginTop: 12,
+            paddingTop: 10,
+            borderTop: "1px dashed #fde68a",
+          }}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onMarkCleaning(room);
+            }}
+            style={{
+              width: "100%",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              background: "#fffbeb",
+              color: "#b45309",
+              border: "1.5px solid #fde68a",
+              borderRadius: 10,
+              padding: "7px 0",
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "all 0.18s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#fef3c7")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#fffbeb")}
+          >
+            <span style={{ fontSize: 14 }}>✓</span>
+            Dọn xong
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -343,7 +381,6 @@ function StatCard({ label, value, color, icon, sub }) {
 function FloorSection({ floor, rooms, onRoomClick, onMarkCleaning }) {
   const occupiedCount = rooms.filter((r) => r.status === "occupied").length;
   const availableCount = rooms.filter((r) => r.status === "available").length;
-  const cleaningRooms = rooms.filter((r) => r.status === "cleaning");
 
   return (
     <div
@@ -427,53 +464,14 @@ function FloorSection({ floor, rooms, onRoomClick, onMarkCleaning }) {
         }}
       >
         {rooms.map((room) => (
-          <RoomCard key={room._id} room={room} onClick={onRoomClick} />
+          <RoomCard
+            key={room._id}
+            room={room}
+            onClick={onRoomClick}
+            onMarkCleaning={onMarkCleaning}
+          />
         ))}
       </div>
-
-      {/* Cleaning quick-done */}
-      {cleaningRooms.length > 0 && (
-        <div
-          style={{
-            marginTop: 14,
-            paddingTop: 12,
-            borderTop: "1px dashed #fde68a",
-            display: "flex",
-            gap: 8,
-            flexWrap: "wrap",
-          }}
-        >
-          {cleaningRooms.map((room) => (
-            <button
-              key={room._id}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                background: "#fffbeb",
-                color: "#b45309",
-                border: "1.5px solid #fde68a",
-                borderRadius: 10,
-                padding: "6px 14px",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "all 0.18s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#fef3c7";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "#fffbeb";
-              }}
-              onClick={() => onMarkCleaning(room)}
-            >
-              <span style={{ fontSize: 14 }}>✓</span>
-              Phòng {room.roomNumber} dọn xong
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
