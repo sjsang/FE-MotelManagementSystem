@@ -256,6 +256,7 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
                   ['Loại', booking.bookingType === 'hourly' ? 'Nghỉ giờ' : booking.bookingType === 'overnight' ? 'Qua đêm' : 'Ngày đêm'],
                   ['Ca', booking.shift === 'night' ? 'Ca đêm' : 'Ca ngày'],
                   ['Giá cơ bản', fmt(booking.basePrice)],
+                  ['Check-out dự kiến', booking.expectedCheckOut ? formatTime(booking.expectedCheckOut) : (booking.checkIn ? (() => { const fb = new Date(booking.checkIn); fb.setDate(fb.getDate() + 1); fb.setHours(0,0,0,0); return formatTime(fb); })() : '--')],
                 ].map(([label, value]) => (
                   <div key={label} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: '10px 12px' }}>
                     <div style={{ fontSize: 11, color: '#6b6f84', marginBottom: 2 }}>{label}</div>

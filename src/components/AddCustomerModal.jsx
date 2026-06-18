@@ -9,7 +9,7 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
 
   const [form, setForm] = useState({
     hoten: '',
-    gioitinh: 'Nam',
+    gioitinh: '',
     ngaythangnamsinh: '',
     quoctich: 'Việt Nam',
     cccd: '',
@@ -134,7 +134,7 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
     if (customer) {
       setForm({
         hoten: customer.hoten || '',
-        gioitinh: customer.gioitinh || 'Nam',
+        gioitinh: customer.gioitinh || '',
         ngaythangnamsinh: formatDate(customer.ngaythangnamsinh),
         quoctich: customer.quoctich || 'Việt Nam',
         cccd: customer.cccd || '',
@@ -150,7 +150,7 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
     } else {
       setForm({
         hoten: '',
-        gioitinh: 'Nam',
+        gioitinh: '',
         ngaythangnamsinh: '',
         quoctich: 'Việt Nam',
         cccd: '',
@@ -228,48 +228,56 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
       return;
     }
 
-    const dob = new Date(form.ngaythangnamsinh);
-    const dobYear = dob.getFullYear();
+    let dob = null;
+    let dobYear = null;
     const currentYear = new Date().getFullYear();
 
-    if (isNaN(dob.getTime())) {
-      showMsg('Ngày sinh không hợp lệ');
-      return;
-    }
-    if (dobYear < 1900) {
-      showMsg('Năm sinh phải từ năm 1900 trở đi');
-      return;
-    }
-    if (dob > new Date()) {
-      showMsg('Ngày sinh không thể ở tương lai');
-      return;
+    if (form.ngaythangnamsinh) {
+      dob = new Date(form.ngaythangnamsinh);
+      dobYear = dob.getFullYear();
+      if (isNaN(dob.getTime())) {
+        showMsg('Ngày sinh không hợp lệ');
+        return;
+      }
+      if (dobYear < 1900) {
+        showMsg('Năm sinh phải từ năm 1900 trở đi');
+        return;
+      }
+      if (dob > new Date()) {
+        showMsg('Ngày sinh không thể ở tương lai');
+        return;
+      }
     }
 
     const payload = {
-      hoten: form.hoten,
-      gioitinh: form.gioitinh,
-      ngaythangnamsinh: form.ngaythangnamsinh,
-      quoctich: form.quoctich,
+      hoten: form.hoten.trim(),
+      gioitinh: form.gioitinh || null,
+      ngaythangnamsinh: form.ngaythangnamsinh || null,
+      quoctich: form.quoctich || 'Việt Nam',
     };
 
     if (form.quoctich === 'Việt Nam') {
-      if (dobYear > currentYear - 14) {
+      if (dobYear && dobYear > currentYear - 14) {
         showMsg(`Công dân Việt Nam phải từ 14 tuổi trở lên (sinh năm ${currentYear - 14} trở về trước)`);
         return;
       }
 
+      // Address is optional now
       if (addressMode === 'select') {
-        if (!addrProvince) { showMsg('Vui lòng chọn Tỉnh/Thành phố'); return; }
-        if (!addrDistrict) { showMsg('Vui lòng chọn Quận/Huyện'); return; }
-        if (!addrWard) { showMsg('Vui lòng chọn Xã/Phường'); return; }
-      } else {
-        if (!form.thuongtru || !form.thuongtru.trim()) { showMsg('Vui lòng nhập địa chỉ thường trú'); return; }
+        const hasAddressSelection = addrProvince || addrDistrict || addrWard;
+        if (hasAddressSelection) {
+          if (!addrProvince) { showMsg('Vui lòng chọn Tỉnh/Thành phố'); return; }
+          if (!addrDistrict) { showMsg('Vui lòng chọn Quận/Huyện'); return; }
+          if (!addrWard) { showMsg('Vui lòng chọn Xã/Phường'); return; }
+        }
       }
 
-      const cccdRegex = /^0\d{11}$/;
-      if (!cccdRegex.test(form.cccd)) {
-        showMsg('Số CCCD bắt buộc phải gồm đúng 12 chữ số và bắt đầu bằng số 0');
-        return;
+      if (form.cccd && form.cccd.trim()) {
+        const cccdRegex = /^0\d{11}$/;
+        if (!cccdRegex.test(form.cccd)) {
+          showMsg('Số CCCD bắt buộc phải gồm đúng 12 chữ số và bắt đầu bằng số 0');
+          return;
+        }
       }
 
       if (form.ngaycap) {
@@ -277,41 +285,55 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
         const issueYear = issueDate.getFullYear();
         if (isNaN(issueDate.getTime())) { showMsg('Ngày cấp CCCD không hợp lệ'); return; }
         if (issueYear < 1900) { showMsg('Năm cấp CCCD phải từ năm 1900 trở đi'); return; }
-        const dobPlus14 = new Date(dob);
-        dobPlus14.setFullYear(dobPlus14.getFullYear() + 14);
-        if (issueDate < dobPlus14) {
-          showMsg('Ngày cấp CCCD phải sau ngày sinh ít nhất 14 năm');
-          return;
+        if (dob) {
+          const dobPlus14 = new Date(dob);
+          dobPlus14.setFullYear(dobPlus14.getFullYear() + 14);
+          if (issueDate < dobPlus14) {
+            showMsg('Ngày cấp CCCD phải sau ngày sinh ít nhất 14 năm');
+            return;
+          }
         }
         if (issueYear > currentYear) { showMsg('Năm cấp CCCD không được lớn hơn năm hiện tại'); return; }
       }
 
-      payload.cccd = form.cccd;
+      payload.cccd = form.cccd || null;
       payload.ngaycap = form.ngaycap || null;
       payload.noicap = form.noicap || '';
-      payload.thuongtru = form.thuongtru;
+      payload.thuongtru = form.thuongtru || '';
     } else {
-      const passportRegex = /^[A-Z0-9]{1,9}$/;
-      if (!passportRegex.test(form.passport)) {
-        showMsg('Số Hộ chiếu phải từ 1 đến 9 ký tự chữ hoặc số');
-        return;
+      if (form.passport && form.passport.trim()) {
+        const passportRegex = /^[A-Z0-9]{1,9}$/;
+        if (!passportRegex.test(form.passport)) {
+          showMsg('Số Hộ chiếu phải từ 1 đến 9 ký tự chữ hoặc số');
+          return;
+        }
       }
 
-      const entry = new Date(form.entryDate);
-      const entryYear = entry.getFullYear();
-      if (isNaN(entry.getTime())) { showMsg('Ngày nhập cảnh không hợp lệ'); return; }
-      if (entryYear < 1900) { showMsg('Năm nhập cảnh phải từ năm 1900 trở đi'); return; }
-      if (entry <= dob) { showMsg('Ngày nhập cảnh phải sau ngày sinh'); return; }
-      if (entry > new Date()) { showMsg('Ngày nhập cảnh không thể ở tương lai'); return; }
+      if (form.entryDate) {
+        const entry = new Date(form.entryDate);
+        const entryYear = entry.getFullYear();
+        if (isNaN(entry.getTime())) { showMsg('Ngày nhập cảnh không hợp lệ'); return; }
+        if (entryYear < 1900) { showMsg('Năm nhập cảnh phải từ năm 1900 trở đi'); return; }
+        if (dob && entry <= dob) { showMsg('Ngày nhập cảnh phải sau ngày sinh'); return; }
+        if (entry > new Date()) { showMsg('Ngày nhập cảnh không thể ở tương lai'); return; }
+      }
 
-      const expiry = new Date(form.visaExpiredDate);
-      const expiryYear = expiry.getFullYear();
-      if (isNaN(expiry.getTime())) { showMsg('Ngày hết hạn Visa không hợp lệ'); return; }
-      if (expiryYear < 1900) { showMsg('Năm hết hạn Visa phải từ năm 1900 trở đi'); return; }
-      if (expiry <= entry) { showMsg('Ngày hết hạn Visa phải sau ngày nhập cảnh'); return; }
+      if (form.visaExpiredDate) {
+        const expiry = new Date(form.visaExpiredDate);
+        const expiryYear = expiry.getFullYear();
+        if (isNaN(expiry.getTime())) { showMsg('Ngày hết hạn Visa không hợp lệ'); return; }
+        if (expiryYear < 1900) { showMsg('Năm hết hạn Visa phải từ năm 1900 trở đi'); return; }
+        if (form.entryDate) {
+          const entry = new Date(form.entryDate);
+          if (!isNaN(entry.getTime()) && expiry <= entry) {
+            showMsg('Ngày hết hạn Visa phải sau ngày nhập cảnh');
+            return;
+          }
+        }
+      }
 
-      payload.passport = form.passport;
-      payload.visaType = form.visaType;
+      payload.passport = form.passport || null;
+      payload.visaType = form.visaType || '';
       payload.visaExpiredDate = form.visaExpiredDate || null;
       payload.entryDate = form.entryDate || null;
     }
@@ -373,8 +395,9 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Giới tính *</label>
+              <label className="form-label">Giới tính</label>
               <select name="gioitinh" className="form-control" value={form.gioitinh} onChange={handleChange}>
+                <option value="">-- Chọn giới tính --</option>
                 <option value="Nam">Nam</option>
                 <option value="Nữ">Nữ</option>
               </select>
@@ -383,7 +406,7 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
 
           <div className="input-row">
             <div className="form-group">
-              <label className="form-label">Ngày sinh *</label>
+              <label className="form-label">Ngày sinh</label>
               <input
                 type="date"
                 name="ngaythangnamsinh"
@@ -392,11 +415,10 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
                 onChange={handleChange}
                 min="1900-01-01"
                 max={form.quoctich === 'Việt Nam' ? `${new Date().getFullYear() - 14}-12-31` : new Date().toISOString().split('T')[0]}
-                required
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Quốc tịch *</label>
+              <label className="form-label">Quốc tịch</label>
               <select name="quoctich" className="form-control" value={form.quoctich} onChange={handleChange}>
                 {options?.nationalities?.map(nat => (
                   <option key={nat} value={nat}>{nat}</option>
@@ -413,7 +435,7 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
                 THÔNG TIN ĐỊNH DANH (VIỆT NAM)
               </div>
               <div className="form-group">
-                <label className="form-label">Số CCCD *</label>
+                <label className="form-label">Số CCCD</label>
                 <input
                   name="cccd"
                   className="form-control"
@@ -421,7 +443,6 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
                   onChange={handleChange}
                   maxLength={12}
                   placeholder="Nhập đúng 12 chữ số căn cước bắt đầu bằng số 0"
-                  required
                 />
               </div>
               <div className="input-row">
@@ -470,7 +491,7 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
               </div>
               <div className="input-row">
                 <div className="form-group">
-                  <label className="form-label">Số Hộ chiếu (Passport) *</label>
+                  <label className="form-label">Số Hộ chiếu (Passport)</label>
                   <input
                     name="passport"
                     className="form-control"
@@ -478,12 +499,12 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
                     onChange={handleChange}
                     maxLength={9}
                     placeholder="Nhập số hộ chiếu gồm tối đa 9 ký tự chữ và số"
-                    required
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Loại Visa *</label>
-                  <select name="visaType" className="form-control" value={form.visaType} onChange={handleChange} required>
+                  <label className="form-label">Loại Visa</label>
+                  <select name="visaType" className="form-control" value={form.visaType} onChange={handleChange}>
+                    <option value="">-- Chọn loại Visa --</option>
                     {options?.visaTypes?.map(vt => (
                       <option key={vt} value={vt}>{vt}</option>
                     ))}
@@ -492,7 +513,7 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
               </div>
               <div className="input-row">
                 <div className="form-group">
-                  <label className="form-label">Ngày hết hạn Visa *</label>
+                  <label className="form-label">Ngày hết hạn Visa</label>
                   <input
                     type="date"
                     name="visaExpiredDate"
@@ -500,11 +521,10 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
                     value={form.visaExpiredDate}
                     onChange={handleChange}
                     min={form.entryDate || "1900-01-01"}
-                    required
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Ngày nhập cảnh *</label>
+                  <label className="form-label">Ngày nhập cảnh</label>
                   <input
                     type="date"
                     name="entryDate"
@@ -513,7 +533,6 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
                     onChange={handleChange}
                     min={form.ngaythangnamsinh || "1900-01-01"}
                     max={new Date().toISOString().split('T')[0]}
-                    required
                   />
                 </div>
               </div>

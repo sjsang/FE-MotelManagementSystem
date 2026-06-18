@@ -167,6 +167,38 @@ export default function BookingHistory() {
   const [nextCursor, setNextCursor] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [excludedBookingIds, setExcludedBookingIds] = useState(new Set());
+
+  const toggleBookingSelection = (id) => {
+    setExcludedBookingIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const isBookingSelected = (id) => {
+    return !excludedBookingIds.has(id);
+  };
+
+  const allLoadedSelected = bookings.length > 0 && bookings.every((b) => isBookingSelected(b._id));
+
+  const toggleSelectAll = () => {
+    setExcludedBookingIds((prev) => {
+      const next = new Set(prev);
+      if (allLoadedSelected) {
+        bookings.forEach((b) => next.add(b._id));
+      } else {
+        bookings.forEach((b) => next.delete(b._id));
+      }
+      return next;
+    });
+  };
 
   const { addToast, ToastContainer } = useToast();
   const observerRef = useRef(null); // ref gắn vào sentinel div
@@ -200,6 +232,7 @@ export default function BookingHistory() {
     setBookings([]);
     setHasMore(false);
     setNextCursor(null);
+    setExcludedBookingIds(new Set());
     try {
       const res = await getBookings(buildParams());
       const { data, hasMore: hm, nextCursor: nc } = res.data;
@@ -276,6 +309,41 @@ export default function BookingHistory() {
 
   const commitSearch = () => setF("search", searchInput.trim());
 
+  const handleExportExcel = async () => {
+    setExporting(true);
+    addToast("Đang tải toàn bộ dữ liệu theo bộ lọc để xuất Excel...", "info");
+    try {
+      const exportParams = buildParams();
+      exportParams.limit = "none";
+      delete exportParams.cursor;
+
+      const [bookingsRes, customersRes] = await Promise.all([
+        getBookings(exportParams),
+        getCustomers({ limit: "none" }),
+      ]);
+
+      let allBookings = bookingsRes.data?.data || bookingsRes.data || [];
+      const allCustomers = customersRes.data?.data || customersRes.data || [];
+
+      if (excludedBookingIds.size > 0) {
+        allBookings = allBookings.filter((b) => !excludedBookingIds.has(b._id));
+      }
+
+      if (allBookings.length === 0) {
+        addToast("Không có dữ liệu phù hợp với bộ lọc hiện tại để xuất!", "warning");
+        return;
+      }
+
+      exportBookingsToExcel(allBookings, allCustomers);
+      addToast(`Xuất file Excel thành công (${allBookings.length} booking)!`, "success");
+    } catch (err) {
+      console.error("Lỗi xuất Excel:", err);
+      addToast("Lỗi khi tải dữ liệu xuất Excel", "error");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   // ── Active filter tags ────────────────────────────────────────────────────
   const activeTags = [];
   if (filter.status)
@@ -333,8 +401,8 @@ export default function BookingHistory() {
           <div style={{ fontWeight: 700 }}>Danh sách booking</div>
           <button
             className="btn btn-success btn-sm"
-            onClick={() => exportBookingsToExcel(bookings, customers)}
-            disabled={bookings.length === 0}
+            onClick={handleExportExcel}
+            disabled={exporting || bookings.length === 0}
             style={{
               display: "flex",
               alignItems: "center",
@@ -589,6 +657,14 @@ export default function BookingHistory() {
                 <table>
                   <thead>
                     <tr>
+                      <th style={{ width: 40, textAlign: "center" }}>
+                        <input
+                          type="checkbox"
+                          checked={allLoadedSelected}
+                          onChange={toggleSelectAll}
+                          style={{ width: 16, height: 16, cursor: "pointer" }}
+                        />
+                      </th>
                       <th>Phòng</th>
                       <th>Khách</th>
                       <th>Loại</th>
@@ -603,7 +679,7 @@ export default function BookingHistory() {
                     {bookings.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={8}
+                          colSpan={9}
                           style={{
                             textAlign: "center",
                             color: "#6b6f84",
@@ -619,6 +695,14 @@ export default function BookingHistory() {
                           STATUS_STYLE[b.status] || STATUS_STYLE.completed;
                         return (
                           <tr key={b._id}>
+                            <td style={{ textAlign: "center" }}>
+                              <input
+                                type="checkbox"
+                                checked={isBookingSelected(b._id)}
+                                onChange={() => toggleBookingSelection(b._id)}
+                                style={{ width: 16, height: 16, cursor: "pointer" }}
+                              />
+                            </td>
                             <td>
                               <span style={{ fontWeight: 700, fontSize: 15 }}>
                                 {b.roomNumber}
@@ -752,7 +836,13 @@ export default function BookingHistory() {
                             alignItems: "center",
                           }}
                         >
-                          <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <input
+                              type="checkbox"
+                              checked={isBookingSelected(b._id)}
+                              onChange={() => toggleBookingSelection(b._id)}
+                              style={{ width: 18, height: 18, cursor: "pointer" }}
+                            />
                             <span style={{ fontWeight: 700, fontSize: 17 }}>
                               Phòng {b.roomNumber}
                             </span>

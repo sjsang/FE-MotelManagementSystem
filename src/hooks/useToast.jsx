@@ -11,12 +11,18 @@ export function useToast() {
 
   const ToastContainer = () => (
     <div className="toast-container">
-      {toasts.map(t => (
-        <div key={t.id} className={`toast toast-${t.type}`}>
-          <span>{t.type === 'success' ? '✅' : '❌'}</span>
-          <span>{t.message}</span>
-        </div>
-      ))}
+      {toasts.map(t => {
+        let icon = '❌';
+        if (t.type === 'success') icon = '✅';
+        else if (t.type === 'info') icon = 'ℹ️';
+        else if (t.type === 'warning') icon = '⚠️';
+        return (
+          <div key={t.id} className={`toast toast-${t.type}`}>
+            <span>{icon}</span>
+            <span>{t.message}</span>
+          </div>
+        );
+      })}
     </div>
   );
 

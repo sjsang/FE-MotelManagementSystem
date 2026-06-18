@@ -92,7 +92,7 @@ export default function AddressSelector({
   return (
     <div className="form-group">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-        <label className="form-label" style={{ margin: 0 }}>Địa chỉ thường trú *</label>
+        <label className="form-label" style={{ margin: 0 }}>Địa chỉ thường trú</label>
         <button
           type="button"
           className="btn btn-link btn-sm"
@@ -107,12 +107,11 @@ export default function AddressSelector({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div className="input-row" style={{ marginBottom: 0, gap: '10px' }}>
             <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: '11px', color: 'var(--text3)' }}>Tỉnh / Thành phố *</label>
+              <label className="form-label" style={{ fontSize: '11px', color: 'var(--text3)' }}>Tỉnh / Thành phố</label>
               <select
                 className="form-control"
                 value={province}
                 onChange={handleProvinceChange}
-                required={mode === 'select'}
                 disabled={loadingProvinces}
               >
                 <option value="">-- Chọn Tỉnh --</option>
@@ -122,13 +121,12 @@ export default function AddressSelector({
               </select>
             </div>
             <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: '11px', color: 'var(--text3)' }}>Quận / Huyện *</label>
+              <label className="form-label" style={{ fontSize: '11px', color: 'var(--text3)' }}>Quận / Huyện</label>
               <select
                 className="form-control"
                 value={district}
                 onChange={handleDistrictChange}
                 disabled={!province || loadingProvinces}
-                required={mode === 'select'}
               >
                 <option value="">-- Chọn Quận/Huyện --</option>
                 {districts.map(d => (
@@ -140,13 +138,12 @@ export default function AddressSelector({
 
           <div className="input-row" style={{ marginBottom: 0, gap: '10px' }}>
             <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: '11px', color: 'var(--text3)' }}>Xã / Phường *</label>
+              <label className="form-label" style={{ fontSize: '11px', color: 'var(--text3)' }}>Xã / Phường</label>
               <select
                 className="form-control"
                 value={ward}
                 onChange={(e) => onChangeWard(e.target.value)}
                 disabled={!district}
-                required={mode === 'select'}
               >
                 <option value="">-- Chọn Xã/Phường --</option>
                 {wards.map(w => (
@@ -172,7 +169,6 @@ export default function AddressSelector({
           value={manualValue}
           onChange={(e) => onChangeManual(e.target.value)}
           placeholder="Nhập địa chỉ đầy đủ (số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố)"
-          required={mode === 'manual'}
         />
       )}
     </div>
