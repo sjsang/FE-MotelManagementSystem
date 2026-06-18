@@ -78,11 +78,11 @@ export function exportBookingsToExcel(bookings, customers) {
       <table>
         <!-- Dòng Tiêu Đề Lớn -->
         <tr>
-          <td colspan="15" class="title" style="height: 35px; font-size: 14pt; font-weight: bold; text-align: center;">
+          <td colspan="17" class="title" style="height: 35px; font-size: 14pt; font-weight: bold; text-align: center;">
             QUẢN LÝ KHÁCH LƯU TRÚ
           </td>
         </tr>
-        <tr><td colspan="15" style="border: none; height: 10px;"></td></tr>
+        <tr><td colspan="17" style="border: none; height: 10px;"></td></tr>
         
         <!-- Hàng Tiêu Đề Cột Cấp 1 -->
         <tr>
@@ -95,6 +95,8 @@ export function exportBookingsToExcel(bookings, customers) {
           <th colspan="4">THỜI GIAN LƯU TRÚ</th>
           <th rowspan="2" style="width: 80px;">SỐ PHÒNG LƯU TRÚ</th>
           <th rowspan="2" style="width: 280px;">HỌ VÀ TÊN NGƯỜI THÔNG BÁO LƯU TRÚ; THỜI GIAN THÔNG BÁO LƯU TRÚ</th>
+          <th rowspan="2" style="width: 280px;">HỌ VÀ TÊN CÁN BỘ CÔNG AN TIẾP NHẬN THÔNG BÁO (NẾU THÔNG BÁO TRỰC TIẾP)</th>
+          <th rowspan="2" style="width: 150px;">GHI CHÚ</th>
         </tr>
         
         <!-- Hàng Tiêu Đề Cột Cấp 2 -->
@@ -119,10 +121,24 @@ export function exportBookingsToExcel(bookings, customers) {
     const dobStr = cust.ngaythangnamsinh ? formatExcelDate(cust.ngaythangnamsinh) : '';
     const isNam = cust.gioitinh === 'Nam';
     
+    // Fall back to expectedCheckOut if checkOut is empty (for active bookings)
+    // If expectedCheckOut is also missing, fall back to checkIn + 1 day at 00:00
+    let finalCheckOut = b.checkOut;
+    if (!finalCheckOut) {
+      if (b.expectedCheckOut) {
+        finalCheckOut = b.expectedCheckOut;
+      } else {
+        const fallback = new Date(b.checkIn);
+        fallback.setDate(fallback.getDate() + 1);
+        fallback.setHours(0, 0, 0, 0);
+        finalCheckOut = fallback;
+      }
+    }
+
     const checkInTime = formatExcelTime(b.checkIn);
     const checkInDate = formatExcelDate(b.checkIn);
-    const checkOutTime = b.checkOut ? formatExcelTime(b.checkOut) : '';
-    const checkOutDate = b.checkOut ? formatExcelDate(b.checkOut) : '';
+    const checkOutTime = formatExcelTime(finalCheckOut);
+    const checkOutDate = formatExcelDate(finalCheckOut);
 
     const ngayCapStr = cust.ngaycap ? formatExcelDate(cust.ngaycap) : '';
     const noiCapStr = cust.noicap || '';
@@ -151,6 +167,8 @@ export function exportBookingsToExcel(bookings, customers) {
           <td>${checkOutDate}</td>
           <td style="font-weight: bold;">${b.roomNumber}</td>
           <td style="text-align: left;">${reporterInfo}</td>
+          <td></td>
+          <td></td>
         </tr>
     `;
   });

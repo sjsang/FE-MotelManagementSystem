@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { getCustomers, createCustomer, getCustomerOptions } from "../utils/api";
+import { getCustomers, createCustomer, updateCustomer, getCustomerOptions, getBookings } from "../utils/api";
 import AddCustomerModal from "./AddCustomerModal";
 
 const BOOKING_TYPES = [
@@ -348,20 +348,68 @@ function SearchableCustomerSelect({
   excludeIds,
   onAddDirectClick,
   dropdownAlign = "down",
+  checkedInIds,
 }) {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [list, setList] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const filtered = customers.filter((c) => {
+  // Tải trang đầu tiên khi mở dropdown hoặc thay đổi từ khóa
+  const loadFirstPage = async (term) => {
+    try {
+      setLoadingMore(true);
+      const res = await getCustomers({ search: term, sort: "hoten", page: 1 });
+      const resData = res.data?.data || res.data || [];
+      const resHasMore = res.data?.hasMore || false;
+      setList(resData);
+      setPage(1);
+      setHasMore(resHasMore);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  // Tải trang tiếp theo (Lazy load)
+  const loadNextPage = async () => {
+    if (loadingMore || !hasMore) return;
+    try {
+      setLoadingMore(true);
+      const nextPage = page + 1;
+      const res = await getCustomers({ search: search.trim(), sort: "hoten", page: nextPage });
+      const resData = res.data?.data || res.data || [];
+      const resHasMore = res.data?.hasMore || false;
+      setList((prev) => [...prev, ...resData]);
+      setPage(nextPage);
+      setHasMore(resHasMore);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  // Gọi tải trang đầu
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        loadFirstPage(search.trim());
+      }, search.trim() ? 250 : 0);
+      return () => clearTimeout(timer);
+    }
+  }, [search, isOpen]);
+
+  const filtered = list.filter((c) => {
     if (excludeIds && excludeIds.includes(c._id)) return false;
-    const term = search.toLowerCase().trim();
-    if (!term) return true;
-    const name = c.hoten?.toLowerCase() || "";
-    const cccd = c.cccd?.toLowerCase() || "";
-    const passport = c.passport?.toLowerCase() || "";
-    return (
-      name.includes(term) || cccd.includes(term) || passport.includes(term)
-    );
+    if (checkedInIds) {
+      if (c.cccd && checkedInIds.has(c.cccd)) return false;
+      if (c.passport && checkedInIds.has(c.passport)) return false;
+    }
+    return true;
   });
 
   return (
@@ -452,6 +500,12 @@ function SearchableCustomerSelect({
               />
               {isOpen && (
                 <div
+                  onScroll={(e) => {
+                    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+                    if (scrollHeight - scrollTop - clientHeight < 15) {
+                      loadNextPage();
+                    }
+                  }}
                   style={{
                     position: "absolute",
                     left: 0,
@@ -459,7 +513,7 @@ function SearchableCustomerSelect({
                     background: "var(--bg2)",
                     border: "1px solid var(--border)",
                     borderRadius: "6px",
-                    maxHeight: "180px",
+                    maxHeight: "220px",
                     overflowY: "auto",
                     zIndex: 999,
                     boxShadow: "var(--shadow)",
@@ -474,7 +528,7 @@ function SearchableCustomerSelect({
                         }),
                   }}
                 >
-                  {filtered.length === 0 ? (
+                  {filtered.length === 0 && !loadingMore ? (
                     <div
                       style={{
                         padding: "12px",
@@ -486,45 +540,77 @@ function SearchableCustomerSelect({
                       Không tìm thấy khách hàng nào hợp lệ
                     </div>
                   ) : (
-                    filtered.map((c) => (
-                      <div
-                        key={c._id}
-                        onClick={() => {
-                          onSelect(c);
-                          setSearch("");
-                          setIsOpen(false);
-                        }}
-                        style={{
-                          padding: "10px 14px",
-                          cursor: "pointer",
-                          borderBottom: "1px solid var(--border)",
-                          fontSize: "13px",
-                          color: "var(--text)",
-                          transition: "background 0.2s",
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.backgroundColor = "var(--bg3)")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.backgroundColor =
-                            "transparent")
-                        }
-                      >
-                        <div style={{ fontWeight: 600 }}>{c.hoten}</div>
+                    <>
+                      {filtered.map((c) => (
+                        <div
+                          key={c._id}
+                          onClick={() => {
+                            onSelect(c);
+                            setSearch("");
+                            setIsOpen(false);
+                          }}
+                          style={{
+                            padding: "10px 14px",
+                            cursor: "pointer",
+                            borderBottom: "1px solid var(--border)",
+                            fontSize: "13px",
+                            color: "var(--text)",
+                            transition: "background 0.2s",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor = "var(--bg3)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                              "transparent")
+                          }
+                        >
+                          <div style={{ fontWeight: 600 }}>{c.hoten}</div>
+                          <div
+                            style={{
+                              fontSize: "11px",
+                              color: "var(--text3)",
+                              marginTop: "2px",
+                            }}
+                          >
+                            Quốc tịch: {c.quoctich} •{" "}
+                            {c.quoctich === "Việt Nam"
+                              ? `CCCD: ${c.cccd}`
+                              : `Hộ chiếu: ${c.passport}`}
+                          </div>
+                        </div>
+                      ))}
+                      {hasMore && (
                         <div
                           style={{
-                            fontSize: "11px",
+                            padding: "10px 14px",
+                            textAlign: "center",
+                            fontSize: "12px",
                             color: "var(--text3)",
-                            marginTop: "2px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "6px",
+                            borderBottom: "1px solid var(--border)",
+                            background: "rgba(255,255,255,0.02)",
                           }}
                         >
-                          Quốc tịch: {c.quoctich} •{" "}
-                          {c.quoctich === "Việt Nam"
-                            ? `CCCD: ${c.cccd}`
-                            : `Hộ chiếu: ${c.passport}`}
+                          <span
+                            className="loading-spinner"
+                            style={{
+                              width: "12px",
+                              height: "12px",
+                              border: "1.5px solid rgba(255,255,255,0.1)",
+                              borderTopColor: "var(--accent)",
+                              borderRadius: "50%",
+                              display: "inline-block",
+                              animation: "spin 0.8s linear infinite",
+                            }}
+                          />
+                          Đang tải thêm...
                         </div>
-                      </div>
-                    ))
+                      )}
+                    </>
                   )}
                 </div>
               )}
@@ -579,6 +665,7 @@ export default function CheckInModal({
   addToast,
 }) {
   const [customers, setCustomers] = useState([]);
+  const [checkedInIds, setCheckedInIds] = useState(new Set());
   const [selectedGuests, setSelectedGuests] = useState([null]);
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [addingForIndex, setAddingForIndex] = useState(null);
@@ -614,13 +701,29 @@ export default function CheckInModal({
 
   // Tải danh sách khách hàng và các cấu hình dropdown
   useEffect(() => {
-    getCustomers()
+    getCustomers({ sort: "hoten" })
       .then((res) => {
         setCustomers(Array.isArray(res.data) ? res.data : res.data?.data || []);
       })
       .catch((err) => {
         console.error("Không thể tải danh sách khách hàng:", err);
       });
+
+    getBookings({ status: "active", limit: "none" })
+      .then((res) => {
+        const bookingsList = Array.isArray(res.data) ? res.data : res.data?.data || [];
+        const ids = new Set();
+        bookingsList.forEach((b) => {
+          if (b.guestId) {
+            b.guestId.split(",").forEach((id) => {
+              const trimmed = id.trim();
+              if (trimmed) ids.add(trimmed);
+            });
+          }
+        });
+        setCheckedInIds(ids);
+      })
+      .catch(() => {});
 
     getCustomerOptions()
       .then((res) => {
@@ -635,17 +738,50 @@ export default function CheckInModal({
 
   const handleCreateCustomerDirect = async (payload) => {
     try {
+      // 1. Kiểm tra nhanh trong danh sách khách hàng đã tải ở frontend
+      const localExisting = customers.find(
+        (c) =>
+          (payload.cccd && c.cccd === payload.cccd) ||
+          (payload.passport && c.passport === payload.passport)
+      );
+
+      if (localExisting) {
+        // Tự động cập nhật thông tin mới nhất cho khách hàng này vào database
+        await updateCustomer(localExisting._id, payload);
+        
+        // Tải lại danh sách khách hàng để đảm bảo dữ liệu mới nhất hiển thị trên màn hình
+        const custRes = await getCustomers({ sort: "hoten" });
+        const updatedList = Array.isArray(custRes.data)
+          ? custRes.data
+          : custRes.data?.data || [];
+        setCustomers(updatedList);
+
+        const updatedCustomer = updatedList.find(c => c._id === localExisting._id);
+        
+        // Chọn khách hàng đã cập nhật vào phòng hiện tại
+        setSelectedGuests((prev) => {
+          const updated = [...prev];
+          updated[addingForIndex] = updatedCustomer || localExisting;
+          return updated;
+        });
+
+        if (addToast) {
+          addToast("Đã cập nhật thông tin mới nhất và tự động chọn khách hàng này!", "success");
+        }
+        return true;
+      }
+
+      // 2. Thử tạo mới khách hàng qua API
       const res = await createCustomer(payload);
       if (addToast) addToast("Thêm khách hàng mới thành công");
 
       // Tải lại danh sách khách hàng
-      const custRes = await getCustomers();
+      const custRes = await getCustomers({ sort: "hoten" });
       const updatedList = Array.isArray(custRes.data)
         ? custRes.data
         : custRes.data?.data || [];
       setCustomers(updatedList);
 
-      // Tìm khách hàng vừa thêm để gắn vào slot chọn hiện tại
       const newCustomer = updatedList.find(
         (c) =>
           c.cccd === payload.cccd ||
@@ -661,6 +797,58 @@ export default function CheckInModal({
       return true;
     } catch (err) {
       const errMsg = err.response?.data?.message || "Lỗi khi tạo khách hàng";
+      
+      // 3. Nếu bị lỗi trùng CCCD/Hộ chiếu (khách cũ đã có trong DB nhưng frontend chưa tải về hết)
+      if (errMsg.includes("đã tồn tại")) {
+        try {
+          // Gọi API tìm kiếm khách hàng bằng CCCD hoặc Hộ chiếu
+          const searchRes = await getCustomers({ search: payload.cccd || payload.passport });
+          const searchList = Array.isArray(searchRes.data)
+            ? searchRes.data
+            : searchRes.data?.data || [];
+          
+          const found = searchList.find(
+            (c) =>
+              (payload.cccd && c.cccd === payload.cccd) ||
+              (payload.passport && c.passport === payload.passport)
+          );
+
+          if (found) {
+            // Gọi API cập nhật thông tin mới nhất vào DB
+            await updateCustomer(found._id, payload);
+
+            // Tải lại danh sách khách hàng đầy đủ
+            const custRes = await getCustomers({ sort: "hoten" });
+            const updatedList = Array.isArray(custRes.data)
+              ? custRes.data
+              : custRes.data?.data || [];
+            
+            // Tìm lại đối tượng đã cập nhật để có dữ liệu chính xác nhất
+            const updatedCustomer = updatedList.find(c => c._id === found._id) || { ...found, ...payload };
+
+            // Cập nhật vào state khách hàng cục bộ
+            setCustomers((prev) => {
+              const baseList = prev.filter(c => c._id !== found._id);
+              return [updatedCustomer, ...baseList];
+            });
+
+            // Chọn khách hàng này vào phòng
+            setSelectedGuests((prev) => {
+              const updated = [...prev];
+              updated[addingForIndex] = updatedCustomer;
+              return updated;
+            });
+
+            if (addToast) {
+              addToast("Đã cập nhật thông tin mới nhất và tự động chọn khách hàng này!", "success");
+            }
+            return true;
+          }
+        } catch (fallbackErr) {
+          console.error("Lỗi khi xử lý cập nhật fallback:", fallbackErr);
+        }
+      }
+
       if (addToast) addToast(errMsg, "error");
       return false;
     }
@@ -736,6 +924,7 @@ export default function CheckInModal({
                   }
                   customers={customers}
                   selectedCustomer={guest}
+                  checkedInIds={checkedInIds}
                   onSelect={(c) => {
                     setSelectedGuests((prev) => {
                       const updated = [...prev];
@@ -867,6 +1056,11 @@ export default function CheckInModal({
           addToast={addToast}
         />
       )}
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </>
   );
 }
