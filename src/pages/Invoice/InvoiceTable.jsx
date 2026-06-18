@@ -70,7 +70,7 @@ export default function InvoiceTable({ loading, invoices, setSelected, page, tot
                                     <th>Số hóa đơn</th>
                                     <th>Phòng</th>
                                     <th>Khách</th>
-                                    <th>Thực thu</th>
+                                    <th>Giá trị thanh toán</th>
                                     <th>Nhận phòng</th>
                                     <th>Trả phòng</th>
                                     <th>Trạng thái</th>
@@ -98,8 +98,8 @@ export default function InvoiceTable({ loading, invoices, setSelected, page, tot
                                             <td data-label="Khách">
                                                 <div style={{ fontWeight: 600 }}>{inv.guestName}</div>
                                             </td>
-                                            <td data-label="Thực thu">
-                                                <span style={{ fontWeight: 700, color: '#10b981' }}>{fmt(inv.paidAmount)}</span>
+                                            <td data-label="Giá trị thanh toán">
+                                                <span style={{ fontWeight: 700, color: '#10b981' }}>{fmt(inv.payableAmount)}</span>
                                             </td>
                                             <td data-label="Nhận phòng" style={{ fontSize: 12.5 }}>
                                                 {fmtDate(inv.checkIn)}

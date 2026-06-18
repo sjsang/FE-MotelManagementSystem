@@ -124,7 +124,7 @@ export function buildPrintHTML(invoice) {
   }
 
   .footer{
-    margin-top:20px;
+    margin-top:10px;
     font-size:11px;
     text-align:center;
   }
@@ -159,6 +159,7 @@ export function buildPrintHTML(invoice) {
 <div class="center">
   <div class="hotel-name">NHÀ NGHỈ 79</div>
   <div class="hotel-address">Ấp 7, Xã Khánh An - U Minh, Cà Mau</div>
+  <div class="hotel-address">SĐT: 0945 331 109</div>
   <div class="invoice-title">HÓA ĐƠN</div>
   <div class="invoice-num">${invoice.invoiceNumber}</div>
 </div>
@@ -219,11 +220,23 @@ ${invoice.discount > 0 ? `
 ${invoice.tax > 0 ? `
 <div class="row">
   <span>Thuế (VAT)</span>
-  <span>${fmt(invoice.tax)}</span>
+  <span>+ ${fmt(invoice.tax)}</span>
 </div>
 ` : ''}
 
-<div class="row paid">
+<div class="row" style="border-top: 1px dashed #ccc; padding-top: 6px; margin-top: 4px;">
+  <span style="font-weight:bold; color:#000;">Giá trị thanh toán</span>
+  <span style="font-weight:bold;">${fmt(invoice.payableAmount)}</span>
+</div>
+
+${invoice.deposit > 0 ? `
+<div class="row">
+  <span>Tạm ứng</span>
+  <span>${fmt(invoice.deposit)}</span>
+</div>
+` : ''}
+
+<div class="row paid" style="border-top: 1px solid #000; padding-top: 6px; margin-top: 4px;">
   <span>Thực thu</span>
   <span>${fmt(invoice.paidAmount)}</span>
 </div>
@@ -235,7 +248,7 @@ ${invoice.paidAmount > 0 ? `
   <div class="section-title">QUÉT MÃ THANH TOÁN</div>
   <img
     src="https://qr.sepay.vn/img?acc=945331109&bank=MBBank&amount=${invoice.paidAmount}&des=${invoice.invoiceNumber}"
-    style="width:150px;height:150px;object-fit:contain;margin:10px auto;"
+    style="width:100px;height:100px;object-fit:contain;margin:5px auto;"
   />
 </div>
 
@@ -247,12 +260,6 @@ ${invoice.paidAmount > 0 ? `
   ${fmtDate(invoice.issuedAt)}<br/>
   Cảm ơn quý khách!
 </div>
-
-<script>
-  window.onload = function(){
-    setTimeout(()=>window.print(),300);
-  };
-</script>
 
 </body>
 </html>`;

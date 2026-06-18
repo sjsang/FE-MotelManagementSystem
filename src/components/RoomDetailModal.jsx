@@ -135,11 +135,17 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
   const serviceTotal = services.reduce((s, sv) => s + sv.price * sv.quantity, 0);
 
   // Dùng totalAmount từ preview nếu có, fallback về tính local
-  const previewTotal = preview?.totalAmount ?? ((booking.basePrice || 0) + serviceTotal);
+  const previewTotal = preview?.totalAmount ?? ((booking.basePrice || 0) + serviceTotal); // Tổng cộng
+
+  // Sửa lại công thức tính thuế: Tính trên (Tổng cộng - Giảm giá)
   const taxVnd = taxType === 'percent'
-    ? Math.round(previewTotal * (Number(taxInput || 0) / 100))
+    ? Math.round(Math.max(0, previewTotal - discount) * (Number(taxInput || 0) / 100))
     : Number(taxInput || 0);
-  const finalTotal = Math.max(0, previewTotal - discount) + taxVnd;
+
+  // Tính toán các trường mới
+  const payableAmount = previewTotal - discount + taxVnd;  // Giá trị TT
+  const deposit = booking.deposit || 0;                    // Tạm ứng
+  const paidAmount = Math.max(0, payableAmount - deposit); // Thực thu
 
   const addServiceFromList = (svc) => {
     const exists = services.find(s => s.name === svc.name);
@@ -433,11 +439,25 @@ export default function RoomDetailModal({ room, priceConfig, onClose, onCheckOut
                   </div>
                 )}
 
-                {/* Thực thu */}
+                {/* Giá trị TT */}
                 <div style={{ borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: 12, marginTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 15, fontWeight: 700 }}>Thực thu</span>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: '#10b981' }}>{fmt(finalTotal)}</span>
+                  <span style={{ fontSize: 15, fontWeight: 700 }}>Giá trị thanh toán</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: '#60a5fa' }}>{fmt(payableAmount)}</span>
                 </div>
+
+                {/* Thêm sau dòng Thực thu */}
+                {deposit > 0 && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                      <span style={{ fontSize: 13, color: '#9fa3b8' }}>Tạm ứng</span>
+                      <span style={{ fontSize: 13, color: '#10b981' }}> {fmt(deposit)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, paddingTop: 8, borderTop: '1px dashed rgba(255,255,255,0.1)' }}>
+                      <span style={{ fontSize: 15, fontWeight: 700 }}>Thực thu</span>
+                      <span style={{ fontSize: 20, fontWeight: 800, color: '#f59e0b' }}>{fmt(paidAmount)}</span>
+                    </div>
+                  </>
+                )}
 
 
               </div>
