@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import RoomMap from "./pages/RoomMap";
 import RoomManagement from "./pages/RoomManagement";
 import PriceManagement from "./pages/PriceManagement";
@@ -24,7 +30,7 @@ import {
   Tooltip,
   useMediaQuery,
   useTheme,
-  CssBaseline
+  CssBaseline,
 } from "@mui/material";
 
 // MUI Icons
@@ -36,7 +42,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
-import EastIcon from '@mui/icons-material/East';
+import EastIcon from "@mui/icons-material/East";
 
 import InvoiceHistory from "./pages/Invoice/InvoiceHistory";
 import ReportPage from "./pages/Report";
@@ -56,7 +62,7 @@ const COLORS = {
   textTitle: "#6B8A7A",
   brandBg: "#1C3E2D",
   logoutBg: "#3A2424",
-  logoutIcon: "#F87171"
+  logoutIcon: "#F87171",
 };
 
 // ── Inner layout ─────────────────────────────────────────────────────────────
@@ -76,14 +82,18 @@ function AppLayout({ handleLogout }) {
   });
 
   const isInReport = location.pathname.startsWith("/reports");
-  const currentSidebarWidth = isMobile ? SIDEBAR_FULL : (collapsed ? SIDEBAR_RAIL : SIDEBAR_FULL);
+  const currentSidebarWidth = isMobile
+    ? SIDEBAR_FULL
+    : collapsed
+    ? SIDEBAR_RAIL
+    : SIDEBAR_FULL;
 
   const toggleCollapse = () => {
     setCollapsed((v) => {
       const next = !v;
       try {
         localStorage.setItem("main-sidebar-collapsed", String(next));
-      } catch { }
+      } catch {}
       return next;
     });
   };
@@ -108,23 +118,63 @@ function AppLayout({ handleLogout }) {
     { label: "Hóa đơn", icon: <ReceiptIcon />, path: "/invoices" },
 
     { label: "BÁO CÁO", isSection: true },
-    { label: "Báo cáo", icon: <AssessmentIcon />, path: "report", isAction: true, activeCheck: isInReport },
+    {
+      label: "Báo cáo",
+      icon: <AssessmentIcon />,
+      path: "report",
+      isAction: true,
+      activeCheck: isInReport,
+    },
   ];
 
   // ── Render Sidebar Content ──
   const drawerContent = (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100%", bgcolor: COLORS.bgDark, color: "white", overflow: "hidden" }}>
-
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        bgcolor: COLORS.bgDark,
+        color: "white",
+        overflow: "hidden",
+      }}
+    >
       {/* Brand Header */}
-      <Box sx={{ display: "flex", alignItems: "center", height: 76, pl: "18px", pr: "18px", flexShrink: 0, whiteSpace: "nowrap", overflow: "hidden" }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          height: 76,
+          pl: "18px",
+          pr: "18px",
+          flexShrink: 0,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+        }}
+      >
         <IconButton
           onClick={isMobile ? () => setMobileOpen(false) : toggleCollapse}
-          sx={{ color: "white", flexShrink: 0, width: 40, height: 40, mr: "16px", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}
+          sx={{
+            color: "white",
+            flexShrink: 0,
+            width: 40,
+            height: 40,
+            mr: "16px",
+            "&:hover": { bgcolor: "rgba(255,255,255,0.05)" },
+          }}
         >
           {isMobile ? <CloseIcon /> : <MenuIcon />}
         </IconButton>
 
-        <Typography variant="subtitle1" fontWeight={800} color="white" noWrap letterSpacing={0.5} fontSize={17}>
+        <Typography
+          variant="subtitle1"
+          fontWeight={800}
+          color="white"
+          noWrap
+          letterSpacing={0.5}
+          fontSize={17}
+          fontFamily="inherit"
+        >
           NHÀ NGHỈ 79
         </Typography>
       </Box>
@@ -136,42 +186,89 @@ function AppLayout({ handleLogout }) {
         {menuItems.map((item, index) => {
           if (item.isSection) {
             return (
-              <Box key={index} sx={{ px: "30px", pt: 0, pb: 1, whiteSpace: "nowrap", overflow: "hidden", opacity: collapsed && !isMobile ? 0 : 1, transition: "opacity 0.2s" }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: COLORS.textTitle, letterSpacing: 0.5, fontSize: 11 }}>
+              <Box
+                key={index}
+                sx={{
+                  px: "30px",
+                  pt: 0,
+                  pb: 1,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  opacity: collapsed && !isMobile ? 0 : 1,
+                  transition: "opacity 0.2s",
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontWeight: 700,
+                    color: COLORS.textTitle,
+                    letterSpacing: 0.5,
+                    fontSize: 11,
+                    fontFamily: "inherit",
+                  }}
+                >
                   {item.label}
                 </Typography>
               </Box>
             );
           }
 
-          const isActive = item.activeCheck !== undefined
-            ? item.activeCheck
-            : item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path);
+          const isActive =
+            item.activeCheck !== undefined
+              ? item.activeCheck
+              : item.exact
+              ? location.pathname === item.path
+              : location.pathname.startsWith(item.path);
 
           return (
-            <Tooltip key={index} title={collapsed && !isMobile ? item.label : ""} placement="right" arrow disableHoverListener={!collapsed || isMobile}>
+            <Tooltip
+              key={index}
+              title={collapsed && !isMobile ? item.label : ""}
+              placement="right"
+              arrow
+              disableHoverListener={!collapsed || isMobile}
+            >
               <ListItem disablePadding sx={{ display: "block" }}>
                 <ListItemButton
                   onClick={() => handleNavClick(item.path)}
                   sx={{
-                    justifyContent: "flex-start",      // Cố định thẳng hàng trái
-                    width: "calc(100% - 24px)",        // Chừa margin 2 bên
-                    margin: "4px 12px",                // Margin cố định
-                    pl: "14px",                        // Padding trái cố định
-                    pr: "14px",                        // Padding phải cố định
-                    borderRadius: '12px',
+                    justifyContent: "flex-start", // Cố định thẳng hàng trái
+                    width: "calc(100% - 24px)", // Chừa margin 2 bên
+                    margin: "4px 12px", // Margin cố định
+                    pl: "14px", // Padding trái cố định
+                    pr: "14px", // Padding phải cố định
+                    borderRadius: "12px",
                     color: "white",
                     bgcolor: isActive ? COLORS.bgActive : "transparent",
-                    overflow: "hidden",                // QUAN TRỌNG: để khung cắt chữ khi thu hẹp
+                    overflow: "hidden", // QUAN TRỌNG: để khung cắt chữ khi thu hẹp
                     "&:hover": {
                       bgcolor: isActive ? COLORS.bgActive : COLORS.bgHover,
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 24, width: 24, mr: "20px", justifyContent: "center", color: "white", flexShrink: 0 }}>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 24,
+                      width: 24,
+                      mr: "20px",
+                      justifyContent: "center",
+                      color: "white",
+                      flexShrink: 0,
+                    }}
+                  >
                     {item.icon}
                   </ListItemIcon>
-                  <ListItemText primary={item.label} primaryTypographyProps={{ fontSize: 14.5, fontWeight: isActive ? 700 : 600, noWrap: true }} sx={{ m: 0 }} />
+                  <ListItemText
+                    primary={item.label}
+                    primaryTypographyProps={{
+                      fontSize: 14.5,
+                      fontWeight: isActive ? 700 : 600,
+                      noWrap: true,
+                      fontFamily: "inherit",
+                    }}
+                    sx={{ m: 0 }}
+                  />
                 </ListItemButton>
               </ListItem>
             </Tooltip>
@@ -180,16 +277,67 @@ function AppLayout({ handleLogout }) {
       </List>
 
       {/* User Footer */}
-      <Box sx={{ p: "18px", borderTop: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", whiteSpace: "nowrap", overflow: "hidden", flexShrink: 0 }}>
-        <Avatar sx={{ width: 40, height: 40, flexShrink: 0, mr: "16px", bgcolor: COLORS.bgActive, color: "white", fontWeight: 700, fontSize: 15, borderRadius: 2 }}>
+      <Box
+        sx={{
+          p: "18px",
+          borderTop: "1px solid rgba(255,255,255,0.04)",
+          display: "flex",
+          alignItems: "center",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          flexShrink: 0,
+        }}
+      >
+        <Avatar
+          sx={{
+            width: 40,
+            height: 40,
+            flexShrink: 0,
+            mr: "16px",
+            bgcolor: COLORS.bgActive,
+            color: "white",
+            fontWeight: 700,
+            fontSize: 15,
+            borderRadius: 2,
+          }}
+        >
           QT
         </Avatar>
         <Box sx={{ flexGrow: 1, minWidth: 0, mr: 2, overflow: "hidden" }}>
-          <Typography variant="body2" fontWeight={700} color="white" fontSize={14} noWrap>Quản Trị Viên</Typography>
-          <Typography variant="caption" color={COLORS.textTitle} fontSize={12} noWrap>Administrator</Typography>
+          <Typography
+            variant="body2"
+            fontWeight={700}
+            color="white"
+            fontSize={14}
+            noWrap
+            fontFamily="inherit"
+          >
+            Quản Trị Viên
+          </Typography>
+          <Typography
+            variant="caption"
+            color={COLORS.textTitle}
+            fontSize={12}
+            noWrap
+            fontFamily="inherit"
+          >
+            Administrator
+          </Typography>
         </Box>
         <Tooltip title="Đăng xuất" placement="top" arrow>
-          <IconButton size="small" onClick={handleLogout} sx={{ width: 36, height: 36, flexShrink: 0, color: COLORS.logoutIcon, bgcolor: COLORS.logoutBg, borderRadius: 2, "&:hover": { bgcolor: "#EF4444", color: "white" } }}>
+          <IconButton
+            size="small"
+            onClick={handleLogout}
+            sx={{
+              width: 36,
+              height: 36,
+              flexShrink: 0,
+              color: COLORS.logoutIcon,
+              bgcolor: COLORS.logoutBg,
+              borderRadius: 2,
+              "&:hover": { bgcolor: "#EF4444", color: "white" },
+            }}
+          >
             <EastIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -199,7 +347,6 @@ function AppLayout({ handleLogout }) {
 
   return (
     <Box sx={{ display: "flex", height: "100vh", bgcolor: "#F3F5F9" }}>
-
       {/* ── Nút nổi Menu trên Mobile ── */}
       {isMobile && (
         <IconButton
