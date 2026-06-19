@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { cancelInvoice } from '../../utils/api';
-import { buildPrintHTML } from '../../utils/printTemplate'; // Đảm bảo đã import để in
+import { buildPrintHTML } from '../../utils/printTemplate';
 
 const BOOKING_TYPE_LABEL = { hourly: 'Nghỉ giờ', overnight: 'Qua đêm', fullday: 'Ngày đêm' };
 const STATUS_STYLE = {
@@ -35,6 +35,10 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
     const [showCancelForm, setShowCancelForm] = useState(false);
     const ss = STATUS_STYLE[invoice.status];
 
+    // Quản lý Modal In
+    const [showPreview, setShowPreview] = useState(false);
+    const iframeRef = useRef(null);
+
     const handleCancel = async () => {
         if (!reason.trim()) { addToast('Vui lòng nhập lý do hủy', 'error'); return; }
         setCancelling(true);
@@ -48,10 +52,13 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
     };
 
     const handlePrint = () => {
-        const win = window.open('', '_blank');
-        win.document.write(buildPrintHTML(invoice));
-        win.document.close();
-        win.focus();
+        setShowPreview(true); // Chỉ mở Modal xem trước thay vì tab mới
+    };
+
+    const executePrint = () => {
+        if (iframeRef.current) {
+            iframeRef.current.contentWindow.print(); // Gọi lệnh in của trình duyệt từ bên trong iframe
+        }
     };
 
     return (
@@ -101,7 +108,7 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
                         {[
                             ['Giá phòng', fmt(invoice.basePrice)],
                             ['Thời gian sử dụng', calculateUsageTime(invoice.checkIn, invoice.checkOut)],
-                            ...(invoice.extraCharge > 0 ? [[`Phụ thu (${invoice.extraHours}h)`, fmt(invoice.extraCharge)]] : []),
+                            ...(invoice.extraCharge > 0 ? [[`Phụ thu`, fmt(invoice.extraCharge)]] : []),
                             ...(invoice.servicesCharge > 0 ? [['Dịch vụ', fmt(invoice.servicesCharge)]] : []),
                         ].map(([label, value]) => (
                             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontSize: 13 }}>
@@ -116,24 +123,31 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
                                 <span style={{ fontWeight: 600 }}>{fmt(invoice.totalAmount)}</span>
                             </div>
 
-                            {invoice.discount > 0 && (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                                    <span style={{ fontWeight: 600, color: '#f87171' }}>Giảm giá</span>
-                                    <span style={{ fontWeight: 600, color: '#f87171' }}>- {fmt(invoice.discount)}</span>
-                                </div>
-                            )}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                                <span style={{ fontWeight: 600 }}>Giảm giá</span>
+                                <span style={{ fontWeight: 600 }}>{fmt(invoice.discount)}</span>
+                            </div>
 
-                            {/* Thêm dòng hiển thị Thuế */}
-                            {invoice.tax > 0 && (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                                    <span style={{ fontWeight: 600, color: '#f59e0b' }}>Thuế / VAT</span>
-                                    <span style={{ fontWeight: 600, color: '#f59e0b' }}>+ {fmt(invoice.tax)}</span>
-                                </div>
-                            )}
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                                <span style={{ fontWeight: 600 }}>Thuế / VAT</span>
+                                <span style={{ fontWeight: 600 }}>{fmt(invoice.tax)}</span>
+                            </div>
+
+                            {/* Trường Giá trị TT */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: 8 }}>
+                                <span style={{ fontWeight: 600 }}>Giá trị thanh toán</span>
+                                <span style={{ fontWeight: 600 }}>{fmt(invoice.payableAmount)}</span>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                                <span style={{ fontWeight: 600 }}>Tạm ứng</span>
+                                <span style={{ fontWeight: 600 }}>{fmt(invoice.deposit)}</span>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 8, marginTop: 4 }}>
                                 <span style={{ fontWeight: 700, fontSize: 15 }}>Thực thu</span>
-                                <span style={{ fontWeight: 800, fontSize: 20, color: '#10b981' }}>{fmt(invoice.paidAmount)}</span>
+                                <span style={{ fontWeight: 800, fontSize: 20 }}>{fmt(invoice.paidAmount)}</span>
                             </div>
                         </div>
                     </div>
@@ -179,9 +193,35 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
 
                 <div className="modal-footer">
                     <button className="btn btn-ghost" onClick={onClose}>Đóng</button>
-                    <button className="btn btn-primary" onClick={handlePrint}>In hóa đơn</button>
+                    <button className="btn btn-primary" onClick={handlePrint}>`Xem & In hóa đơn</button>
                 </div>
             </div>
+
+            {/* === MODAL XEM TRƯỚC HÓA ĐƠN NẰM NGAY TRÊN TRANG === */}
+            {showPreview && (
+                <div className="modal-overlay" style={{ zIndex: 9999 }} onClick={e => e.target === e.currentTarget && setShowPreview(false)}>
+                    <div className="modal" style={{ maxWidth: 450, padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '90vh' }}>
+                        <div className="modal-header" style={{ padding: '12px 16px', background: 'var(--bg2)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                            <div className="modal-title" style={{ fontSize: 15 }}>Bản xem trước hóa đơn</div>
+                            <button className="modal-close" onClick={() => setShowPreview(false)}>✕</button>
+                        </div>
+
+                        <div style={{ flex: 1, background: '#52565e', padding: '20px', overflow: 'auto', display: 'flex', justifyContent: 'center' }}>
+                            <iframe
+                                ref={iframeRef}
+                                srcDoc={buildPrintHTML(invoice)}
+                                style={{ width: '100%', maxWidth: '400px', height: '100%', minHeight: '500px', background: '#fff', border: 'none', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+                                title="Print Preview"
+                            />
+                        </div>
+
+                        <div className="modal-footer" style={{ padding: '12px 16px', background: 'var(--bg2)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                            <button className="btn btn-ghost" onClick={() => setShowPreview(false)}>Đóng</button>
+                            <button className="btn btn-primary" onClick={executePrint}>In</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

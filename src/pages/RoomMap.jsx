@@ -9,8 +9,8 @@ import {
   updateRoom,
 } from "../utils/api";
 import { useToast } from "../hooks/useToast";
-import CheckInModal from "../components/CheckInModal";
-import RoomDetailModal from "../components/RoomDetailModal";
+import CheckInModal from "../pages/CheckIn/CheckInModal";
+import RoomDetailModal from "../pages/RoomDetail/index";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PersonIcon from "@mui/icons-material/Person";
@@ -503,7 +503,7 @@ export default function RoomMap() {
     loadRooms();
     getActivePrice()
       .then((r) => setPriceConfig(r.data))
-      .catch(() => {});
+      .catch(() => { });
     const interval = setInterval(loadRooms, 30000);
     return () => clearInterval(interval);
   }, [loadRooms]);

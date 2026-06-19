@@ -5,7 +5,6 @@ import CustomDateRangePicker from '../../components/DateRangePicker';
 export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, handleClearFilter }) {
     const [pickerOpen, setPickerOpen] = useState(false);
     const [pickerAnchor, setPickerAnchor] = useState(null);
-    // Thêm state lưu nhãn, mặc định là 'Tháng này'
     const [dateLabel, setDateLabel] = useState('Tháng này');
     const dateButtonRef = useRef(null);
 
@@ -16,13 +15,11 @@ export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, ha
 
     const handleApplyDates = (dates) => {
         setFilter(f => ({ ...f, from: dates.start || f.from, to: dates.end || f.to }));
-        // Hứng label từ DatePicker đẩy ra
         setDateLabel(dates.label || '📅 Chọn trên lịch');
     };
 
     const setF = (k, v) => setFilter(f => ({ ...f, [k]: v }));
 
-    // Bắt sự kiện nhấn Enter trong ô input để lọc luôn
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
             handleApplyFilter();
@@ -31,10 +28,59 @@ export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, ha
 
     return (
         <div className="card" style={{ marginBottom: 16, padding: '16px 20px' }}>
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+            <style>{`
+                .filter-wrapper {
+                    display: flex;
+                    gap: 16px;
+                    flex-wrap: wrap;
+                    align-items: flex-end;
+                }
+                .f-date { width: 230px; }
+                /* Thu nhỏ chiều ngang Desktop */
+                .f-status { width: 105px; } 
+                .f-room { width: 85px; }    
+                .f-name { width: 200px; }
+                .f-actions { display: flex; gap: 8px; }
 
+                /* CSS Responsive cho Mobile */
+                @media (max-width: 768px) {
+                    .filter-wrapper {
+                        display: grid;
+                        /* Đổi tỷ lệ 2fr 1fr để cột bên phải (Phòng/Trạng thái) nhỏ lại hẳn */
+                        grid-template-columns: 2fr 1fr; 
+                        grid-template-areas:
+                            "date room"
+                            "name status"
+                            "actions actions";
+                        gap: 12px;
+                    }
+                    .f-date { grid-area: date; width: 100% !important; }
+                    .f-room { grid-area: room; width: 100% !important; }
+                    .f-name { grid-area: name; width: 100% !important; }
+                    .f-status { grid-area: status; width: 100% !important; }
+                    .f-actions { grid-area: actions; width: 100% !important; justify-content: flex-start; }
+                    
+                    .f-date > button, 
+                    .f-status > select, 
+                    .f-room > input, 
+                    .f-name > input {
+                        width: 100% !important;
+                        box-sizing: border-box;
+                    }
+                    
+                    .f-date button span {
+                        font-size: 11.5px !important;
+                        letter-spacing: 0 !important;
+                    }
+                    .f-date button .arrow-icon {
+                        margin: 0 4px !important;
+                    }
+                }
+            `}</style>
+
+            <div className="filter-wrapper">
                 {/* 1. Khoảng thời gian */}
-                <div style={{ flex: '0 0 auto', width: 230 }}>
+                <div className="f-date">
                     <div className="form-label" style={{ fontSize: 12, color: '#9fa3b8', marginBottom: 6 }}>Khoảng thời gian</div>
                     <button
                         ref={dateButtonRef}
@@ -44,7 +90,7 @@ export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, ha
                             alignItems: 'center',
                             justifyContent: 'center',
                             width: '100%',
-                            padding: '9px 14px',
+                            padding: '8px 12px',
                             borderRadius: 8,
                             border: '1px solid #C3D6EA',
                             backgroundColor: '#EAF4FF',
@@ -65,13 +111,12 @@ export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, ha
                         }}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                            {/* LOGIC ĐIỀU KIỆN RENDER Ở ĐÂY */}
                             {dateLabel === '📅 Chọn trên lịch' ? (
                                 <>
                                     <span style={{ fontWeight: 600, letterSpacing: '0.3px' }}>
                                         {filter.from ? dayjs(filter.from).format('DD/MM/YYYY') : '--'}
                                     </span>
-                                    <span style={{ margin: '0 10px', color: '#6b7a90', fontWeight: 500 }}>
+                                    <span className="arrow-icon" style={{ margin: '0 10px', color: '#6b7a90', fontWeight: 500 }}>
                                         →
                                     </span>
                                     <span style={{ fontWeight: 600, letterSpacing: '0.3px' }}>
@@ -94,53 +139,41 @@ export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, ha
                     />
                 </div>
 
-                {/* 2. Trạng thái */}
-                <div>
-                    <div className="form-label" style={{ fontSize: 12, color: '#9fa3b8', marginBottom: 6 }}>Trạng thái</div>
-                    <select className="form-control" value={filter.status} onChange={e => setF('status', e.target.value)}
-                        style={{ width: 130, padding: '9px 14px', cursor: 'pointer' }}>
-                        <option value="">Tất cả</option>
-                        <option value="issued">Đã xuất</option>
-                        <option value="cancelled">Đã hủy</option>
-                    </select>
-                </div>
-
-                {/* 3. Thanh toán */}
-                <div>
-                    <div className="form-label" style={{ fontSize: 12, color: '#9fa3b8', marginBottom: 6 }}>Thanh toán</div>
-                    <select className="form-control" value={filter.paymentMethod} onChange={e => setF('paymentMethod', e.target.value)}
-                        style={{ width: 140, padding: '9px 14px', cursor: 'pointer' }}>
-                        <option value="">Tất cả</option>
-                        <option value="cash">Tiền mặt</option>
-                        <option value="transfer">Chuyển khoản</option>
-                        <option value="card">Thẻ</option>
-                    </select>
-                </div>
-
-                {/* 4. Số phòng */}
-                <div>
+                {/* 2. Số phòng */}
+                <div className="f-room">
                     <div className="form-label" style={{ fontSize: 12, color: '#9fa3b8', marginBottom: 6 }}>Số phòng</div>
                     <input className="form-control" placeholder="VD: 101" value={filter.roomNumber}
                         onChange={e => setF('roomNumber', e.target.value)}
                         onKeyDown={handleKeyDown}
-                        style={{ width: 100, padding: '9px 14px' }} />
+                        // Chỉnh padding nhỏ lại cho gọn
+                        style={{ width: '100%', padding: '8px 10px', fontSize: 13 }} />
                 </div>
 
-                {/* 5. Tên khách hàng */}
-                <div>
+                {/* 3. Tên khách hàng */}
+                <div className="f-name">
                     <div className="form-label" style={{ fontSize: 12, color: '#9fa3b8', marginBottom: 6 }}>Tên khách hàng</div>
                     <input className="form-control" placeholder="Nhập tên..." value={filter.guestName}
                         onChange={e => setF('guestName', e.target.value)}
                         onKeyDown={handleKeyDown}
-                        style={{ width: 200, padding: '9px 14px' }} />
+                        style={{ width: '100%', padding: '8px 12px', fontSize: 13 }} />
+                </div>
+                {/* 4. Trạng thái */}
+                <div className="f-status">
+                    <div className="form-label" style={{ fontSize: 12, color: '#9fa3b8', marginBottom: 6 }}>Trạng thái</div>
+                    <select className="form-control" value={filter.status} onChange={e => setF('status', e.target.value)}
+                        style={{ width: '100%', padding: '8px 6px 8px 10px', fontSize: 13, cursor: 'pointer' }}>
+                        <option value="" style={{ fontSize: '11px', padding: '4px' }}>Tất cả</option>
+                        <option value="issued" style={{ fontSize: '11px', padding: '4px' }}>Đã xuất</option>
+                        <option value="cancelled" style={{ fontSize: '11px', padding: '4px' }}>Đã hủy</option>
+                    </select>
                 </div>
 
-                {/* 6. Các nút hành động */}
-                <div style={{ display: 'flex', gap: 8 }}>
+                {/* 5. Các nút hành động */}
+                <div className="f-actions">
                     <button
                         onClick={handleApplyFilter}
                         style={{
-                            padding: '9px 20px', height: 'fit-content', borderRadius: 8,
+                            padding: '8px 18px', height: 'fit-content', borderRadius: 8,
                             backgroundColor: '#16a34a', color: '#fff', border: 'none',
                             fontSize: 13.5, fontWeight: 600, cursor: 'pointer',
                             boxShadow: '0 2px 6px rgba(22,163,74,0.3)', transition: 'background 0.2s'
@@ -153,9 +186,9 @@ export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, ha
 
                     <button
                         className="btn btn-ghost"
-                        style={{ padding: '9px 14px', height: 'fit-content' }}
+                        style={{ padding: '8px 12px', height: 'fit-content', fontSize: 13 }}
                         onClick={() => {
-                            setDateLabel('Tháng này'); // Reset lại nhãn khi bấm Xóa lọc
+                            setDateLabel('Tháng này');
                             handleClearFilter();
                         }}
                     >

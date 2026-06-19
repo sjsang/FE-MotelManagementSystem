@@ -7,16 +7,6 @@ export default function InvoiceStats({ total, summary }) {
                 <div className="stat-label">Tổng hóa đơn </div>
                 <div className="stat-value" style={{ color: '#8b85ff' }}>{total}</div>
             </div>
-            <div className="stat-card">
-                <div className="stat-label">Đã xuất </div>
-                <div className="stat-value" style={{ color: '#10b981' }}>{summary.count}</div>
-            </div>
-            <div className="stat-card">
-                <div className="stat-label">Doanh thu </div>
-                <div className="stat-value" style={{ color: '#f59e0b', fontSize: 18 }}>
-                    {summary.totalPaid.toLocaleString('vi-VN')}đ
-                </div>
-            </div>
         </div>
     );
 }
