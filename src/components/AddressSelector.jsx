@@ -14,7 +14,8 @@ export default function AddressSelector({
   onChangeDetail,
   manualValue,
   onChangeManual,
-  addToast
+  addToast,
+  label = 'Địa chỉ thường trú'
 }) {
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -92,7 +93,7 @@ export default function AddressSelector({
   return (
     <div className="form-group">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-        <label className="form-label" style={{ margin: 0 }}>Địa chỉ thường trú</label>
+        <label className="form-label" style={{ margin: 0 }}>{label}</label>
         <button
           type="button"
           className="btn btn-link btn-sm"
@@ -152,7 +153,7 @@ export default function AddressSelector({
               </select>
             </div>
             <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: '11px', color: 'var(--text3)' }}>Số nhà, đường</label>
+              <label className="form-label" style={{ fontSize: '11px', color: 'var(--text3)' }}>Địa chỉ chi tiết</label>
               <input
                 className="form-control"
                 value={detail}
@@ -163,13 +164,24 @@ export default function AddressSelector({
           </div>
         </div>
       ) : (
-        <input
-          name="thuongtru"
-          className="form-control"
-          value={manualValue}
-          onChange={(e) => onChangeManual(e.target.value)}
-          placeholder="Nhập địa chỉ đầy đủ (số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố)"
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <input
+            name="thuongtru"
+            className="form-control"
+            value={manualValue}
+            onChange={(e) => onChangeManual(e.target.value)}
+            placeholder="Nhập địa chỉ đầy đủ (số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố)"
+          />
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" style={{ fontSize: '11px', color: 'var(--text3)' }}>Địa chỉ chi tiết</label>
+            <input
+              className="form-control"
+              value={detail}
+              onChange={(e) => onChangeDetail(e.target.value)}
+              placeholder="Nhập số nhà, tên ngõ, tên đường..."
+            />
+          </div>
+        </div>
       )}
     </div>
   );

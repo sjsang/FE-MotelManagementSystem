@@ -463,7 +463,7 @@ function SearchableCustomerSelect({
                   }}
                 >
                   (
-                  {selectedCustomer.quoctich === "Việt Nam"
+                  {(selectedCustomer.quoctich === "Việt Nam" || selectedCustomer.quoctich === "VNM - Viet Nam")
                     ? `CCCD: ${selectedCustomer.cccd}`
                     : `Hộ chiếu: ${selectedCustomer.passport}`}
                   )
@@ -574,7 +574,7 @@ function SearchableCustomerSelect({
                             }}
                           >
                             Quốc tịch: {c.quoctich} •{" "}
-                            {c.quoctich === "Việt Nam"
+                            {(c.quoctich === "Việt Nam" || c.quoctich === "VNM - Viet Nam")
                               ? `CCCD: ${c.cccd}`
                               : `Hộ chiếu: ${c.passport}`}
                           </div>
@@ -696,6 +696,8 @@ export default function CheckInModal({
         ? "night"
         : "day",
     notes: "",
+    lydocutru: "1 - Du lịch",
+    nhaplydo: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -861,6 +863,11 @@ export default function CheckInModal({
       return;
     }
 
+    if (form.lydocutru === "20 - Mục đích khác" && (!form.nhaplydo || !form.nhaplydo.trim())) {
+      if (addToast) addToast("Vui lòng nhập lý do cụ trú cụ thể", "error");
+      return;
+    }
+
     setLoading(true);
 
     const guestNames = activeGuests.map((g) => g.hoten).join(", ");
@@ -1017,6 +1024,54 @@ export default function CheckInModal({
               shift={form.shift}
               bookingType={form.bookingType}
             />
+
+            <div className="form-group">
+              <label className="form-label">Lý do cư trú</label>
+              <select
+                className="form-control"
+                value={form.lydocutru}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  set("lydocutru", val);
+                  if (val !== "20 - Mục đích khác") {
+                    set("nhaplydo", "");
+                  }
+                }}
+              >
+                <option value="1 - Du lịch">1 - Du lịch</option>
+                <option value="2 - Công tác">2 - Công tác</option>
+                <option value="3 - Học tập">3 - Học tập</option>
+                <option value="4 - Thăm viếng">4 - Thăm viếng</option>
+                <option value="5 - Hội nghị">5 - Hội nghị</option>
+                <option value="6 - Thăm thân">6 - Thăm thân</option>
+                <option value="7 - Từ thiện">7 - Từ thiện</option>
+                <option value="8 - Tổ chức quốc tế">8 - Tổ chức quốc tế</option>
+                <option value="9 - Kết hôn">9 - Kết hôn</option>
+                <option value="10 - Lãnh sự quán">10 - Lãnh sự quán</option>
+                <option value="11 - Viện trợ">11 - Viện trợ</option>
+                <option value="12 - Đại sứ quán">12 - Đại sứ quán</option>
+                <option value="13 - Định cư">13 - Định cư</option>
+                <option value="14 - Tiếp thị">14 - Tiếp thị</option>
+                <option value="15 - Báo chí, phóng viên">15 - Báo chí, phóng viên</option>
+                <option value="16 - Thương mại">16 - Thương mại</option>
+                <option value="17 - Gia hạn thị thực">17 - Gia hạn thị thực</option>
+                <option value="18 - Chữa bệnh">18 - Chữa bệnh</option>
+                <option value="19 - Lao động">19 - Lao động</option>
+                <option value="20 - Mục đích khác">20 - Mục đích khác</option>
+              </select>
+            </div>
+
+            {form.lydocutru === "20 - Mục đích khác" && (
+              <div className="form-group">
+                <label className="form-label">Nhập lý do cư trú khác</label>
+                <input
+                  className="form-control"
+                  placeholder="Nhập lý do cư trú cụ thể..."
+                  value={form.nhaplydo}
+                  onChange={(e) => set("nhaplydo", e.target.value)}
+                />
+              </div>
+            )}
 
             <div className="form-group">
               <label className="form-label">Ghi chú</label>
