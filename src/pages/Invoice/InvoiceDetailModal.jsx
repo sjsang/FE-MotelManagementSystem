@@ -108,7 +108,8 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
                         {[
                             ['Giá phòng', fmt(invoice.basePrice)],
                             ['Thời gian sử dụng', calculateUsageTime(invoice.checkIn, invoice.checkOut)],
-                            ...(invoice.extraCharge > 0 ? [[`Phụ thu`, fmt(invoice.extraCharge)]] : []),
+                            ...(invoice.earlyCheckInCharge > 0 ? [['Phụ thu vào sớm', fmt(invoice.earlyCheckInCharge)]] : []),
+                            ...(invoice.extraCharge > 0 ? [['Phụ thu ra trễ', fmt(invoice.extraCharge)]] : []),
                             ...(invoice.servicesCharge > 0 ? [['Dịch vụ', fmt(invoice.servicesCharge)]] : []),
                         ].map(([label, value]) => (
                             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontSize: 13 }}>
@@ -140,15 +141,19 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
                                 <span style={{ fontWeight: 600 }}>{fmt(invoice.payableAmount)}</span>
                             </div>
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                                <span style={{ fontWeight: 600 }}>Tạm ứng</span>
-                                <span style={{ fontWeight: 600 }}>{fmt(invoice.deposit)}</span>
-                            </div>
+                            {invoice?.deposit > 0 && (
+                                <>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                                        <span style={{ fontWeight: 600 }}>Tạm ứng</span>
+                                        <span style={{ fontWeight: 600 }}>{fmt(invoice.deposit)}</span>
+                                    </div>
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 8, marginTop: 4 }}>
-                                <span style={{ fontWeight: 700, fontSize: 15 }}>Thực thu</span>
-                                <span style={{ fontWeight: 800, fontSize: 20 }}>{fmt(invoice.paidAmount)}</span>
-                            </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 8, marginTop: 4 }}>
+                                        <span style={{ fontWeight: 700, fontSize: 15 }}>Thực thu</span>
+                                        <span style={{ fontWeight: 800, fontSize: 20 }}>{fmt(invoice.paidAmount)}</span>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
 
@@ -193,7 +198,7 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
 
                 <div className="modal-footer">
                     <button className="btn btn-ghost" onClick={onClose}>Đóng</button>
-                    <button className="btn btn-primary" onClick={handlePrint}>`Xem & In hóa đơn</button>
+                    <button className="btn btn-primary" onClick={handlePrint}>Xem & In hóa đơn</button>
                 </div>
             </div>
 

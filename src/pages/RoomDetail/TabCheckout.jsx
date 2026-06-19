@@ -128,14 +128,36 @@ export default function TabCheckout({
                 "Giá cơ bản",
                 formatCurrency(preview?.basePrice ?? booking.basePrice),
               ],
+
+              // Hiển thị Phụ thu Vào sớm (nếu có)
+              ...((preview?.earlyCheckInCharge ??
+                booking.earlyCheckInCharge ??
+                0) > 0
+                ? [
+                    [
+                      `Vào sớm ${
+                        preview?.earlyCheckInHours
+                          ? `(${preview.earlyCheckInHours}h)`
+                          : ""
+                      }`.trim(),
+                      formatCurrency(
+                        preview?.earlyCheckInCharge ??
+                          booking.earlyCheckInCharge
+                      ),
+                    ],
+                  ]
+                : []),
+
+              // Hiển thị Phụ thu Ra trễ (nếu có)
               ...((preview?.extraCharge ?? 0) > 0
                 ? [
                     [
-                      `Phụ thu (${preview.extraHours}h)`,
+                      `Ra trễ (${preview.extraHours}h)`,
                       formatCurrency(preview.extraCharge),
                     ],
                   ]
                 : []),
+
               [
                 "Dịch vụ",
                 formatCurrency(preview?.servicesCharge ?? serviceTotal),

@@ -177,8 +177,12 @@ export function buildPrintHTML(invoice) {
 <div class="row"><span class="label">Giá phòng</span><span>${fmt(invoice.basePrice)}</span></div>
 <div class="row"><span class="label">Thời gian sử dụng</span><span>${usageTimeStr}</span></div>
 
-${invoice.extraCharge > 0 ? `
-<div class="row"><span class="label">Phụ thu </span><span>${fmt(invoice.extraCharge)}</span></div>
+${(invoice.earlyCheckInCharge || 0) > 0 ? `
+<div class="row"><span class="label">Phụ thu vào sớm</span><span>${fmt(invoice.earlyCheckInCharge)}</span></div>
+` : ''}
+
+${(invoice.extraCharge || 0) > 0 ? `
+<div class="row"><span class="label">Phụ thu ra trễ </span><span>${fmt(invoice.extraCharge)}</span></div>
 ` : ''}
 
 ${(invoice.services || []).length > 0 ? `
