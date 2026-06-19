@@ -199,7 +199,6 @@ function AppLayout({ handleLogout }) {
 
   return (
     <Box sx={{ display: "flex", height: "100vh", bgcolor: "#F3F5F9" }}>
-      <CssBaseline />
 
       {/* ── Nút nổi Menu trên Mobile ── */}
       {isMobile && (

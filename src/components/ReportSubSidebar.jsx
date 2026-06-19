@@ -87,7 +87,7 @@ function SidebarContent({ collapsed, onCollapse, onClose }) {
             // Lấy token và API Base URL (Dùng relative URL nếu không có base)
             const token = localStorage.getItem("token");
             const baseUrl = import.meta.env?.VITE_API_URL || import.meta.env?.REACT_APP_API_URL || "";
-            const url = `${baseUrl}/api/reports/export/bca?from=${from}&to=${to}`;
+            const url = `${baseUrl}/reports/export/bca?from=${from}&to=${to}`;
 
             // Fetch trực tiếp để tải file về
             const response = await fetch(url, {

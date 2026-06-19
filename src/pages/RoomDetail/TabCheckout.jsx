@@ -40,7 +40,17 @@ export default function TabCheckout({
                         <div style={{ fontSize: 12, color: '#6b6f84', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Chi tiết</div>
                         {[
                             ['Giá cơ bản', formatCurrency(preview?.basePrice ?? booking.basePrice)],
-                            ...((preview?.extraCharge ?? 0) > 0 ? [[`Phụ thu (${preview.extraHours}h)`, formatCurrency(preview.extraCharge)]] : []),
+
+                            // Hiển thị Phụ thu Vào sớm (nếu có)
+                            ...(((preview?.earlyCheckInCharge ?? booking.earlyCheckInCharge ?? 0) > 0)
+                                ? [[`Vào sớm ${preview?.earlyCheckInHours ? `(${preview.earlyCheckInHours}h)` : ''}`.trim(), formatCurrency(preview?.earlyCheckInCharge ?? booking.earlyCheckInCharge)]]
+                                : []),
+
+                            // Hiển thị Phụ thu Ra trễ (nếu có)
+                            ...(((preview?.extraCharge ?? 0) > 0)
+                                ? [[`Ra trễ (${preview.extraHours}h)`, formatCurrency(preview.extraCharge)]]
+                                : []),
+
                             ['Dịch vụ', formatCurrency(preview?.servicesCharge ?? serviceTotal)],
                         ].map(([label, val]) => (
                             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
