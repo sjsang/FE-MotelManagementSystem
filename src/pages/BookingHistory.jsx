@@ -24,7 +24,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { exportBookingsToExcel } from "../utils/excel_bookinglist";
+import { exportBookingsToExcel, exportLuutruToExcel } from "../utils/excel_bookinglist";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const TYPE_LABEL = {
@@ -351,6 +351,67 @@ export default function BookingHistory() {
     }
   };
 
+  const handleExportLuutru = async () => {
+    setExporting(true);
+    addToast("Đang tải toàn bộ dữ liệu theo bộ lọc để xuất DS Lưu trú...", "info");
+    try {
+      const exportParams = buildParams();
+      exportParams.limit = "none";
+      delete exportParams.cursor;
+
+      const [bookingsRes, customersRes] = await Promise.all([
+        getBookings(exportParams),
+        getCustomers({ limit: "none" }),
+      ]);
+
+      let allBookings = bookingsRes.data?.data || bookingsRes.data || [];
+      const allCustomers = customersRes.data?.data || customersRes.data || [];
+
+      if (excludedBookingIds.size > 0) {
+        allBookings = allBookings.filter((b) => !excludedBookingIds.has(b._id));
+      }
+
+      if (allBookings.length === 0) {
+        addToast("Không có dữ liệu phù hợp với bộ lọc hiện tại để xuất!", "warning");
+        return;
+      }
+
+      // Lọc xem có khách Việt Nam nào không trước khi xuất
+      const customerMap = {};
+      allCustomers.forEach(c => {
+        if (c.cccd) customerMap[c.cccd] = c;
+        if (c.passport) customerMap[c.passport] = c;
+      });
+
+      let hasVnGuest = false;
+      for (const b of allBookings) {
+        if (!b.guestId) continue;
+        const guestIds = b.guestId.split(',').map(s => s.trim());
+        for (const gid of guestIds) {
+          const cust = customerMap[gid];
+          if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam')) {
+            hasVnGuest = true;
+            break;
+          }
+        }
+        if (hasVnGuest) break;
+      }
+
+      if (!hasVnGuest) {
+        addToast("Không có khách hàng quốc tịch Việt Nam nào trong bộ lọc này để xuất!", "warning");
+        return;
+      }
+
+      exportLuutruToExcel(allBookings, allCustomers);
+      addToast(`Xuất file Danh sách Lưu trú thành công!`, "success");
+    } catch (err) {
+      console.error("Lỗi xuất DS Lưu trú:", err);
+      addToast("Lỗi khi tải dữ liệu xuất DS Lưu trú", "error");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   // ── Active filter tags ────────────────────────────────────────────────────
   const activeTags = [];
   if (filter.status)
@@ -406,19 +467,34 @@ export default function BookingHistory() {
           }}
         >
           <div style={{ fontWeight: 700 }}>Danh sách booking</div>
-          <button
-            className="btn btn-success btn-sm"
-            onClick={handleExportExcel}
-            disabled={exporting || bookings.length === 0}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              cursor: "pointer",
-            }}
-          >
-            Xuất Excel
-          </button>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button
+              className="btn btn-success btn-sm"
+              onClick={handleExportExcel}
+              disabled={exporting || bookings.length === 0}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                cursor: "pointer",
+              }}
+            >
+              Xuất DS Booking
+            </button>
+            <button
+              className="btn btn-success btn-sm"
+              onClick={handleExportLuutru}
+              disabled={exporting || bookings.length === 0}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                cursor: "pointer",
+              }}
+            >
+              Xuất DS Lưu trú
+            </button>
+          </div>
         </div>
 
         {/* ── Bộ lọc chi tiết ── */}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AddressSelector from './AddressSelector';
+import AddressSelectorNew from './AddressSelectorNew';
 
 export default function AddCustomerModal({ customer = null, options = null, onClose, onSave, addToast = null }) {
   const formatDate = (dateStr) => {
@@ -11,22 +12,32 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
     hoten: '',
     gioitinh: '',
     ngaythangnamsinh: '',
-    quoctich: 'Việt Nam',
+    quoctich: 'VNM - Viet Nam',
     cccd: '',
     ngaycap: '',
     noicap: '',
-    thuongtru: '',
+    thuongtrucu: '',
     passport: '',
     visaType: '',
     visaExpiredDate: '',
     entryDate: '',
+    diachichitiet: '',
+    loaigiayto: '',
+    tengiayto: '',
+    noicutruhiennay: '',
+    sodienthoai: '',
+    diachichitietcu: '',
+    thuongtrumoi: '',
+    diachichitietmoi: '',
   });
 
   const [addressMode, setAddressMode] = useState('select'); // 'select' or 'manual'
-  const [addrDetail, setAddrDetail] = useState('');
   const [addrProvince, setAddrProvince] = useState('');
   const [addrDistrict, setAddrDistrict] = useState('');
   const [addrWard, setAddrWard] = useState('');
+  const [newAddressMode, setNewAddressMode] = useState('select'); // 'select' or 'manual'
+  const [newAddrProvince, setNewAddrProvince] = useState('');
+  const [newAddrWard, setNewAddrWard] = useState('');
   const [loading, setLoading] = useState(false);
   const [qrInput, setQrInput] = useState('');
   const isScanningRef = useRef(false);
@@ -85,11 +96,13 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
         hoten: name || prev.hoten,
         gioitinh: gender === 'Nữ' ? 'Nữ' : 'Nam',
         ngaythangnamsinh: dob || prev.ngaythangnamsinh,
-        quoctich: 'Việt Nam',
+        quoctich: 'VNM - Viet Nam',
         cccd: cccd || prev.cccd,
-        thuongtru: address || prev.thuongtru,
+        thuongtrucu: address || prev.thuongtrucu,
         ngaycap: ngaycap || prev.ngaycap,
-        noicap: 'Cục Cảnh sát QLHC về TTXH' // Tất cả CCCD gắn chip mới đều do Cục Cảnh sát QLHC về TTXH cấp
+        noicap: 'Cục Cảnh sát QLHC về TTXH', // Tất cả CCCD gắn chip mới đều do Cục Cảnh sát QLHC về TTXH cấp
+        loaigiayto: '1 - Thẻ CCCD',
+        noicutruhiennay: '1 - Thường trú',
       }));
 
       setAddressMode('manual');
@@ -136,52 +149,83 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
         hoten: customer.hoten || '',
         gioitinh: customer.gioitinh || '',
         ngaythangnamsinh: formatDate(customer.ngaythangnamsinh),
-        quoctich: customer.quoctich || 'Việt Nam',
+        quoctich: (customer.quoctich === 'Việt Nam' || customer.quoctich === 'VNM - Viet Nam') ? 'VNM - Viet Nam' : (customer.quoctich || 'VNM - Viet Nam'),
         cccd: customer.cccd || '',
         ngaycap: formatDate(customer.ngaycap),
         noicap: customer.noicap || '',
-        thuongtru: customer.thuongtru || '',
+        thuongtrucu: customer.thuongtrucu || customer.thuongtru || '',
         passport: customer.passport || '',
         visaType: customer.visaType || defaultVisa,
         visaExpiredDate: formatDate(customer.visaExpiredDate),
         entryDate: formatDate(customer.entryDate),
+        diachichitiet: customer.diachichitiet || '',
+        loaigiayto: customer.loaigiayto || '',
+        tengiayto: customer.tengiayto || '',
+        noicutruhiennay: customer.noicutruhiennay || '',
+        sodienthoai: customer.sodienthoai || '',
+        diachichitietcu: customer.diachichitietcu || customer.diachichitiet || '',
+        thuongtrumoi: customer.thuongtrumoi || '',
+        diachichitietmoi: customer.diachichitietmoi || '',
       });
       setAddressMode('manual');
+      setNewAddressMode('manual');
     } else {
       setForm({
         hoten: '',
         gioitinh: '',
         ngaythangnamsinh: '',
-        quoctich: 'Việt Nam',
+        quoctich: 'VNM - Viet Nam',
         cccd: '',
         ngaycap: '',
         noicap: '',
-        thuongtru: '',
+        thuongtrucu: '',
         passport: '',
         visaType: defaultVisa,
         visaExpiredDate: '',
         entryDate: '',
+        diachichitiet: '',
+        loaigiayto: '',
+        tengiayto: '',
+        noicutruhiennay: '',
+        sodienthoai: '',
+        diachichitietcu: '',
+        thuongtrumoi: '',
+        diachichitietmoi: '',
       });
       setAddressMode('select');
-      setAddrDetail('');
       setAddrProvince('');
       setAddrDistrict('');
       setAddrWard('');
+      setNewAddressMode('select');
+      setNewAddrProvince('');
+      setNewAddrWard('');
     }
   }, [customer, options]);
 
-  // Cập nhật trường thuongtru tự động từ AddressSelector
+  // Cập nhật trường thuongtrucu tự động từ AddressSelector
   useEffect(() => {
     if (isScanningRef.current) return;
     if (addressMode === 'select' && !customer) {
       const parts = [];
-      if (addrDetail.trim()) parts.push(addrDetail.trim());
+      if (form.diachichitietcu && form.diachichitietcu.trim()) parts.push(form.diachichitietcu.trim());
       if (addrWard) parts.push(addrWard);
       if (addrDistrict) parts.push(addrDistrict);
       if (addrProvince) parts.push(addrProvince);
-      setForm(prev => ({ ...prev, thuongtru: parts.join(', ') }));
+      setForm(prev => ({ ...prev, thuongtrucu: parts.join(', ') }));
     }
-  }, [addressMode, addrDetail, addrWard, addrDistrict, addrProvince, customer]);
+  }, [addressMode, form.diachichitietcu, addrWard, addrDistrict, addrProvince, customer]);
+
+  // Cập nhật trường thuongtrumoi tự động từ AddressSelectorNew
+  useEffect(() => {
+    if (isScanningRef.current) return;
+    if (newAddressMode === 'select' && !customer) {
+      const parts = [];
+      if (form.diachichitietmoi && form.diachichitietmoi.trim()) parts.push(form.diachichitietmoi.trim());
+      if (newAddrWard) parts.push(newAddrWard);
+      if (newAddrProvince) parts.push(newAddrProvince);
+      setForm(prev => ({ ...prev, thuongtrumoi: parts.join(', ') }));
+    }
+  }, [newAddressMode, form.diachichitietmoi, newAddrWard, newAddrProvince, customer]);
 
   const showMsg = (msg, type = 'error') => {
     if (addToast) addToast(msg, type);
@@ -203,8 +247,8 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
       }
 
       if (name === 'quoctich') {
-        if (value === 'Việt Nam') {
-          updated.thuongtru = '';
+        if (value === 'VNM - Viet Nam' || value === 'Việt Nam') {
+          updated.thuongtrucu = '';
           setAddressMode('select');
         } else {
           updated.visaType = updated.visaType || options?.visaTypes?.[0] || 'DL (Du lịch)';
@@ -253,10 +297,19 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
       hoten: form.hoten.trim(),
       gioitinh: form.gioitinh || null,
       ngaythangnamsinh: form.ngaythangnamsinh || null,
-      quoctich: form.quoctich || 'Việt Nam',
+      quoctich: form.quoctich || 'VNM - Viet Nam',
+      diachichitiet: form.diachichitietcu || null,
+      diachichitietcu: form.diachichitietcu || null,
+      loaigiayto: form.loaigiayto || null,
+      tengiayto: form.loaigiayto === '9 - Giấy Tờ Khác' ? (form.tengiayto || '') : '',
+      noicutruhiennay: form.noicutruhiennay || null,
+      sodienthoai: form.sodienthoai || null,
+      thuongtrumoi: form.thuongtrumoi || null,
+      diachichitietmoi: form.diachichitietmoi || null,
+      thuongtrucu: form.thuongtrucu || null,
     };
 
-    if (form.quoctich === 'Việt Nam') {
+    if (form.quoctich === 'VNM - Viet Nam' || form.quoctich === 'Việt Nam') {
       if (dobYear && dobYear > currentYear - 14) {
         showMsg(`Công dân Việt Nam phải từ 14 tuổi trở lên (sinh năm ${currentYear - 14} trở về trước)`);
         return;
@@ -299,7 +352,8 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
       payload.cccd = form.cccd || null;
       payload.ngaycap = form.ngaycap || null;
       payload.noicap = form.noicap || '';
-      payload.thuongtru = form.thuongtru || '';
+      payload.thuongtru = form.thuongtrucu || '';
+      payload.thuongtrucu = form.thuongtrucu || '';
     } else {
       if (form.passport && form.passport.trim()) {
         const passportRegex = /^[A-Z0-9]{1,9}$/;
@@ -383,7 +437,7 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
           </div>
 
           <div className="input-row">
-            <div className="form-group">
+            <div className="form-group" style={{ flex: 2 }}>
               <label className="form-label">Họ và tên *</label>
               <input
                 name="hoten"
@@ -394,7 +448,17 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
                 required
               />
             </div>
-            <div className="form-group">
+            <div className="form-group" style={{ flex: 1.2 }}>
+              <label className="form-label">Số điện thoại</label>
+              <input
+                name="sodienthoai"
+                className="form-control"
+                value={form.sodienthoai}
+                onChange={handleChange}
+                placeholder="Nhập số ĐT..."
+              />
+            </div>
+            <div className="form-group" style={{ flex: 1 }}>
               <label className="form-label">Giới tính</label>
               <select name="gioitinh" className="form-control" value={form.gioitinh} onChange={handleChange}>
                 <option value="">-- Chọn giới tính --</option>
@@ -414,7 +478,7 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
                 value={form.ngaythangnamsinh}
                 onChange={handleChange}
                 min="1900-01-01"
-                max={form.quoctich === 'Việt Nam' ? `${new Date().getFullYear() - 14}-12-31` : new Date().toISOString().split('T')[0]}
+                max={(form.quoctich === 'VNM - Viet Nam' || form.quoctich === 'Việt Nam') ? `${new Date().getFullYear() - 14}-12-31` : new Date().toISOString().split('T')[0]}
               />
             </div>
             <div className="form-group">
@@ -426,10 +490,50 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
               </select>
             </div>
           </div>
+          <div className="input-row">
+            <div className="form-group">
+              <label className="form-label">Loại giấy tờ</label>
+              <select name="loaigiayto" className="form-control" value={form.loaigiayto} onChange={handleChange}>
+                <option value="">-- Chọn loại giấy tờ --</option>
+                <option value="1 - Thẻ CCCD">1 - Thẻ CCCD</option>
+                <option value="2 - Thẻ CMND">2 - Thẻ CMND</option>
+                <option value="3 - Giấy phép lái xe">3 - Giấy phép lái xe</option>
+                <option value="4 - Hộ chiếu">4 - Hộ chiếu</option>
+                <option value="5 - Giấy khai sinh">5 - Giấy khai sinh</option>
+                <option value="6 - Thẻ BHYT">6 - Thẻ BHYT</option>
+                <option value="7 - Thông báo số định danh cá nhân">7 - Thông báo số định danh cá nhân</option>
+                <option value="8 - Thẻ Căn Cước">8 - Thẻ Căn Cước</option>
+                <option value="9 - Giấy Tờ Khác">9 - Giấy Tờ Khác</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Nơi cư trú hiện nay</label>
+              <select name="noicutruhiennay" className="form-control" value={form.noicutruhiennay} onChange={handleChange}>
+                <option value="">-- Chọn nơi cư trú --</option>
+                <option value="1 - Thường trú">1 - Thường trú</option>
+                <option value="2 - Tạm trú">2 - Tạm trú</option>
+                <option value="3 - Khác">3 - Khác</option>
+              </select>
+            </div>
+          </div>
+
+          {form.loaigiayto === '9 - Giấy Tờ Khác' && (
+            <div className="form-group" style={{ marginBottom: '14px' }}>
+              <label className="form-label">Tên giấy tờ khác *</label>
+              <input
+                name="tengiayto"
+                className="form-control"
+                value={form.tengiayto}
+                onChange={handleChange}
+                placeholder="Nhập tên loại giấy tờ khác..."
+                required
+              />
+            </div>
+          )}
 
           <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '14px 0' }} />
 
-          {form.quoctich === 'Việt Nam' ? (
+          {(form.quoctich === 'VNM - Viet Nam' || form.quoctich === 'Việt Nam') ? (
             <div>
               <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--accent)', marginBottom: '10px' }}>
                 THÔNG TIN ĐỊNH DANH (VIỆT NAM)
@@ -478,11 +582,30 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
                 onChangeDistrict={setAddrDistrict}
                 ward={addrWard}
                 onChangeWard={setAddrWard}
-                detail={addrDetail}
-                onChangeDetail={setAddrDetail}
-                manualValue={form.thuongtru}
-                onChangeManual={(val) => setForm(prev => ({ ...prev, thuongtru: val }))}
+                detail={form.diachichitietcu}
+                onChangeDetail={(val) => setForm(prev => ({ ...prev, diachichitietcu: val }))}
+                manualValue={form.thuongtrucu}
+                onChangeManual={(val) => setForm(prev => ({ ...prev, thuongtrucu: val }))}
+                label="Địa chỉ thường trú (Trước sáp nhập)"
               />
+
+              <div style={{ marginTop: '14px', borderTop: '1px dashed var(--border)', paddingTop: '14px' }}>
+                <AddressSelectorNew
+                  mode={newAddressMode}
+                  onChangeMode={setNewAddressMode}
+                  province={newAddrProvince}
+                  onChangeProvince={setNewAddrProvince}
+                  ward={newAddrWard}
+                  onChangeWard={setNewAddrWard}
+                  detail={form.diachichitietmoi}
+                  onChangeDetail={(val) => setForm(prev => ({ ...prev, diachichitietmoi: val }))}
+                  manualValue={form.thuongtrumoi}
+                  onChangeManual={(val) => setForm(prev => ({ ...prev, thuongtrumoi: val }))}
+                  label="Địa chỉ thường trú (Sau sáp nhập)"
+                  postMergerProvinces={options?.postMergerProvinces || []}
+                  postMergerWards={options?.postMergerWards || {}}
+                />
+              </div>
             </div>
           ) : (
             <div>
@@ -538,6 +661,8 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
               </div>
             </div>
           )}
+
+
         </div>
 
         <div className="modal-footer">

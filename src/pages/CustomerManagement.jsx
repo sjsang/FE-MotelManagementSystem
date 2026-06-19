@@ -192,7 +192,7 @@ export default function CustomerManagement() {
 
   // Shared identity info renderer (used in both table cell and card)
   const IdentityInfo = ({ c }) =>
-    c.quoctich === "Việt Nam" ? (
+    (c.quoctich === "Việt Nam" || c.quoctich === "VNM - Viet Nam") ? (
       <div style={{ fontSize: 13 }}>
         <div>
           <strong>CCCD:</strong> {c.cccd || "---"}
@@ -203,9 +203,9 @@ export default function CustomerManagement() {
             {c.noicap ? ` tại ${c.noicap}` : ""}
           </div>
         )}
-        {c.thuongtru && (
+        {(c.thuongtrucu || c.thuongtru) && (
           <div style={{ fontSize: 12, color: "#9fa3b8" }}>
-            Thường trú: {c.thuongtru}
+            Thường trú: {c.thuongtrucu || c.thuongtru}
           </div>
         )}
       </div>
@@ -315,7 +315,7 @@ export default function CustomerManagement() {
                       <td>
                         <span
                           className={`badge ${
-                            c.quoctich === "Việt Nam"
+                            (c.quoctich === "Việt Nam" || c.quoctich === "VNM - Viet Nam")
                               ? "badge-available"
                               : "badge-maintenance"
                           }`}
@@ -374,7 +374,7 @@ export default function CustomerManagement() {
                     </div>
                     <span
                       className={`badge ${
-                        c.quoctich === "Việt Nam"
+                        (c.quoctich === "Việt Nam" || c.quoctich === "VNM - Viet Nam")
                           ? "badge-available"
                           : "badge-maintenance"
                       }`}

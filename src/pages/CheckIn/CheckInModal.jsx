@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { getCustomers, createCustomer, getCustomerOptions } from "../../utils/api";
+import {
+  getCustomers,
+  createCustomer,
+  updateCustomer,
+  getCustomerOptions,
+  getBookings,
+} from "../../utils/api";
 import AddCustomerModal from "../../components/AddCustomerModal";
 import PricingPanel from "./PricingPanel";
 import SearchableCustomerSelect from "./SearchableCustomerSelect";
@@ -26,11 +32,12 @@ export default function CheckInModal({
     provinces: [],
     visaTypes: [],
   });
+  const [checkedInIds, setCheckedInIds] = useState(new Set());
 
   const guestsContainerRef = useRef(null);
 
+  // Tự động cuộn xuống dưới cùng khi thêm khách mới vào phòng
   useEffect(() => {
-    // THÊM ĐIỀU KIỆN: selectedGuests.length > 1
     if (selectedGuests.length > 1 && guestsContainerRef.current) {
       setTimeout(() => {
         if (guestsContainerRef.current) {
@@ -49,11 +56,13 @@ export default function CheckInModal({
         : "day",
     notes: "",
     deposit: 0,
+    lydocutru: "1 - Du lịch",
+    nhaplydo: "",
   });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    getCustomers()
+    getCustomers({ sort: "hoten" })
       .then((res) => {
         setCustomers(Array.isArray(res.data) ? res.data : res.data?.data || []);
       })
@@ -61,23 +70,70 @@ export default function CheckInModal({
         console.error("Không thể tải danh sách khách hàng:", err);
       });
 
+    // Lấy danh sách CCCD/hộ chiếu đang check-in để ngăn check-in 2 phòng
+    getBookings({ status: "active", limit: "none" })
+      .then((res) => {
+        const bookingsList = Array.isArray(res.data) ? res.data : res.data?.data || [];
+        const ids = new Set();
+        bookingsList.forEach((b) => {
+          if (b.guestId) {
+            b.guestId.split(",").forEach((id) => {
+              const trimmed = id.trim();
+              if (trimmed) ids.add(trimmed);
+            });
+          }
+        });
+        setCheckedInIds(ids);
+      })
+      .catch(() => {});
+
     getCustomerOptions()
       .then((res) => {
         setCustomerOptions(
           res.data || { nationalities: [], provinces: [], visaTypes: [] }
         );
       })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   const handleCreateCustomerDirect = async (payload) => {
     try {
+      // Kiểm tra nhanh xem khách đã tồn tại chưa
+      const localExisting = customers.find(
+        (c) =>
+          (payload.cccd && c.cccd === payload.cccd) ||
+          (payload.passport && c.passport === payload.passport)
+      );
+
+      if (localExisting) {
+        // Cập nhật thông tin mới nhất cho khách hàng đã tồn tại
+        await updateCustomer(localExisting._id, payload);
+        if (addToast) addToast("Đã cập nhật thông tin khách hàng");
+
+        const custRes = await getCustomers({ sort: "hoten" });
+        const updatedList = Array.isArray(custRes.data)
+          ? custRes.data
+          : custRes.data?.data || [];
+        setCustomers(updatedList);
+
+        const updated = updatedList.find((c) => c._id === localExisting._id);
+        if (updated) {
+          setSelectedGuests((prev) => {
+            const arr = [...prev];
+            arr[addingForIndex] = updated;
+            return arr;
+          });
+        }
+        return true;
+      }
+
+      // Tạo khách hàng mới
       const res = await createCustomer(payload);
       if (addToast) addToast("Thêm khách hàng mới thành công");
 
-      const custRes = await getCustomers();
+      const custRes = await getCustomers({ sort: "hoten" });
       const updatedList = Array.isArray(custRes.data)
         ? custRes.data
         : custRes.data?.data || [];
@@ -110,6 +166,11 @@ export default function CheckInModal({
       return;
     }
 
+    if (form.lydocutru === "20 - Mục đích khác" && (!form.nhaplydo || !form.nhaplydo.trim())) {
+      if (addToast) addToast("Vui lòng nhập lý do cư trú cụ thể", "error");
+      return;
+    }
+
     setLoading(true);
 
     const guestNames = activeGuests.map((g) => g.hoten).join(", ");
@@ -132,14 +193,12 @@ export default function CheckInModal({
     <>
       <style>{`
         @media (max-width: 768px) {
-          /* Chỉnh kích thước của ô hiển thị (Select) */
           .mobile-dropdown-text {
             font-size: 12px !important;
             padding: 6px !important;
             height: 36px !important;
             width: auto !important;
           }
-          /* Ép kích thước của danh sách xổ xuống (Options) */
           .mobile-dropdown-text option {
             font-size: 10px !important;
             padding: 4px 0 4px 4px !important;
@@ -178,6 +237,7 @@ export default function CheckInModal({
             ref={guestsContainerRef}
             style={{ overflowY: "auto", flex: 1 }}
           >
+            {/* Vùng chọn danh sách khách hàng */}
             <div style={{ marginBottom: "14px" }}>
               {selectedGuests.map((guest, idx) => (
                 <SearchableCustomerSelect
@@ -187,7 +247,11 @@ export default function CheckInModal({
                       ? "Khách hàng chính *"
                       : `Khách hàng thứ ${idx + 1}`
                   }
-                  customers={customers}
+                  customers={customers.filter((c) => {
+                    // Ẩn khách đang check-in ở phòng khác
+                    const id = c.cccd || c.passport || "";
+                    return !id || !checkedInIds.has(id);
+                  })}
                   selectedCustomer={guest}
                   onSelect={(c) => {
                     setSelectedGuests((prev) => {
@@ -221,6 +285,7 @@ export default function CheckInModal({
               ))}
             </div>
 
+            {/* Nút thêm khách vào phòng */}
             <div style={{ marginBottom: 14 }}>
               <button
                 type="button"
@@ -281,20 +346,71 @@ export default function CheckInModal({
               bookingType={form.bookingType}
             />
 
+            {/* Lý do cư trú */}
+            <div className="form-group">
+              <label className="form-label">Lý do cư trú</label>
+              <select
+                className="form-control"
+                value={form.lydocutru}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  set("lydocutru", val);
+                  if (val !== "20 - Mục đích khác") {
+                    set("nhaplydo", "");
+                  }
+                }}
+              >
+                <option value="1 - Du lịch">1 - Du lịch</option>
+                <option value="2 - Công tác">2 - Công tác</option>
+                <option value="3 - Học tập">3 - Học tập</option>
+                <option value="4 - Thăm viếng">4 - Thăm viếng</option>
+                <option value="5 - Hội nghị">5 - Hội nghị</option>
+                <option value="6 - Thăm thân">6 - Thăm thân</option>
+                <option value="7 - Từ thiện">7 - Từ thiện</option>
+                <option value="8 - Tổ chức quốc tế">8 - Tổ chức quốc tế</option>
+                <option value="9 - Kết hôn">9 - Kết hôn</option>
+                <option value="10 - Lãnh sự quán">10 - Lãnh sự quán</option>
+                <option value="11 - Viện trợ">11 - Viện trợ</option>
+                <option value="12 - Đại sứ quán">12 - Đại sứ quán</option>
+                <option value="13 - Định cư">13 - Định cư</option>
+                <option value="14 - Tiếp thị">14 - Tiếp thị</option>
+                <option value="15 - Báo chí, phóng viên">15 - Báo chí, phóng viên</option>
+                <option value="16 - Thương mại">16 - Thương mại</option>
+                <option value="17 - Gia hạn thị thực">17 - Gia hạn thị thực</option>
+                <option value="18 - Chữa bệnh">18 - Chữa bệnh</option>
+                <option value="19 - Lao động">19 - Lao động</option>
+                <option value="20 - Mục đích khác">20 - Mục đích khác</option>
+              </select>
+            </div>
+
+            {form.lydocutru === "20 - Mục đích khác" && (
+              <div className="form-group">
+                <label className="form-label">Nhập lý do cư trú khác</label>
+                <input
+                  className="form-control"
+                  placeholder="Nhập lý do cư trú cụ thể..."
+                  value={form.nhaplydo}
+                  onChange={(e) => set("nhaplydo", e.target.value)}
+                />
+              </div>
+            )}
+
+            {/* Tạm ứng */}
             <div className="form-group">
               <label className="form-label">Tạm ứng (đ)</label>
               <input
                 className="form-control"
                 type="text"
                 placeholder="0"
-                value={form.deposit === 0 ? '' : form.deposit.toLocaleString('vi-VN')}
+                value={form.deposit === 0 ? "" : form.deposit.toLocaleString("vi-VN")}
                 onChange={(e) => {
-                  const raw = e.target.value.replace(/\D/g, '');
-                  set('deposit', raw ? Number(raw) : 0);
+                  const raw = e.target.value.replace(/\D/g, "");
+                  set("deposit", raw ? Number(raw) : 0);
                 }}
               />
             </div>
 
+            {/* Ghi chú */}
             <div className="form-group">
               <label className="form-label">Ghi chú</label>
               <input
