@@ -186,7 +186,8 @@ export default function BookingHistory() {
     return !excludedBookingIds.has(id);
   };
 
-  const allLoadedSelected = bookings.length > 0 && bookings.every((b) => isBookingSelected(b._id));
+  const allLoadedSelected =
+    bookings.length > 0 && bookings.every((b) => isBookingSelected(b._id));
 
   const toggleSelectAll = () => {
     setExcludedBookingIds((prev) => {
@@ -330,12 +331,18 @@ export default function BookingHistory() {
       }
 
       if (allBookings.length === 0) {
-        addToast("Không có dữ liệu phù hợp với bộ lọc hiện tại để xuất!", "warning");
+        addToast(
+          "Không có dữ liệu phù hợp với bộ lọc hiện tại để xuất!",
+          "warning"
+        );
         return;
       }
 
       exportBookingsToExcel(allBookings, allCustomers);
-      addToast(`Xuất file Excel thành công (${allBookings.length} booking)!`, "success");
+      addToast(
+        `Xuất file Excel thành công (${allBookings.length} booking)!`,
+        "success"
+      );
     } catch (err) {
       console.error("Lỗi xuất Excel:", err);
       addToast("Lỗi khi tải dữ liệu xuất Excel", "error");
@@ -671,7 +678,7 @@ export default function BookingHistory() {
                       <th>Ca</th>
                       <th>Check-in</th>
                       <th>Check-out</th>
-                      <th>Tổng tiền</th>
+                      {/* <th>Tổng tiền</th> */}
                       <th>Trạng thái</th>
                     </tr>
                   </thead>
@@ -700,7 +707,11 @@ export default function BookingHistory() {
                                 type="checkbox"
                                 checked={isBookingSelected(b._id)}
                                 onChange={() => toggleBookingSelection(b._id)}
-                                style={{ width: 16, height: 16, cursor: "pointer" }}
+                                style={{
+                                  width: 16,
+                                  height: 16,
+                                  cursor: "pointer",
+                                }}
                               />
                             </td>
                             <td>
@@ -759,7 +770,7 @@ export default function BookingHistory() {
                             >
                               {fmtDate(b.checkOut) || "—"}
                             </td>
-                            <td>
+                            {/* <td>
                               {b.totalAmount ? (
                                 <span
                                   style={{ fontWeight: 700, color: "#10b981" }}
@@ -773,7 +784,7 @@ export default function BookingHistory() {
                                   —
                                 </span>
                               )}
-                            </td>
+                            </td> */}
                             <td>
                               <span
                                 style={{
@@ -836,12 +847,22 @@ export default function BookingHistory() {
                             alignItems: "center",
                           }}
                         >
-                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 10,
+                            }}
+                          >
                             <input
                               type="checkbox"
                               checked={isBookingSelected(b._id)}
                               onChange={() => toggleBookingSelection(b._id)}
-                              style={{ width: 18, height: 18, cursor: "pointer" }}
+                              style={{
+                                width: 18,
+                                height: 18,
+                                cursor: "pointer",
+                              }}
                             />
                             <span style={{ fontWeight: 700, fontSize: 17 }}>
                               Phòng {b.roomNumber}
@@ -961,7 +982,7 @@ export default function BookingHistory() {
                         </div>
 
                         {/* Dòng 5: Tổng tiền */}
-                        <div
+                        {/* <div
                           style={{
                             borderTop: "1px solid rgba(255,255,255,0.06)",
                             paddingTop: 10,
@@ -988,7 +1009,7 @@ export default function BookingHistory() {
                               —
                             </span>
                           )}
-                        </div>
+                        </div> */}
                       </div>
                     );
                   })
