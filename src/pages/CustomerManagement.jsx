@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   getCustomers,
   getCustomerOptions,
@@ -21,34 +21,75 @@ export default function CustomerManagement() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
 
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const observerRef = useRef(null);
+  const sentinelRef = useRef(null);
+
   const { addToast, ToastContainer } = useToast();
 
-  const loadData = async () => {
+  const loadData = async (query = searchQuery, isLoadMore = false) => {
     try {
-      setLoading(true);
+      if (isLoadMore) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+        setPage(1);
+      }
+
+      const currentPage = isLoadMore ? page + 1 : 1;
+
       const [custRes, optRes] = await Promise.all([
-        getCustomers(),
-        getCustomerOptions(),
+        getCustomers({ search: query, page: currentPage, sort: "hoten" }),
+        isLoadMore ? Promise.resolve({ data: options }) : getCustomerOptions(),
       ]);
 
-      const validCustomers = Array.isArray(custRes.data)
-        ? custRes.data
-        : custRes.data?.data || [];
-      setCustomers(validCustomers);
+      const resData = custRes.data?.data || custRes.data || [];
+      const resHasMore = custRes.data?.hasMore || false;
 
-      setOptions(
-        optRes.data || { nationalities: [], provinces: [], visaTypes: [] }
-      );
+      if (isLoadMore) {
+        setCustomers((prev) => [...prev, ...resData]);
+        setPage(currentPage);
+      } else {
+        setCustomers(resData);
+      }
+      setHasMore(resHasMore);
+
+      if (!isLoadMore) {
+        setOptions(
+          optRes.data || { nationalities: [], provinces: [], visaTypes: [] }
+        );
+      }
     } catch (e) {
       addToast("Không thể tải danh sách khách hàng hoặc cấu hình", "error");
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    const timer = setTimeout(() => {
+      loadData(searchQuery);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (observerRef.current) observerRef.current.disconnect();
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          loadData(searchQuery, true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    if (sentinelRef.current) observerRef.current.observe(sentinelRef.current);
+    return () => observerRef.current?.disconnect();
+  }, [hasMore, loadingMore, searchQuery]);
 
   const handleOpenAdd = () => {
     setEditingCustomer(null);
@@ -84,29 +125,62 @@ export default function CustomerManagement() {
         await updateCustomer(editingCustomer._id, payload);
         addToast("Cập nhật thông tin thành công", "success");
       } else {
+        // 1. Kiểm tra nhanh trong danh sách khách hàng cục bộ
+        const localExisting = customers.find(
+          (c) =>
+            (payload.cccd && c.cccd === payload.cccd) ||
+            (payload.passport && c.passport === payload.passport)
+        );
+
+        if (localExisting) {
+          await updateCustomer(localExisting._id, payload);
+          addToast("Khách hàng đã tồn tại, đã tự động cập nhật thông tin mới nhất!", "success");
+          loadData();
+          return true;
+        }
+
+        // 2. Thử tạo mới
         await createCustomer(payload);
         addToast("Thêm mới khách lưu trú thành công", "success");
       }
       loadData();
       return true;
     } catch (err) {
-      addToast(
-        err.response?.data?.message || "Có lỗi xảy ra khi lưu thông tin",
-        "error"
-      );
+      const errMsg = err.response?.data?.message || "Có lỗi xảy ra khi lưu thông tin";
+      
+      // 3. Nếu bị lỗi trùng CCCD/Hộ chiếu (khách cũ đã có trong DB nhưng chưa tải về cục bộ)
+      if (!editingCustomer && errMsg.includes("đã tồn tại")) {
+        try {
+          const searchRes = await getCustomers({ search: payload.cccd || payload.passport });
+          const searchList = Array.isArray(searchRes.data)
+            ? searchRes.data
+            : searchRes.data?.data || [];
+          
+          const found = searchList.find(
+            (c) =>
+              (payload.cccd && c.cccd === payload.cccd) ||
+              (payload.passport && c.passport === payload.passport)
+          );
+
+          if (found) {
+            await updateCustomer(found._id, payload);
+            addToast("Khách hàng đã tồn tại trong hệ thống, đã tự động cập nhật thông tin mới nhất!", "success");
+            loadData();
+            return true;
+          }
+        } catch (fallbackErr) {
+          console.error("Lỗi khi xử lý cập nhật fallback:", fallbackErr);
+        }
+      }
+
+      addToast(errMsg, "error");
       return false;
     }
   };
 
-  const filteredCustomers = customers.filter((c) => {
-    const query = searchQuery.toLowerCase().trim();
-    if (!query) return true;
-    return (
-      c.hoten?.toLowerCase().includes(query) ||
-      c.cccd?.toLowerCase().includes(query) ||
-      c.passport?.toLowerCase().includes(query)
-    );
-  });
+
+
+  const filteredCustomers = customers;
 
   const formatDateDisplay = (dateStr) => {
     if (!dateStr) return "";
@@ -357,6 +431,35 @@ export default function CustomerManagement() {
                 </div>
               ))}
             </div>
+
+            {hasMore && (
+              <div
+                ref={sentinelRef}
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "24px 0",
+                  color: "var(--text3)",
+                  fontSize: "13px",
+                }}
+              >
+                <span
+                  className="loading-spinner"
+                  style={{
+                    width: "18px",
+                    height: "18px",
+                    border: "2px solid rgba(255,255,255,0.1)",
+                    borderTopColor: "var(--accent)",
+                    borderRadius: "50%",
+                    display: "inline-block",
+                    animation: "spin 0.8s linear infinite",
+                  }}
+                />
+                Đang tải thêm...
+              </div>
+            )}
           </>
         )}
       </div>
@@ -372,6 +475,10 @@ export default function CustomerManagement() {
       )}
 
       <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
         /* Desktop: table visible, cards hidden */
         .cm-card-list  { display: none; }
         .cm-table-wrap { display: block; }
