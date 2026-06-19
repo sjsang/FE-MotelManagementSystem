@@ -21,7 +21,11 @@ const initialFilterState = {
 
 export default function InvoiceHistory() {
     const [invoices, setInvoices] = useState([]);
+
+    // Tách biệt trạng thái tải: loading (lần đầu) và loadingMore (cuộn chuột load thêm)
     const [loading, setLoading] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
+
     const [selected, setSelected] = useState(null);
 
     // Tách riêng state hiển thị UI và state thực sự gọi API
@@ -37,7 +41,10 @@ export default function InvoiceHistory() {
 
     // Hàm load bây giờ sẽ phụ thuộc vào appliedFilter thay vì filter
     const load = useCallback(async (p = 1) => {
-        setLoading(true);
+        // Nếu load trang 1 thì xoay tròn cả bảng, load trang > 1 thì chỉ xoay tròn ở đáy
+        if (p === 1) setLoading(true);
+        else setLoadingMore(true);
+
         try {
             const params = { page: p, limit: 20 };
             if (appliedFilter.from) params.from = appliedFilter.from;
@@ -49,19 +56,31 @@ export default function InvoiceHistory() {
 
             const res = await getInvoices(params);
             const { data, total: t, totalPages: tp } = res.data;
-            setInvoices(data || []);
+
+            // XỬ LÝ NỐI MẢNG: Load trang 1 thì gán mới, load từ trang 2 thì nối vào đuôi mảng cũ
+            setInvoices(prev => {
+                const updatedInvoices = p === 1 ? (data || []) : [...prev, ...(data || [])];
+
+                // Tính toán thống kê summary ngay trên mảng vừa nối để update UI
+                const issued = updatedInvoices.filter(i => i.status === 'issued');
+                setSummary({
+                    totalPaid: issued.reduce((s, i) => s + (i.paidAmount || 0), 0),
+                    count: issued.length,
+                });
+
+                return updatedInvoices;
+            });
+
             setTotal(t || 0);
             setTotalPages(tp || 1);
             setPage(p);
 
-            const issued = (data || []).filter(i => i.status === 'issued');
-            setSummary({
-                totalPaid: issued.reduce((s, i) => s + (i.paidAmount || 0), 0),
-                count: issued.length,
-            });
         } catch {
             addToast('Lỗi tải danh sách hóa đơn', 'error');
-        } finally { setLoading(false); }
+        } finally {
+            setLoading(false);
+            setLoadingMore(false);
+        }
     }, [appliedFilter, addToast]);
 
     // Gọi API mỗi khi appliedFilter thay đổi
@@ -97,13 +116,17 @@ export default function InvoiceHistory() {
                 page={page}
                 totalPages={totalPages}
                 load={load}
+                // TRUYỀN THÊM 2 PROPS QUAN TRỌNG ĐỂ THEO DÕI LAZY LOAD
+                hasMore={page < totalPages}
+                loadingMore={loadingMore}
             />
 
             {selected && (
                 <InvoiceDetailModal
                     invoice={selected}
                     onClose={() => setSelected(null)}
-                    onCancel={() => { setSelected(null); load(page); }}
+                    // Nếu người dùng hủy hóa đơn ở trang bất kỳ, nên reload lại trang 1 để tránh lỗi hiển thị
+                    onCancel={() => { setSelected(null); load(1); }}
                     addToast={addToast}
                 />
             )}

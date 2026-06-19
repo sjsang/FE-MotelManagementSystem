@@ -9,13 +9,12 @@ import {
   updateRoom,
 } from "../utils/api";
 import { useToast } from "../hooks/useToast";
-import CheckInModal from "../components/CheckInModal";
-import RoomDetailModal from "../components/RoomDetailModal";
+import CheckInModal from "../pages/CheckIn/CheckInModal";
+import RoomDetailModal from "../pages/RoomDetail/index";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PersonIcon from "@mui/icons-material/Person";
 import CleaningServicesIcon from "@mui/icons-material/CleaningServices";
-import PricingCalculator from "../components/PricingCalculator/PricingCalculator";
 
 const STATUS_LABEL = {
   available: "Trống",
@@ -693,31 +692,6 @@ export default function RoomMap() {
             ))}
           </div>
 
-          {/* Nút mới */}
-          <button
-            onClick={() => setShowPricing(true)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: 13,
-              fontWeight: 500,
-              color: "#2563eb",
-              background: "#eff6ff",
-              border: "1px solid #bfdbfe",
-              borderRadius: 8,
-              padding: "5px 14px",
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-              transition: "background 0.15s",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#dbeafe")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "#eff6ff")}
-          >
-            <span style={{ fontSize: 15 }}>🧮</span>
-            Tính tiền
-          </button>
         </div>
 
         {/* Floor Sections */}

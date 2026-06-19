@@ -120,36 +120,8 @@ export default function ReportPage() {
   return (
     <div
       className="revenue-page-container"
-      style={{ padding: "0 4px", boxSizing: "border-box" }}
+      style={{ padding: "0", boxSizing: "border-box" }}
     >
-      <ToastContainer />
-      <div
-        className="page-header"
-        style={{
-          marginBottom: 20,
-          display: "flex",
-          flexDirection: "column",
-          gap: 4,
-        }}
-      >
-        <h2
-          className="page-title"
-          style={{ margin: 0, fontSize: "clamp(18px, 5vw, 24px)" }}
-        >
-          Báo cáo Doanh thu
-        </h2>
-        <div
-          className="page-subtitle"
-          style={{
-            color: "#666",
-            fontSize: "clamp(12px, 3vw, 14px)",
-            lineHeight: 1.4,
-          }}
-        >
-          Thống kê doanh thu theo kỳ và xuất báo cáo dữ liệu hóa đơn, lưu trú
-        </div>
-      </div>
-
       <ReportFilter
         dateRange={dateRange}
         setDateRange={setDateRange}
