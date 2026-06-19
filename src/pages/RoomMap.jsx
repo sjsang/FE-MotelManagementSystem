@@ -503,7 +503,7 @@ export default function RoomMap() {
     loadRooms();
     getActivePrice()
       .then((r) => setPriceConfig(r.data))
-      .catch(() => { });
+      .catch(() => {});
     const interval = setInterval(loadRooms, 30000);
     return () => clearInterval(interval);
   }, [loadRooms]);
