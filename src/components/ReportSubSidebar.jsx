@@ -331,7 +331,7 @@ function SidebarContent({ collapsed, onCollapse, onClose }) {
     );
 }
 
-export default function ReportSubSidebar({ open, onClose }) {
+export default function ReportSubSidebar({ open, onClose, mobileOpen, onMobileClose }) {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -347,10 +347,12 @@ export default function ReportSubSidebar({ open, onClose }) {
     });
 
     if (isMobile) {
+        // Mobile: dùng mobileOpen/onMobileClose từ App.jsx
+        // Chỉ đóng Drawer, không navigate về "/"
         return (
-            <Drawer anchor="left" open={open} onClose={onClose}>
+            <Drawer anchor="left" open={!!mobileOpen} onClose={onMobileClose}>
                 <Box sx={{ width: SIDEBAR_EXPANDED }} role="presentation">
-                    <SidebarContent collapsed={false} onCollapse={() => { }} onClose={onClose} />
+                    <SidebarContent collapsed={false} onCollapse={() => { }} onClose={onMobileClose} />
                 </Box>
             </Drawer>
         );

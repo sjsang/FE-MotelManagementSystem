@@ -67,6 +67,7 @@ function AppLayout({ handleLogout }) {
   const navigate = useNavigate();
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileReportOpen, setMobileReportOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return localStorage.getItem("main-sidebar-collapsed") === "true";
@@ -91,6 +92,7 @@ function AppLayout({ handleLogout }) {
   const handleNavClick = (path) => {
     if (path === "report") {
       navigate(FIRST_REPORT_PATH);
+      if (isMobile) setMobileReportOpen(true); // Mở drawer báo cáo trên mobile
     } else {
       navigate(path);
     }
@@ -255,7 +257,12 @@ function AppLayout({ handleLogout }) {
       </Drawer>
 
       {/* ── Report Sub-sidebar ── */}
-      <ReportSubSidebar open={isInReport} onClose={() => navigate("/")} />
+      <ReportSubSidebar
+        open={isInReport}
+        onClose={() => navigate("/")}
+        mobileOpen={mobileReportOpen}
+        onMobileClose={() => setMobileReportOpen(false)}
+      />
 
       {/* ── Main Content Area ── */}
       <Box
