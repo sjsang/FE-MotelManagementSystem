@@ -108,7 +108,7 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
                         {[
                             ['Giá phòng', fmt(invoice.basePrice)],
                             ['Thời gian sử dụng', calculateUsageTime(invoice.checkIn, invoice.checkOut)],
-                            ...(invoice.extraCharge > 0 ? [[`Phụ thu (${invoice.extraHours}h)`, fmt(invoice.extraCharge)]] : []),
+                            ...(invoice.extraCharge > 0 ? [[`Phụ thu`, fmt(invoice.extraCharge)]] : []),
                             ...(invoice.servicesCharge > 0 ? [['Dịch vụ', fmt(invoice.servicesCharge)]] : []),
                         ].map(([label, value]) => (
                             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontSize: 13 }}>
@@ -193,7 +193,7 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
 
                 <div className="modal-footer">
                     <button className="btn btn-ghost" onClick={onClose}>Đóng</button>
-                    <button className="btn btn-primary" onClick={handlePrint}>🖨️ Xem & In hóa đơn</button>
+                    <button className="btn btn-primary" onClick={handlePrint}>`Xem & In hóa đơn</button>
                 </div>
             </div>
 
@@ -217,7 +217,7 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
 
                         <div className="modal-footer" style={{ padding: '12px 16px', background: 'var(--bg2)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                             <button className="btn btn-ghost" onClick={() => setShowPreview(false)}>Đóng</button>
-                            <button className="btn btn-primary" onClick={executePrint}>🖨️ In ngay</button>
+                            <button className="btn btn-primary" onClick={executePrint}>In</button>
                         </div>
                     </div>
                 </div>

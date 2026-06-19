@@ -178,7 +178,7 @@ export function buildPrintHTML(invoice) {
 <div class="row"><span class="label">Thời gian sử dụng</span><span>${usageTimeStr}</span></div>
 
 ${invoice.extraCharge > 0 ? `
-<div class="row"><span class="label">Phụ thu (${invoice.extraHours}h)</span><span>${fmt(invoice.extraCharge)}</span></div>
+<div class="row"><span class="label">Phụ thu </span><span>${fmt(invoice.extraCharge)}</span></div>
 ` : ''}
 
 ${(invoice.services || []).length > 0 ? `

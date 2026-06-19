@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, NavLink, useLocation, useNavigate } from "react-router-dom";
 import RoomMap from "./pages/RoomMap";
 import RoomManagement from "./pages/RoomManagement";
 import PriceManagement from "./pages/PriceManagement";
@@ -13,254 +13,290 @@ import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import PriceChangeIcon from "@mui/icons-material/PriceChange";
 import PeopleIcon from "@mui/icons-material/People";
-import HistoryIcon from "@mui/icons-material/History";
-import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
+import AssessmentIcon from "@mui/icons-material/Assessment";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { Tooltip } from "@mui/material";
 import InvoiceHistory from "./pages/Invoice/InvoiceHistory";
-
-// 1. Import trang báo cáo mới từ thư mục Report
 import ReportPage from "./pages/Report";
+import ReportSubSidebar from "./components/ReportSubSidebar";
 
-export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    !!localStorage.getItem("token")
-  );
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+// Route đầu tiên của báo cáo — dùng để auto-navigate khi click "Báo cáo"
+const FIRST_REPORT_PATH = "/reports/revenue";
 
-  const handleAuthSuccess = () => setIsAuthenticated(true);
+const SIDEBAR_FULL = 220;
+const SIDEBAR_RAIL = 60;
 
-  const handleLogout = () => {
-    if (window.confirm("Bạn có chắc muốn đăng xuất?")) {
-      localStorage.removeItem("token");
-      setIsAuthenticated(false);
-    }
+// ── Inner layout ─────────────────────────────────────────────────────────────
+function AppLayout({ handleLogout }) {
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return localStorage.getItem("main-sidebar-collapsed") === "true"; }
+    catch { return false; }
+  });
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isInReport = location.pathname.startsWith("/reports");
+
+  // Sub-sidebar báo cáo mở khi đang ở route /reports/*
+  const reportOpen = isInReport;
+
+  const closeMobile = () => setMobileSidebarOpen(false);
+
+  const toggleCollapse = () => setCollapsed(v => {
+    const next = !v;
+    try { localStorage.setItem("main-sidebar-collapsed", String(next)); } catch { }
+    return next;
+  });
+
+  // Click "Báo cáo": navigate thẳng tới trang đầu + đóng mobile sidebar
+  const handleReportClick = () => {
+    navigate(FIRST_REPORT_PATH);
+    closeMobile();
   };
 
-  const closeSidebar = () => setSidebarOpen(false);
+  // Click các nav item khác: đóng mobile sidebar (subsidebar tự đóng vì route thay đổi)
+  const handleNavClick = () => {
+    closeMobile();
+  };
 
-  if (!isAuthenticated) {
-    return <Auth onAuthSuccess={handleAuthSuccess} />;
-  }
+  const sidebarW = collapsed ? SIDEBAR_RAIL : SIDEBAR_FULL;
 
-  const navItems = (
-    <nav className="sidebar-nav">
-      <div className="nav-section-label">TỔNG QUAN</div>
-      <NavLink
-        to="/"
-        end
-        className={({ isActive }) =>
-          isActive ? "nav-item active" : "nav-item"
-        }
-        onClick={closeSidebar}
-      >
-        <span className="nav-icon">
-          <GridViewIcon />
-        </span>
-        <span className="nav-label">Sơ đồ phòng</span>
-      </NavLink>
-
-      <div className="nav-section-label" style={{ paddingTop: 12 }}>
-        QUẢN LÝ
+  const navContent = (
+    <>
+      {/* Nút collapse — chỉ trên desktop */}
+      <div className="sidebar-collapse-btn-wrap">
+        <Tooltip title={collapsed ? "Mở rộng" : "Thu gọn"} placement="right" arrow>
+          <button className="sidebar-collapse-btn" onClick={toggleCollapse}>
+            {collapsed ? <ChevronRightIcon fontSize="small" /> : <ChevronLeftIcon fontSize="small" />}
+          </button>
+        </Tooltip>
       </div>
-      <NavLink
-        to="/rooms"
-        className={({ isActive }) =>
-          isActive ? "nav-item active" : "nav-item"
-        }
-        onClick={closeSidebar}
-      >
-        <span className="nav-icon">
-          <MeetingRoomIcon />
-        </span>
-        <span className="nav-label">Quản lý phòng</span>
-      </NavLink>
-      <NavLink
-        to="/prices"
-        className={({ isActive }) =>
-          isActive ? "nav-item active" : "nav-item"
-        }
-        onClick={closeSidebar}
-      >
-        <span className="nav-icon">
-          <PriceChangeIcon />
-        </span>
-        <span className="nav-label">Bảng giá</span>
-      </NavLink>
-      <NavLink
-        to="/customers"
-        className={({ isActive }) =>
-          isActive ? "nav-item active" : "nav-item"
-        }
-        onClick={closeSidebar}
-      >
-        <span className="nav-icon">
-          <PeopleIcon />
-        </span>
-        <span className="nav-label">Khách lưu trú</span>
-      </NavLink>
-      <NavLink
-        to="/invoices"
-        className={({ isActive }) =>
-          isActive ? "nav-item active" : "nav-item"
-        }
-        onClick={closeSidebar}
-      >
-        <span className="nav-icon">
-          <ReceiptIcon />
-        </span>
-        <span className="nav-label">Hóa đơn</span>
-      </NavLink>
 
-      <div className="nav-section-label" style={{ paddingTop: 12 }}>
-        BÁO CÁO
+      {/* Brand */}
+      <div className="sidebar-brand">
+        <span className="brand-icon"><DashboardIcon /></span>
+        <span className="brand-name">NHÀ NGHỈ 79</span>
       </div>
-      <NavLink
-        to="/history"
-        className={({ isActive }) =>
-          isActive ? "nav-item active" : "nav-item"
-        }
-        onClick={closeSidebar}
-      >
-        <span className="nav-icon">
-          <HistoryIcon />
-        </span>
-        <span className="nav-label">Lịch sử</span>
-      </NavLink>
-      <NavLink
-        to="/reports"
-        className={({ isActive }) =>
-          isActive ? "nav-item active" : "nav-item"
-        }
-        onClick={closeSidebar}
-      >
-        <span className="nav-icon">
-          <RequestQuoteIcon />
-        </span>
-        <span className="nav-label">Doanh thu</span>
-      </NavLink>
-    </nav>
-  );
 
-  const userFooter = (
-    <div className="sidebar-user-footer">
-      <div className="sidebar-avatar">QT</div>
-      <div className="sidebar-user-info" style={{ flex: 1 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>
-          Quản Trị Viên
+      {/* Nav */}
+      <nav className="sidebar-nav">
+        <div className="nav-section-label">TỔNG QUAN</div>
+
+        <Tooltip title={collapsed ? "Sơ đồ phòng" : ""} placement="right" arrow>
+          <NavLink
+            to="/"
+            end
+            className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
+            onClick={handleNavClick}
+          >
+            <span className="nav-icon"><GridViewIcon /></span>
+            <span className="nav-label">Sơ đồ phòng</span>
+          </NavLink>
+        </Tooltip>
+
+        <div className="nav-section-label" style={{ paddingTop: 12 }}>QUẢN LÝ</div>
+
+        <Tooltip title={collapsed ? "Quản lý phòng" : ""} placement="right" arrow>
+          <NavLink
+            to="/rooms"
+            className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
+            onClick={handleNavClick}
+          >
+            <span className="nav-icon"><MeetingRoomIcon /></span>
+            <span className="nav-label">Quản lý phòng</span>
+          </NavLink>
+        </Tooltip>
+
+        <Tooltip title={collapsed ? "Bảng giá" : ""} placement="right" arrow>
+          <NavLink
+            to="/prices"
+            className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
+            onClick={handleNavClick}
+          >
+            <span className="nav-icon"><PriceChangeIcon /></span>
+            <span className="nav-label">Bảng giá</span>
+          </NavLink>
+        </Tooltip>
+
+        <Tooltip title={collapsed ? "Khách lưu trú" : ""} placement="right" arrow>
+          <NavLink
+            to="/customers"
+            className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
+            onClick={handleNavClick}
+          >
+            <span className="nav-icon"><PeopleIcon /></span>
+            <span className="nav-label">Khách lưu trú</span>
+          </NavLink>
+        </Tooltip>
+
+        <Tooltip title={collapsed ? "Hóa đơn" : ""} placement="right" arrow>
+          <NavLink
+            to="/invoices"
+            className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
+            onClick={handleNavClick}
+          >
+            <span className="nav-icon"><ReceiptIcon /></span>
+            <span className="nav-label">Hóa đơn</span>
+          </NavLink>
+        </Tooltip>
+
+        <div className="nav-section-label" style={{ paddingTop: 12 }}>BÁO CÁO</div>
+
+        <Tooltip title={collapsed ? "Báo cáo" : ""} placement="right" arrow>
+          <button
+            className={`nav-item nav-item-btn${isInReport ? " active" : ""}`}
+            onClick={handleReportClick}
+          >
+            <span className="nav-icon"><AssessmentIcon /></span>
+            <span className="nav-label">Báo cáo</span>
+          </button>
+        </Tooltip>
+      </nav>
+
+      {/* User footer */}
+      <div className="sidebar-user-footer">
+        <div className="sidebar-avatar">QT</div>
+        <div className="sidebar-user-info">
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>Quản Trị Viên</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Administrator</div>
         </div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
-          Administrator
-        </div>
+        <Tooltip title="Đăng xuất" placement="right" arrow>
+          <button
+            onClick={handleLogout}
+            className="logout-btn"
+          >
+            ➔
+          </button>
+        </Tooltip>
       </div>
-      <button
-        onClick={handleLogout}
-        title="Đăng xuất"
-        className="logout-btn"
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = "#dc2626";
-          e.currentTarget.style.color = "#fff";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = "rgba(239,68,68,0.15)";
-          e.currentTarget.style.color = "#f87171";
-        }}
-      >
-        ➔
-      </button>
-    </div>
+    </>
   );
 
   return (
-    <BrowserRouter>
-      <div className="app-layout">
-        {/* ── Mobile top bar ── */}
-        <header className="mobile-topbar">
-          <button
-            className="hamburger-btn"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <MenuIcon />
-          </button>
-          <div className="mobile-brand">
-            <span
-              style={{ opacity: 0.7, display: "flex", alignItems: "center" }}
-            >
-              <DashboardIcon fontSize="small" />
-            </span>
-            <span className="brand-name" style={{ fontSize: 15 }}>
-              NHÀ NGHỈ 79
-            </span>
-          </div>
-          <div style={{ width: 40 }} />
-        </header>
+    <div
+      className="app-layout"
+      style={{ "--sidebar-w": `${sidebarW}px` }}
+    >
+      {/* ── Mobile top bar ── */}
+      <header className="mobile-topbar">
+        <button className="hamburger-btn" onClick={() => setMobileSidebarOpen(true)}>
+          <MenuIcon />
+        </button>
+        <div className="mobile-brand">
+          <span style={{ opacity: 0.7, display: "flex", alignItems: "center" }}>
+            <DashboardIcon fontSize="small" />
+          </span>
+          <span className="brand-name" style={{ fontSize: 15 }}>NHÀ NGHỈ 79</span>
+        </div>
+        <div style={{ width: 40 }} />
+      </header>
 
-        {/* ── Mobile overlay backdrop ── */}
-        {sidebarOpen && (
-          <div className="sidebar-backdrop" onClick={closeSidebar} />
-        )}
+      {/* ── Mobile backdrop ── */}
+      {mobileSidebarOpen && <div className="sidebar-backdrop" onClick={closeMobile} />}
 
-        {/* ── Sidebar ── */}
-        <aside className={`sidebar${sidebarOpen ? " sidebar--open" : ""}`}>
-          {/* Close button (mobile only) */}
-          <button className="sidebar-close-btn" onClick={closeSidebar}>
-            <CloseIcon fontSize="small" />
-          </button>
+      {/* ── Sidebar chính ── */}
+      <aside
+        className={`sidebar${mobileSidebarOpen ? " sidebar--open" : ""}${collapsed ? " sidebar--collapsed" : ""}`}
+      >
+        {/* Close button — mobile only */}
+        <button className="sidebar-close-btn" onClick={closeMobile}>
+          <CloseIcon fontSize="small" />
+        </button>
 
-          <div className="sidebar-brand">
-            <span className="brand-icon">
-              <DashboardIcon />
-            </span>
-            <div>
-              <div className="brand-name">NHÀ NGHỈ 79</div>
-              <div
-                style={{
-                  fontSize: 10,
-                  color: "rgba(255,255,255,0.35)",
-                  letterSpacing: "0.05em",
-                }}
-              ></div>
-            </div>
-          </div>
+        {navContent}
+      </aside>
 
-          {navItems}
-          {userFooter}
-        </aside>
+      {/* ── Report sub-sidebar ── */}
+      <ReportSubSidebar
+        open={reportOpen}
+        onClose={() => navigate("/")}
+      />
 
-        {/* ── Main content ── */}
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<RoomMap />} />
-            <Route path="/rooms" element={<RoomManagement />} />
-            <Route path="/prices" element={<PriceManagement />} />
-            <Route path="/customers" element={<CustomerManagement />} />
-            <Route path="/history" element={<BookingHistory />} />
-            <Route path="/invoices" element={<InvoiceHistory />} />
-
-            {/* 2. Sửa lại đường dẫn và component cho trang báo cáo */}
-            <Route path="/reports" element={<ReportPage />} />
-          </Routes>
-        </main>
-      </div>
+      {/* ── Main content ── */}
+      <main className="main-content">
+        <Routes>
+          <Route path="/" element={<RoomMap />} />
+          <Route path="/rooms" element={<RoomManagement />} />
+          <Route path="/prices" element={<PriceManagement />} />
+          <Route path="/customers" element={<CustomerManagement />} />
+          <Route path="/invoices" element={<InvoiceHistory />} />
+          <Route path="/reports/revenue" element={<ReportPage />} />
+          <Route path="/reports/history" element={<BookingHistory />} />
+        </Routes>
+      </main>
 
       <style>{`
-        /* CSS giữ nguyên như cũ của bạn, mình không động vào */
-        /* Mobile topbar — hidden on desktop */
-        .mobile-topbar {
-          display: none;
+        /* ── Base (desktop) ── */
+        .mobile-topbar  { display: none; }
+        .sidebar-close-btn { display: none; }
+        .sidebar-backdrop  { display: none; }
+
+        /* Collapse button */
+        .sidebar-collapse-btn-wrap {
+          display: flex;
+          justify-content: flex-end;
+          padding: 10px 10px 0;
+        }
+        .sidebar-collapse-btn {
+          background: rgba(255,255,255,0.08);
+          border: none;
+          color: rgba(255,255,255,0.7);
+          width: 28px;
+          height: 28px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: background 0.15s;
+          flex-shrink: 0;
+        }
+        .sidebar-collapse-btn:hover {
+          background: rgba(255,255,255,0.15);
+          color: #fff;
         }
 
-        /* Sidebar close button — hidden on desktop */
-        .sidebar-close-btn {
-          display: none;
+        /* Brand */
+        .sidebar-brand {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 16px 8px;
+          overflow: hidden;
+        }
+        .brand-icon {
+          display: flex;
+          align-items: center;
+          color: rgba(255,255,255,0.8);
+          flex-shrink: 0;
+        }
+        .brand-name {
+          font-size: 13px;
+          font-weight: 700;
+          color: #fff;
+          letter-spacing: 0.08em;
+          white-space: nowrap;
+          overflow: hidden;
+          transition: opacity 0.2s, max-width 0.25s;
+          max-width: 160px;
+          opacity: 1;
+          
         }
 
-        /* Backdrop — hidden on desktop */
-        .sidebar-backdrop {
-          display: none;
+        /* Nav labels — ẩn khi collapsed */
+        .nav-label {
+          white-space: nowrap;
+          overflow: hidden;
+          max-width: 160px;
+          opacity: 1;
+          transition: opacity 0.2s, max-width 0.25s;
+          color: #fff;
         }
-
-        /* Nav section label utility */
         .nav-section-label {
           font-size: 10px;
           font-weight: 700;
@@ -268,12 +304,74 @@ export default function App() {
           letter-spacing: 0.1em;
           padding: 8px 12px 4px;
           text-transform: uppercase;
-        }
-
-        /* Nav label — text next to icon, toggled by tablet rail */
-        .nav-label {
           white-space: nowrap;
           overflow: hidden;
+          max-width: 160px;
+          opacity: 1;
+          transition: opacity 0.2s, max-width 0.25s;
+        }
+
+        /* Collapsed state */
+        .sidebar--collapsed .brand-name,
+        .sidebar--collapsed .nav-label,
+        .sidebar--collapsed .nav-section-label,
+        .sidebar--collapsed .sidebar-user-info,
+        .sidebar--collapsed .logout-btn {
+          max-width: 0;
+          opacity: 0;
+          pointer-events: none;
+        }
+        .sidebar--collapsed .sidebar-brand {
+          justify-content: center;
+          padding: 12px 0 8px;
+        }
+        .sidebar--collapsed .nav-item {
+          justify-content: center;
+          padding: 10px 0;
+        }
+        .sidebar--collapsed .nav-icon {
+          margin: 0;
+        }
+        .sidebar--collapsed .sidebar-user-footer {
+          justify-content: center;
+          padding: 14px 0;
+        }
+        .sidebar--collapsed .sidebar-collapse-btn-wrap {
+          justify-content: center;
+          padding: 10px 0 0;
+        }
+
+        /* Nav item màu chữ + icon */
+        .nav-item {
+          color: rgba(255, 255, 255, 0.75) !important;
+        }
+        .nav-item:hover {
+          color: #fff !important;
+          background: rgba(255, 255, 255, 0.08);
+        }
+        .nav-item.active {
+          color: #fff !important;
+        }
+        .nav-item .nav-icon,
+        .nav-item-btn .nav-icon {
+          color: rgba(255, 255, 255, 0.75);
+        }
+        .nav-item:hover .nav-icon,
+        .nav-item.active .nav-icon {
+          color: #fff;
+        }
+
+        /* Nav button variant */
+        .nav-item-btn {
+          width: 100%;
+          background: none;
+          border: none;
+          cursor: pointer;
+          text-align: left;
+          display: flex;
+          align-items: center;
+          color: inherit;
+          font: inherit;
         }
 
         /* User footer */
@@ -284,12 +382,14 @@ export default function App() {
           align-items: center;
           gap: 10px;
           margin-top: auto;
+          overflow: hidden;
+          transition: padding 0.25s;
         }
         .sidebar-avatar {
           width: 34px;
           height: 34px;
           border-radius: 50%;
-          background: var(--sidebar-active-bg, rgba(108,99,255,0.4));
+          background: rgba(108,99,255,0.4);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -297,6 +397,13 @@ export default function App() {
           font-weight: 700;
           color: #fff;
           flex-shrink: 0;
+        }
+        .sidebar-user-info {
+          flex: 1;
+          overflow: hidden;
+          max-width: 120px;
+          opacity: 1;
+          transition: opacity 0.2s, max-width 0.25s;
         }
         .logout-btn {
           background: rgba(239,68,68,0.15);
@@ -311,70 +418,37 @@ export default function App() {
           justify-content: center;
           font-size: 14px;
           transition: all 0.15s;
+          flex-shrink: 0;
+          overflow: hidden;
+          max-width: 32px;
+          opacity: 1;
+        }
+        .logout-btn:hover {
+          background: #dc2626;
+          color: #fff;
         }
 
-        /* ── Tablet (≤1024px): collapse sidebar to icon-only rail ── */
-        @media (max-width: 1024px) and (min-width: 769px) {
-          .app-layout {
-            grid-template-columns: 60px 1fr !important;
-          }
-          .sidebar {
-            width: 60px !important;
-            overflow: hidden;
-          }
-
-          /* Hide all text/label elements — keep only icons */
-          .nav-label,
-          .nav-section-label,
-          .sidebar-brand .brand-name,
-          .sidebar-brand > div:last-child,
-          .sidebar-user-info,
-          .logout-btn {
-            display: none !important;
-          }
-
-          /* Center brand icon */
-          .sidebar-brand {
-            justify-content: center !important;
-            padding: 16px 0 !important;
-          }
-
-          /* Center each nav item, icon only */
-          .nav-item {
-            justify-content: center !important;
-            padding: 12px 0 !important;
-          }
-          .nav-icon {
-            margin: 0 !important;
-          }
-
-          /* Center avatar in footer */
-          .sidebar-user-footer {
-            justify-content: center !important;
-            padding: 14px 0 !important;
-          }
-          .sidebar-avatar {
-            width: 30px;
-            height: 30px;
-            font-size: 12px;
-          }
+        /* Desktop sidebar width transition */
+        .sidebar {
+          transition: width 0.25s cubic-bezier(0.4,0,0.2,1);
+          width: var(--sidebar-w, 220px);
+          overflow: hidden;
         }
 
-        /* ── Mobile (≤768px): drawer sidebar ── */
+        /* ── Mobile (≤768px) ── */
         @media (max-width: 768px) {
           .app-layout {
             display: flex !important;
             flex-direction: column !important;
           }
-
-          /* Topbar visible */
+          .sidebar-collapse-btn-wrap { display: none; }
           .mobile-topbar {
             display: flex !important;
             align-items: center;
             justify-content: space-between;
             padding: 0 12px;
             height: 52px;
-            background: var(--sidebar-bg, #151726);
+            background: var(--sidebar-bg, #f2f4fc);
             border-bottom: 1px solid rgba(255,255,255,0.07);
             position: sticky;
             top: 0;
@@ -400,11 +474,7 @@ export default function App() {
             border-radius: 8px;
             transition: background 0.15s;
           }
-          .hamburger-btn:hover {
-            background: rgba(255,255,255,0.08);
-          }
-
-          /* Backdrop */
+          .hamburger-btn:hover { background: rgba(255,255,255,0.08); }
           .sidebar-backdrop {
             display: block !important;
             position: fixed;
@@ -413,42 +483,31 @@ export default function App() {
             z-index: 200;
             backdrop-filter: blur(2px);
           }
-
-          /* Sidebar as off-canvas drawer */
           .sidebar {
             position: fixed !important;
-            top: 0;
-            left: 0;
+            top: 0; left: 0;
             height: 100dvh !important;
             width: 260px !important;
             z-index: 300;
             transform: translateX(-100%);
-            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.28s cubic-bezier(0.4,0,0.2,1) !important;
             box-shadow: 4px 0 32px rgba(0,0,0,0.5);
           }
-          .sidebar.sidebar--open {
-            transform: translateX(0);
-          }
-
-          /* Close button visible */
+          .sidebar.sidebar--open { transform: translateX(0); }
           .sidebar-close-btn {
             display: flex !important;
             position: absolute;
-            top: 12px;
-            right: 12px;
+            top: 12px; right: 12px;
             background: rgba(255,255,255,0.08);
             border: none;
             color: rgba(255,255,255,0.6);
-            width: 30px;
-            height: 30px;
+            width: 30px; height: 30px;
             border-radius: 6px;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             z-index: 1;
           }
-
-          /* Main takes remaining space */
           .main-content {
             flex: 1;
             min-height: 0;
@@ -457,6 +516,31 @@ export default function App() {
           }
         }
       `}</style>
+    </div>
+  );
+}
+
+export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem("token")
+  );
+
+  const handleAuthSuccess = () => setIsAuthenticated(true);
+
+  const handleLogout = () => {
+    if (window.confirm("Bạn có chắc muốn đăng xuất?")) {
+      localStorage.removeItem("token");
+      setIsAuthenticated(false);
+    }
+  };
+
+  if (!isAuthenticated) {
+    return <Auth onAuthSuccess={handleAuthSuccess} />;
+  }
+
+  return (
+    <BrowserRouter>
+      <AppLayout handleLogout={handleLogout} />
     </BrowserRouter>
   );
 }
