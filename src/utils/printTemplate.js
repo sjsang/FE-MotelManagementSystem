@@ -214,21 +214,17 @@ ${(invoice.services || []).length > 0 ? `
   <span>${fmt(invoice.totalAmount)}</span>
 </div>
 
-${invoice.discount > 0 ? `
 <div class="row">
   <span>Giảm giá</span>
-  <span>- ${fmt(invoice.discount)}</span>
+  <span>${fmt(invoice.discount)}</span>
 </div>
-` : ''}
 
-${invoice.tax > 0 ? `
 <div class="row">
   <span>Thuế (VAT)</span>
-  <span>+ ${fmt(invoice.tax)}</span>
+  <span>${fmt(invoice.tax)}</span>
 </div>
-` : ''}
 
-<div class="row" style="border-top: 1px dashed #ccc; padding-top: 6px; margin-top: 4px;">
+<div class="row" style=" padding-top: 6px; margin-top: 4px;">
   <span style="font-weight:bold; color:#000;">Giá trị thanh toán</span>
   <span style="font-weight:bold;">${fmt(invoice.payableAmount)}</span>
 </div>
@@ -238,12 +234,12 @@ ${invoice.deposit > 0 ? `
   <span>Tạm ứng</span>
   <span>${fmt(invoice.deposit)}</span>
 </div>
-` : ''}
 
 <div class="row paid" style="border-top: 1px solid #000; padding-top: 6px; margin-top: 4px;">
   <span>Thực thu</span>
   <span>${fmt(invoice.paidAmount)}</span>
 </div>
+` : ''}
 
 <hr/>
 
@@ -254,6 +250,7 @@ ${invoice.paidAmount > 0 ? `
     src="https://qr.sepay.vn/img?acc=945331109&bank=MBBank&amount=${invoice.paidAmount}&des=${invoice.invoiceNumber}"
     style="width:100px;height:100px;object-fit:contain;margin:5px auto;"
   />
+  <div style="font-size:12px;margin-top:4px;">STK: 945331109 - MBBank</div>
 </div>
 
 <hr/>

@@ -105,6 +105,8 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
 
                     {/* Chi tiết tiền */}
                     <div style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
+
+                        {/* ── Tầng 1: Chi tiết (màu mờ, normal) ── */}
                         {[
                             ['Giá phòng', fmt(invoice.basePrice)],
                             ['Thời gian sử dụng', calculateUsageTime(invoice.checkIn, invoice.checkOut)],
@@ -112,45 +114,46 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
                             ...(invoice.extraCharge > 0 ? [['Phụ thu ra trễ', fmt(invoice.extraCharge)]] : []),
                             ...(invoice.servicesCharge > 0 ? [['Dịch vụ', fmt(invoice.servicesCharge)]] : []),
                         ].map(([label, value]) => (
-                            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontSize: 13 }}>
-                                <span style={{ color: '#9fa3b8' }}>{label}</span>
+                            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontSize: 13, color: '#424f42' }}>
+                                <span>{label}</span>
                                 <span>{value}</span>
                             </div>
                         ))}
 
                         <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 8, marginTop: 6 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: invoice.discount > 0 ? 6 : 10 }}>
-                                <span style={{ fontWeight: 600 }}>Tổng cộng</span>
-                                <span style={{ fontWeight: 600 }}>{fmt(invoice.totalAmount)}</span>
+
+                            {/* ── Tầng 2: Subtotal (đen đậm, 600) ── */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontSize: 13, color: '#000', fontWeight: 700 }}>
+                                <span>Tổng cộng</span>
+                                <span>{fmt(invoice.totalAmount)}</span>
                             </div>
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                                <span style={{ fontWeight: 600 }}>Giảm giá</span>
-                                <span style={{ fontWeight: 600 }}>{fmt(invoice.discount)}</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontSize: 13, color: '#424f42' }}>
+                                <span>Giảm giá</span>
+                                <span>{fmt(invoice.discount)}</span>
                             </div>
 
-
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                                <span style={{ fontWeight: 600 }}>Thuế / VAT</span>
-                                <span style={{ fontWeight: 600 }}>{fmt(invoice.tax)}</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontSize: 13, color: '#424f42' }}>
+                                <span>Thuế / VAT</span>
+                                <span>{fmt(invoice.tax)}</span>
                             </div>
 
-                            {/* Trường Giá trị TT */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: 8 }}>
-                                <span style={{ fontWeight: 600 }}>Giá trị thanh toán</span>
-                                <span style={{ fontWeight: 600 }}>{fmt(invoice.payableAmount)}</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontSize: 14, color: '#10b981', fontWeight: 700, borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: 8, marginTop: 4 }}>
+                                <span>Giá trị thanh toán</span>
+                                <span>{fmt(invoice.payableAmount)}</span>
                             </div>
 
                             {invoice?.deposit > 0 && (
                                 <>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                                        <span style={{ fontWeight: 600 }}>Tạm ứng</span>
-                                        <span style={{ fontWeight: 600 }}>{fmt(invoice.deposit)}</span>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontSize: 13, color: '#424f42' }}>
+                                        <span>Tạm ứng</span>
+                                        <span>{fmt(invoice.deposit)}</span>
                                     </div>
 
+                                    {/* ── Tầng 3: Thực thu ── */}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 8, marginTop: 4 }}>
-                                        <span style={{ fontWeight: 700, fontSize: 15 }}>Thực thu</span>
-                                        <span style={{ fontWeight: 800, fontSize: 20 }}>{fmt(invoice.paidAmount)}</span>
+                                        <span style={{ fontSize: 14, fontWeight: 700, color: '#000' }}>Thực thu</span>
+                                        <span style={{ fontSize: 14, fontWeight: 700, color: '#000' }}>{fmt(invoice.paidAmount)}</span>
                                     </div>
                                 </>
                             )}

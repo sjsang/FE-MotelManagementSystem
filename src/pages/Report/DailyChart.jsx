@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
+const formatAmount = (v) => {
+    if (v >= 1_000_000_000) return (v / 1_000_000_000).toFixed(v % 1_000_000_000 === 0 ? 0 : 1) + 'T';
+    if (v >= 1_000_000) return (v / 1_000_000).toFixed(v % 1_000_000 === 0 ? 0 : 1) + 'M';
+    if (v >= 1_000) return (v / 1_000).toFixed(v % 1_000 === 0 ? 0 : 1) + 'k';
+    return v;
+};
+
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
@@ -71,10 +78,10 @@ export default function DailyChart({ dailyData }) {
                         Không có dữ liệu trong khoảng thời gian này
                     </div>
                 ) : chartWidth > 0 ? (
-                    <BarChart width={chartWidth} height={280} data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <BarChart width={chartWidth} height={280} data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                         <XAxis dataKey="displayDate" tick={{ fill: "#6b6f84", fontSize: 12 }} axisLine={false} tickLine={false} dy={10} />
-                        <YAxis tickFormatter={(v) => (v / 1000).toFixed(0) + "k"} tick={{ fill: "#6b6f84", fontSize: 12 }} axisLine={false} tickLine={false} dx={-10} />
+                        <YAxis width={50} tickFormatter={formatAmount} tick={{ fill: "#6b6f84", fontSize: 12 }} axisLine={false} tickLine={false} />
                         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
 
                         {/* isAnimationActive={false} giúp lúc chart resize không bị tính toán lại animation gây giật */}

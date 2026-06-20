@@ -113,6 +113,7 @@ export default function InvoiceTable({
         .responsive-table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed; /* Cố định độ rộng cột — tránh việc trình duyệt tính lại width cột (gây giật) mỗi khi có dòng mới được thêm vào */
         }
         .responsive-table th, .responsive-table td {
             text-align: left;
@@ -156,9 +157,9 @@ export default function InvoiceTable({
           <table className="responsive-table">
             <thead>
               <tr>
-                <th>Số hóa đơn</th><th>Phòng</th><th>Khách</th>
-                <th>Giá trị thanh toán</th><th>Nhận phòng</th>
-                <th>Trả phòng</th><th>Trạng thái</th>
+                <th style={{ width: "13%" }}>Số hóa đơn</th><th style={{ width: "8%" }}>Phòng</th><th style={{ width: "21%" }}>Khách</th>
+                <th style={{ width: "16%" }}>Giá trị thanh toán</th><th style={{ width: "14%" }}>Nhận phòng</th>
+                <th style={{ width: "14%" }}>Trả phòng</th><th style={{ width: "14%" }}>Trạng thái</th>
               </tr>
             </thead>
             <tbody>
@@ -172,9 +173,9 @@ export default function InvoiceTable({
             <table className="responsive-table">
               <thead>
                 <tr>
-                  <th>Số hóa đơn</th><th>Phòng</th><th>Khách</th>
-                  <th>Giá trị thanh toán</th><th>Nhận phòng</th>
-                  <th>Trả phòng</th><th>Trạng thái</th>
+                  <th style={{ width: "13%" }}>Số hóa đơn</th><th style={{ width: "8%" }}>Phòng</th><th style={{ width: "21%" }}>Khách</th>
+                  <th style={{ width: "16%" }}>Giá trị thanh toán</th><th style={{ width: "14%" }}>Nhận phòng</th>
+                  <th style={{ width: "14%" }}>Trả phòng</th><th style={{ width: "14%" }}>Trạng thái</th>
                 </tr>
               </thead>
               <tbody>
@@ -191,7 +192,7 @@ export default function InvoiceTable({
                       <tr key={inv._id} className="invoice-row" onClick={() => setSelected(inv)} style={{ cursor: "pointer" }}>
                         <td data-label="Số hóa đơn"><span style={{ fontWeight: 700, fontSize: 13, color: "#8b85ff" }}>{inv.invoiceNumber}</span></td>
                         <td data-label="Phòng"><span style={{ fontWeight: 700 }}>{inv.roomNumber}</span></td>
-                        <td data-label="Khách"><div style={{ fontWeight: 600 }}>{inv.guestName}</div></td>
+                        <td data-label="Khách"><div style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={inv.guestName}>{inv.guestName}</div></td>
                         <td data-label="Giá trị thanh toán"><span style={{ fontWeight: 700, color: "#10b981" }}>{fmt(inv.payableAmount)}</span></td>
                         <td data-label="Nhận phòng" style={{ fontSize: 12.5 }}>{fmtDate(inv.checkIn)}</td>
                         <td data-label="Trả phòng" style={{ fontSize: 12.5 }}>{fmtDate(inv.issuedAt)}</td>
