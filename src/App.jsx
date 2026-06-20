@@ -348,7 +348,14 @@ function AppLayout({ handleLogout }) {
   );
 
   return (
-    <Box sx={{ display: "flex", height: "100vh", bgcolor: "#F3F5F9" }}>
+    <Box
+      sx={{
+        display: "flex",
+        height: "100vh",
+        bgcolor: "#F3F5F9",
+        fontFamily: "'Be Vietnam Pro', -apple-system, sans-serif",
+      }}
+    >
       {/* ── Nút nổi Menu trên Mobile ── */}
       {isMobile && (
         <IconButton
