@@ -7,6 +7,7 @@ import {
   getActivePrice,
   createInvoice,
   updateRoom,
+  changeRoom,
 } from "../utils/api";
 import { useToast } from "../hooks/useToast";
 import CheckInModal from "../pages/CheckIn/CheckInModal";
@@ -307,6 +308,229 @@ function RoomCard({ room, onClick, onMarkCleaning }) {
   );
 }
 
+/* ─── Change Room Modal ──────────────────────────────────── */
+function ChangeRoomModal({
+  booking,
+  availableRooms,
+  onClose,
+  onConfirm,
+  loading,
+}) {
+  const [selectedRoomId, setSelectedRoomId] = useState("");
+
+  return (
+    <div
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 2000,
+        background: "rgba(0,0,0,0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 16,
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 18,
+          width: "100%",
+          maxWidth: 460,
+          boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+          overflow: "hidden",
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+            padding: "18px 22px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <div style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>
+              🔄 Đổi phòng
+            </div>
+            <div style={{ color: "#bfdbfe", fontSize: 12, marginTop: 2 }}>
+              Phòng hiện tại:{" "}
+              <strong style={{ color: "#fff" }}>{booking?.roomNumber}</strong>
+              {" — "}
+              {booking?.guestName}
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: "rgba(255,255,255,0.15)",
+              border: "none",
+              color: "#fff",
+              borderRadius: 8,
+              width: 32,
+              height: 32,
+              fontSize: 18,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: "22px 22px 8px" }}>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: "#374151",
+              marginBottom: 12,
+            }}
+          >
+            Chọn phòng trống để chuyển sang:
+          </div>
+
+          {availableRooms.length === 0 ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "32px 16px",
+                color: "#94a3b8",
+                fontSize: 13,
+              }}
+            >
+              <div style={{ fontSize: 32, marginBottom: 8 }}>🚫</div>
+              Không có phòng trống nào khác
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+                gap: 10,
+                maxHeight: 280,
+                overflowY: "auto",
+              }}
+            >
+              {availableRooms.map((room) => {
+                const selected = selectedRoomId === room._id;
+                return (
+                  <div
+                    key={room._id}
+                    onClick={() => setSelectedRoomId(room._id)}
+                    style={{
+                      border: selected
+                        ? "2px solid #2563eb"
+                        : "1.5px solid #e2e8f0",
+                      borderRadius: 12,
+                      padding: "12px 10px",
+                      cursor: "pointer",
+                      background: selected
+                        ? "linear-gradient(135deg, #eff6ff, #dbeafe)"
+                        : "#f8fafc",
+                      transition: "all 0.15s",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 20,
+                        fontWeight: 800,
+                        color: selected ? "#1d4ed8" : "#0f172a",
+                        letterSpacing: "-0.02em",
+                      }}
+                    >
+                      {room.roomNumber}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 10.5,
+                        color: selected ? "#3b82f6" : "#94a3b8",
+                        marginTop: 3,
+                        fontWeight: 500,
+                      }}
+                    >
+                      Phòng {room.type === "double" ? "Đôi" : "Đơn"}
+                    </div>
+                    {selected && (
+                      <div
+                        style={{
+                          marginTop: 6,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: "#2563eb",
+                          background: "#dbeafe",
+                          borderRadius: 10,
+                          padding: "2px 8px",
+                          display: "inline-block",
+                        }}
+                      >
+                        ✓ Đã chọn
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            padding: "16px 22px 20px",
+            display: "flex",
+            gap: 10,
+            justifyContent: "flex-end",
+          }}
+        >
+          <button
+            onClick={onClose}
+            style={{
+              padding: "9px 20px",
+              borderRadius: 10,
+              border: "1.5px solid #e2e8f0",
+              background: "#fff",
+              color: "#64748b",
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: "pointer",
+            }}
+          >
+            Hủy
+          </button>
+          <button
+            onClick={() => selectedRoomId && onConfirm(selectedRoomId)}
+            disabled={!selectedRoomId || loading}
+            style={{
+              padding: "9px 22px",
+              borderRadius: 10,
+              border: "none",
+              background:
+                selectedRoomId && !loading
+                  ? "linear-gradient(135deg, #2563eb, #1d4ed8)"
+                  : "#e2e8f0",
+              color: selectedRoomId && !loading ? "#fff" : "#94a3b8",
+              fontWeight: 700,
+              fontSize: 13,
+              cursor: selectedRoomId && !loading ? "pointer" : "not-allowed",
+              transition: "all 0.15s",
+            }}
+          >
+            {loading ? "Đang xử lý..." : "🔄 Xác nhận đổi phòng"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Stat Card ─────────────────────────────────────────── */
 function StatCard({ label, value, color, icon, sub }) {
   return (
@@ -484,6 +708,8 @@ export default function RoomMap() {
   const [priceConfig, setPriceConfig] = useState(null);
   const { addToast, ToastContainer } = useToast();
   const [showPricing, setShowPricing] = useState(false);
+  const [changeRoomModal, setChangeRoomModal] = useState(false);
+  const [changeRoomLoading, setChangeRoomLoading] = useState(false);
   const loadRooms = useCallback(async () => {
     try {
       const res = await getRooms();
@@ -554,6 +780,28 @@ export default function RoomMap() {
         "error"
       );
       return null;
+    }
+  };
+
+  const handleOpenChangeRoom = () => {
+    setChangeRoomModal(true);
+  };
+
+  const handleConfirmChangeRoom = async (newRoomId) => {
+    const bookingId = selectedRoom?.currentBooking?._id;
+    if (!bookingId) return;
+    setChangeRoomLoading(true);
+    try {
+      await changeRoom(bookingId, newRoomId);
+      const newRoom = rooms.find((r) => r._id === newRoomId);
+      addToast(`Đã đổi sang phòng ${newRoom?.roomNumber || ""} thành công`);
+      setChangeRoomModal(false);
+      setModal(null);
+      loadRooms();
+    } catch (e) {
+      addToast(e.response?.data?.error || "Lỗi đổi phòng", "error");
+    } finally {
+      setChangeRoomLoading(false);
     }
   };
 
@@ -691,7 +939,6 @@ export default function RoomMap() {
               </div>
             ))}
           </div>
-
         </div>
 
         {/* Floor Sections */}
@@ -738,6 +985,19 @@ export default function RoomMap() {
           onCheckOut={handleCheckOut}
           onRefresh={loadRooms}
           addToast={addToast}
+          onChangeRoom={handleOpenChangeRoom}
+        />
+      )}
+
+      {changeRoomModal && selectedRoom?.currentBooking && (
+        <ChangeRoomModal
+          booking={selectedRoom.currentBooking}
+          availableRooms={rooms.filter(
+            (r) => r.status === "available" && r._id !== selectedRoom._id
+          )}
+          onClose={() => setChangeRoomModal(false)}
+          onConfirm={handleConfirmChangeRoom}
+          loading={changeRoomLoading}
         />
       )}
       {showPricing && (

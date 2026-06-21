@@ -45,6 +45,7 @@ export const previewCheckout = (bookingId) => api.get(`/bookings/preview-checkou
 export const checkOut = (bookingId, data) => api.post(`/bookings/checkout/${bookingId}`, data);
 export const updateBooking = (id, data) => api.put(`/bookings/${id}`, data);
 export const getRevenue = (params) => api.get('/bookings/stats/revenue', { params });
+export const changeRoom = (bookingId, newRoomId) => api.post(`/bookings/change-room/${bookingId}`, { newRoomId });
 
 // Prices
 export const getActivePrice = () => api.get('/prices/active');

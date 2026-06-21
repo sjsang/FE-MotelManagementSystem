@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import * as XLSX from "xlsx";
 import {
   getActivePrice,
   updatePrice,
@@ -64,6 +65,7 @@ export default function PriceManagement() {
   });
   const [modalSaving, setModalSaving] = useState(false);
   const { addToast, ToastContainer } = useToast();
+  const printRef = useRef(null);
 
   useEffect(() => {
     getActivePrice()
@@ -199,6 +201,111 @@ export default function PriceManagement() {
     } finally {
       setSaving(false);
     }
+  };
+
+  // ── XUẤT EXCEL ──
+  const handleExportExcel = () => {
+    try {
+      const rows = [];
+      rows.push(["BẢNG GIÁ"]);
+      rows.push([`Ngày xuất: ${new Date().toLocaleDateString("vi-VN")}`]);
+      rows.push([]);
+
+      rows.push(["CA NGÀY (5h - 23h)"]);
+      rows.push(["Loại phòng", "Hạng mục", "Giá (đ)"]);
+      rows.push([
+        "Đơn",
+        "Ngày đêm (24h)",
+        edited.dayShift?.single?.fullday || 0,
+      ]);
+      rows.push(["Đơn", "Qua đêm", edited.dayShift?.single?.overnight || 0]);
+      rows.push([
+        "Đơn",
+        "Nghỉ giờ – Đầu (≤30 phút)",
+        edited.dayShift?.single?.hourly_first || 0,
+      ]);
+      rows.push([
+        "Đơn",
+        "Nghỉ giờ – Đến 2 giờ",
+        edited.dayShift?.single?.hourly_2h || 0,
+      ]);
+      rows.push([
+        "Đơn",
+        "Phụ thu mỗi giờ thêm",
+        edited.dayShift?.single?.hourly_extra || 0,
+      ]);
+      rows.push([
+        "Đôi",
+        "Ngày đêm (24h)",
+        edited.dayShift?.double?.fullday || 0,
+      ]);
+      rows.push(["Đôi", "Qua đêm", edited.dayShift?.double?.overnight || 0]);
+      rows.push([
+        "Đôi",
+        "Nghỉ giờ – Đến 2 giờ",
+        edited.dayShift?.double?.hourly_2h || 0,
+      ]);
+      rows.push([
+        "Đôi",
+        "Phụ thu mỗi giờ thêm",
+        edited.dayShift?.double?.hourly_extra || 0,
+      ]);
+      rows.push([
+        "Chung",
+        "Check-in sớm / Check-out muộn (mỗi giờ)",
+        edited.lateEarlyFee || 0,
+      ]);
+      rows.push([]);
+
+      rows.push(["CA ĐÊM (23h - 5h)"]);
+      rows.push(["Loại phòng", "Hạng mục", "Giá (đ)"]);
+      rows.push([
+        "Đơn",
+        "Giờ đầu tiên",
+        edited.nightShift?.single?.hourly_first || 0,
+      ]);
+      rows.push([
+        "Đơn",
+        "Phụ thu mỗi giờ thêm",
+        edited.nightShift?.single?.hourly_extra || 0,
+      ]);
+      rows.push([
+        "Đôi",
+        "Giờ đầu tiên",
+        edited.nightShift?.double?.hourly_first || 0,
+      ]);
+      rows.push([
+        "Đôi",
+        "Phụ thu mỗi giờ thêm",
+        edited.nightShift?.double?.hourly_extra || 0,
+      ]);
+      rows.push([]);
+
+      rows.push(["DỊCH VỤ"]);
+      rows.push(["Tên dịch vụ", "Giá (đ)", "Đơn vị"]);
+      (edited.services || []).forEach((s) =>
+        rows.push([s.name, s.price || 0, s.unit])
+      );
+
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws["!cols"] = [{ wch: 32 }, { wch: 34 }, { wch: 16 }];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Bang gia");
+
+      const dateStr = new Date()
+        .toLocaleDateString("vi-VN")
+        .split("/")
+        .join("-");
+      XLSX.writeFile(wb, `Bang-gia-${dateStr}.xlsx`);
+      addToast("✅ Đã xuất file Excel");
+    } catch (e) {
+      addToast("Lỗi xuất file Excel", "error");
+    }
+  };
+
+  // ── XUẤT A4 (IN / LƯU PDF) ──
+  const handlePrintA4 = () => {
+    window.print();
   };
 
   const fmt = (n) => (n ? n.toLocaleString("vi-VN") : "0");
@@ -351,13 +458,37 @@ export default function PriceManagement() {
             Cấu hình giá phòng theo ca và loại phòng
           </div>
         </div>
-        <button
-          className="btn btn-primary"
-          onClick={handleSave}
-          disabled={saving}
-        >
-          {saving ? "..." : " Lưu bảng giá"}
-        </button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button
+            className="btn btn-sm"
+            style={{
+              background: "rgba(34,197,94,0.1)",
+              color: "#22c55e",
+              border: "1px solid rgba(34,197,94,0.25)",
+            }}
+            onClick={handleExportExcel}
+          >
+            Xuất Excel
+          </button>
+          <button
+            className="btn btn-sm"
+            style={{
+              background: "rgba(59,130,246,0.1)",
+              color: "#60a5fa",
+              border: "1px solid rgba(59,130,246,0.25)",
+            }}
+            onClick={handlePrintA4}
+          >
+            Xuất PDF (A4)
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? "..." : " Lưu bảng giá"}
+          </button>
+        </div>
       </div>
 
       {/* ── TABS ── */}
@@ -616,6 +747,127 @@ export default function PriceManagement() {
         </div>
       )}
 
+      {/* ── KHU VỰC IN A4 (ẩn trên màn hình, chỉ hiện khi in/xuất PDF) ── */}
+      <div ref={printRef} className="print-area">
+        <div className="print-title">BẢNG GIÁ</div>
+        <div className="print-subtitle">
+          Ngày xuất: {new Date().toLocaleDateString("vi-VN")}
+        </div>
+
+        <div className="print-section-title">Ca ngày (5h – 23h)</div>
+        <table className="print-table">
+          <thead>
+            <tr>
+              <th>Loại phòng</th>
+              <th>Hạng mục</th>
+              <th>Giá</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td rowSpan={5}>Phòng đơn</td>
+              <td>Ngày đêm (24h)</td>
+              <td>{fmt(edited.dayShift?.single?.fullday)}đ</td>
+            </tr>
+            <tr>
+              <td>Qua đêm</td>
+              <td>{fmt(edited.dayShift?.single?.overnight)}đ</td>
+            </tr>
+            <tr>
+              <td>Nghỉ giờ – Đầu (≤30 phút)</td>
+              <td>{fmt(edited.dayShift?.single?.hourly_first)}đ</td>
+            </tr>
+            <tr>
+              <td>Nghỉ giờ – Đến 2 giờ</td>
+              <td>{fmt(edited.dayShift?.single?.hourly_2h)}đ</td>
+            </tr>
+            <tr>
+              <td>Phụ thu mỗi giờ thêm</td>
+              <td>{fmt(edited.dayShift?.single?.hourly_extra)}đ</td>
+            </tr>
+            <tr>
+              <td rowSpan={4}>Phòng đôi</td>
+              <td>Ngày đêm (24h)</td>
+              <td>{fmt(edited.dayShift?.double?.fullday)}đ</td>
+            </tr>
+            <tr>
+              <td>Qua đêm</td>
+              <td>{fmt(edited.dayShift?.double?.overnight)}đ</td>
+            </tr>
+            <tr>
+              <td>Nghỉ giờ – Đến 2 giờ</td>
+              <td>{fmt(edited.dayShift?.double?.hourly_2h)}đ</td>
+            </tr>
+            <tr>
+              <td>Phụ thu mỗi giờ thêm</td>
+              <td>{fmt(edited.dayShift?.double?.hourly_extra)}đ</td>
+            </tr>
+          </tbody>
+        </table>
+        <div className="print-note">
+          Check-in sớm / Check-out muộn: {fmt(edited.lateEarlyFee)}đ / giờ
+        </div>
+
+        <div className="print-section-title">Ca đêm (23h – 5h)</div>
+        <table className="print-table">
+          <thead>
+            <tr>
+              <th>Loại phòng</th>
+              <th>Hạng mục</th>
+              <th>Giá</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td rowSpan={2}>Phòng đơn</td>
+              <td>Giờ đầu tiên</td>
+              <td>{fmt(edited.nightShift?.single?.hourly_first)}đ</td>
+            </tr>
+            <tr>
+              <td>Phụ thu mỗi giờ thêm</td>
+              <td>{fmt(edited.nightShift?.single?.hourly_extra)}đ</td>
+            </tr>
+            <tr>
+              <td rowSpan={2}>Phòng đôi</td>
+              <td>Giờ đầu tiên</td>
+              <td>{fmt(edited.nightShift?.double?.hourly_first)}đ</td>
+            </tr>
+            <tr>
+              <td>Phụ thu mỗi giờ thêm</td>
+              <td>{fmt(edited.nightShift?.double?.hourly_extra)}đ</td>
+            </tr>
+          </tbody>
+        </table>
+        <div className="print-note">
+          Quy tắc ca đêm: Dưới 15 tiếng thu 100% giá qua đêm. Sau 0h: 120k/h,
+          mỗi giờ thêm +40k (đơn).
+        </div>
+
+        {edited.services && edited.services.length > 0 && (
+          <>
+            <div className="print-section-title">Dịch vụ</div>
+            <table className="print-table">
+              <thead>
+                <tr>
+                  <th>Tên dịch vụ</th>
+                  <th>Đơn vị</th>
+                  <th>Giá</th>
+                </tr>
+              </thead>
+              <tbody>
+                {edited.services.map((s, i) => (
+                  <tr key={i}>
+                    <td>{s.name}</td>
+                    <td>{s.unit}</td>
+                    <td>{fmt(s.price)}đ</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
+      </div>
+
       <style>{`
         /* Desktop: 2-col grid */
         .price-grid-2 {
@@ -667,6 +919,73 @@ export default function PriceManagement() {
           table th:nth-child(4),
           table td:nth-child(4) {
             display: none;
+          }
+        }
+
+        /* ── XUẤT A4 / IN ── */
+        .print-area {
+          display: none;
+        }
+
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          .print-area,
+          .print-area * {
+            visibility: visible;
+          }
+          .print-area {
+            display: block !important;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            color: #000;
+            background: #fff;
+          }
+          @page {
+            size: A4;
+            margin: 16mm 14mm;
+          }
+          .print-title {
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 4px;
+          }
+          .print-subtitle {
+            font-size: 11px;
+            text-align: center;
+            color: #444;
+            margin-bottom: 18px;
+          }
+          .print-section-title {
+            font-size: 13px;
+            font-weight: 700;
+            margin: 16px 0 8px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 4px;
+          }
+          .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11.5px;
+            margin-bottom: 6px;
+          }
+          .print-table th,
+          .print-table td {
+            border: 1px solid #999;
+            padding: 5px 8px;
+            text-align: left;
+          }
+          .print-table th {
+            background: #eee;
+          }
+          .print-note {
+            font-size: 11px;
+            color: #333;
+            margin: 4px 0 8px;
           }
         }
       `}</style>

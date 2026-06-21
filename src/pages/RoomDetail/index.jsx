@@ -14,6 +14,7 @@ export default function RoomDetailModal({
   onCheckOut,
   onRefresh,
   addToast,
+  onChangeRoom,
 }) {
   const [booking, setBooking] = useState(room.currentBooking);
   const [services, setServices] = useState(booking?.services || []);
@@ -337,6 +338,20 @@ export default function RoomDetailModal({
           <button className="btn btn-ghost" onClick={onClose}>
             Đóng
           </button>
+          {tab !== "checkout" && onChangeRoom && (
+            <button
+              className="btn"
+              onClick={onChangeRoom}
+              disabled={loading}
+              style={{
+                background: "rgba(139,133,255,0.12)",
+                color: "#8b85ff",
+                border: "1px solid rgba(139,133,255,0.3)",
+              }}
+            >
+              🔄 Đổi phòng
+            </button>
+          )}
           {tab === "checkout" && (
             <button
               className="btn btn-danger"
