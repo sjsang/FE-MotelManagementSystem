@@ -87,7 +87,7 @@ export default function TabInfo({ booking }) {
               : "Ngày đêm",
           ],
           ["Ca", booking.shift === "night" ? "Ca đêm" : "Ca ngày"],
-          ["Giá cơ bản", formatCurrency(booking.basePrice)],
+          // ["Giá cơ bản", formatCurrency(booking.basePrice)],
         ].map(([label, value]) => (
           <div
             key={label}
