@@ -24,9 +24,13 @@ export default function CheckInModal({
   addToast,
 }) {
   const [customers, setCustomers] = useState([]);
+  const [customerPage, setCustomerPage] = useState(1);
+  const [hasMoreCustomers, setHasMoreCustomers] = useState(true);
+  const [loadingMoreCustomers, setLoadingMoreCustomers] = useState(false);
   const [selectedGuests, setSelectedGuests] = useState([null]);
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [addingForIndex, setAddingForIndex] = useState(null);
+  const [editingCustomer, setEditingCustomer] = useState(null);
   const [customerOptions, setCustomerOptions] = useState({
     nationalities: [],
     provinces: [],
@@ -61,10 +65,16 @@ export default function CheckInModal({
   });
   const [loading, setLoading] = useState(false);
 
+  const PAGE_SIZE = 50;
+
   useEffect(() => {
-    getCustomers({ sort: "hoten" })
+    // Load trang đầu tiên
+    getCustomers({ sort: "hoten", limit: PAGE_SIZE, page: 1 })
       .then((res) => {
-        setCustomers(Array.isArray(res.data) ? res.data : res.data?.data || []);
+        const list = Array.isArray(res.data) ? res.data : res.data?.data || [];
+        setCustomers(list);
+        setCustomerPage(1);
+        setHasMoreCustomers(res.data?.hasMore ?? list.length === PAGE_SIZE);
       })
       .catch((err) => {
         console.error("Không thể tải danh sách khách hàng:", err);
@@ -96,6 +106,24 @@ export default function CheckInModal({
       .catch(() => {});
   }, []);
 
+  // Hàm lazy load: gọi khi người dùng cuộn xuống cuối dropdown
+  const loadMoreCustomers = async () => {
+    if (loadingMoreCustomers || !hasMoreCustomers) return;
+    setLoadingMoreCustomers(true);
+    try {
+      const nextPage = customerPage + 1;
+      const res = await getCustomers({ sort: "hoten", limit: PAGE_SIZE, page: nextPage });
+      const list = Array.isArray(res.data) ? res.data : res.data?.data || [];
+      setCustomers((prev) => [...prev, ...list]);
+      setCustomerPage(nextPage);
+      setHasMoreCustomers(res.data?.hasMore ?? list.length === PAGE_SIZE);
+    } catch (err) {
+      console.error("Lỗi khi tải thêm khách hàng:", err);
+    } finally {
+      setLoadingMoreCustomers(false);
+    }
+  };
+
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   const handleCreateCustomerDirect = async (payload) => {
@@ -112,7 +140,7 @@ export default function CheckInModal({
         await updateCustomer(localExisting._id, payload);
         if (addToast) addToast("Đã cập nhật thông tin khách hàng");
 
-        const custRes = await getCustomers({ sort: "hoten" });
+        const custRes = await getCustomers({ sort: "hoten", limit: "none" });
         const updatedList = Array.isArray(custRes.data)
           ? custRes.data
           : custRes.data?.data || [];
@@ -133,17 +161,22 @@ export default function CheckInModal({
       const res = await createCustomer(payload);
       if (addToast) addToast("Thêm khách hàng mới thành công");
 
-      const custRes = await getCustomers({ sort: "hoten" });
+      const newId = res.data?._id;
+
+      const custRes = await getCustomers({ sort: "hoten", limit: "none" });
       const updatedList = Array.isArray(custRes.data)
         ? custRes.data
         : custRes.data?.data || [];
       setCustomers(updatedList);
 
-      const newCustomer = updatedList.find(
-        (c) =>
-          c.cccd === payload.cccd ||
-          (payload.passport && c.passport === payload.passport)
-      );
+      // Tìm bằng _id từ response để chắc chắn đúng khách
+      const newCustomer = newId
+        ? updatedList.find((c) => c._id === newId)
+        : updatedList.find(
+            (c) =>
+              (payload.cccd && c.cccd === payload.cccd) ||
+              (payload.passport && c.passport === payload.passport)
+          );
       if (newCustomer) {
         setSelectedGuests((prev) => {
           const updated = [...prev];
@@ -273,6 +306,7 @@ export default function CheckInModal({
                       );
                     }
                   }}
+                  onEditClick={(customer) => setEditingCustomer(customer)}
                   excludeIds={selectedGuests
                     .filter((g, i) => g !== null && i !== idx)
                     .map((g) => g._id)}
@@ -280,6 +314,9 @@ export default function CheckInModal({
                     setAddingForIndex(idx);
                     setShowAddCustomerModal(true);
                   }}
+                  onLoadMore={loadMoreCustomers}
+                  hasMore={hasMoreCustomers}
+                  loadingMore={loadingMoreCustomers}
                   dropdownAlign="down"
                 />
               ))}
@@ -445,6 +482,41 @@ export default function CheckInModal({
             setAddingForIndex(null);
           }}
           onSave={handleCreateCustomerDirect}
+          addToast={addToast}
+        />
+      )}
+
+      {editingCustomer && (
+        <AddCustomerModal
+          customer={editingCustomer}
+          options={customerOptions}
+          onClose={() => setEditingCustomer(null)}
+          onSave={async (payload) => {
+            try {
+              await updateCustomer(editingCustomer._id, payload);
+              if (addToast) addToast("Cập nhật thông tin thành công");
+              // Reload danh sách khách
+              const custRes = await getCustomers({ sort: "hoten", limit: "none" });
+              const updatedList = Array.isArray(custRes.data)
+                ? custRes.data
+                : custRes.data?.data || [];
+              setCustomers(updatedList);
+              // Cập nhật lại selectedGuests nếu khách đang được chọn
+              setSelectedGuests((prev) =>
+                prev.map((g) =>
+                  g && g._id === editingCustomer._id
+                    ? (updatedList.find((c) => c._id === editingCustomer._id) || g)
+                    : g
+                )
+              );
+              setEditingCustomer(null);
+              return true;
+            } catch (err) {
+              const errMsg = err.response?.data?.message || "Lỗi khi cập nhật";
+              if (addToast) addToast(errMsg, "error");
+              return false;
+            }
+          }}
           addToast={addToast}
         />
       )}
