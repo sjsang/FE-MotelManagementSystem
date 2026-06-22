@@ -1,4 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useCallback } from "react";
+
+// Kiểm tra quốc tịch Việt Nam (hỗ trợ cả chuẩn cũ và chuẩn quốc tế mới)
+const isViet = (quoctich) =>
+    quoctich === "Việt Nam" || quoctich === "VNM - Viet Nam";
+
 
 export default function SearchableCustomerSelect({
     label,
@@ -6,12 +11,28 @@ export default function SearchableCustomerSelect({
     selectedCustomer,
     onSelect,
     onClear,
+    onEditClick,
     excludeIds,
     onAddDirectClick,
+    onLoadMore,
+    hasMore,
+    loadingMore,
     dropdownAlign = "down",
 }) {
     const [search, setSearch] = useState("");
     const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    // Detect scroll đến gần cuối dropdown → gọi lazy load
+    const handleDropdownScroll = useCallback(() => {
+        const el = dropdownRef.current;
+        if (!el || !onLoadMore || !hasMore || loadingMore) return;
+        const { scrollTop, scrollHeight, clientHeight } = el;
+        // Trigger khi đã cuộn được 80% chiều cao
+        if (scrollTop + clientHeight >= scrollHeight * 0.8) {
+            onLoadMore();
+        }
+    }, [onLoadMore, hasMore, loadingMore]);
 
     const filtered = customers.filter((c) => {
         if (excludeIds && excludeIds.includes(c._id)) return false;
@@ -76,27 +97,50 @@ export default function SearchableCustomerSelect({
                                     }}
                                 >
                                     (
-                                    {selectedCustomer.quoctich === "Việt Nam"
+                                    {isViet(selectedCustomer.quoctich)
                                         ? `CCCD: ${selectedCustomer.cccd}`
                                         : `Hộ chiếu: ${selectedCustomer.passport}`}
                                     )
                                 </span>
                             </div>
-                            <button
-                                type="button"
-                                onClick={onClear}
-                                style={{
-                                    background: "none",
-                                    border: "none",
-                                    color: "#ef4444",
-                                    cursor: "pointer",
-                                    fontSize: "16px",
-                                    padding: "2px 6px",
-                                    lineHeight: 1,
-                                }}
-                            >
-                                ✕
-                            </button>
+                            <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                                {onEditClick && (
+                                    <button
+                                        type="button"
+                                        onClick={() => onEditClick(selectedCustomer)}
+                                        title="Chỉnh sửa thông tin khách"
+                                        style={{
+                                            background: "none",
+                                            border: "none",
+                                            color: "#8b85ff",
+                                            cursor: "pointer",
+                                            padding: "2px 5px",
+                                            lineHeight: 1,
+                                            display: "flex",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+                                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                                        </svg>
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={onClear}
+                                    style={{
+                                        background: "none",
+                                        border: "none",
+                                        color: "#ef4444",
+                                        cursor: "pointer",
+                                        fontSize: "16px",
+                                        padding: "2px 6px",
+                                        lineHeight: 1,
+                                    }}
+                                >
+                                    ✕
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <div style={{ position: "relative", width: "100%" }}>
@@ -134,6 +178,8 @@ export default function SearchableCustomerSelect({
                                                 marginTop: "4px",
                                             }),
                                     }}
+                                    ref={dropdownRef}
+                                    onScroll={handleDropdownScroll}
                                 >
                                     {filtered.length === 0 ? (
                                         <div
@@ -147,45 +193,69 @@ export default function SearchableCustomerSelect({
                                             Không tìm thấy khách hàng nào hợp lệ
                                         </div>
                                     ) : (
-                                        filtered.map((c) => (
-                                            <div
-                                                key={c._id}
-                                                onClick={() => {
-                                                    onSelect(c);
-                                                    setSearch("");
-                                                    setIsOpen(false);
-                                                }}
-                                                style={{
-                                                    padding: "10px 14px",
-                                                    cursor: "pointer",
-                                                    borderBottom: "1px solid var(--border)",
-                                                    fontSize: "13px",
-                                                    color: "var(--text)",
-                                                    transition: "background 0.2s",
-                                                }}
-                                                onMouseEnter={(e) =>
-                                                    (e.currentTarget.style.backgroundColor = "var(--bg3)")
-                                                }
-                                                onMouseLeave={(e) =>
-                                                (e.currentTarget.style.backgroundColor =
-                                                    "transparent")
-                                                }
-                                            >
-                                                <div style={{ fontWeight: 600 }}>{c.hoten}</div>
+                                        <>
+                                            {filtered.map((c) => (
                                                 <div
-                                                    style={{
-                                                        fontSize: "11px",
-                                                        color: "var(--text3)",
-                                                        marginTop: "2px",
+                                                    key={c._id}
+                                                    onClick={() => {
+                                                        onSelect(c);
+                                                        setSearch("");
+                                                        setIsOpen(false);
                                                     }}
+                                                    style={{
+                                                        padding: "10px 14px",
+                                                        cursor: "pointer",
+                                                        borderBottom: "1px solid var(--border)",
+                                                        fontSize: "13px",
+                                                        color: "var(--text)",
+                                                        transition: "background 0.2s",
+                                                    }}
+                                                    onMouseEnter={(e) =>
+                                                        (e.currentTarget.style.backgroundColor = "var(--bg3)")
+                                                    }
+                                                    onMouseLeave={(e) =>
+                                                    (e.currentTarget.style.backgroundColor =
+                                                        "transparent")
+                                                    }
                                                 >
-                                                    Quốc tịch: {c.quoctich} •{" "}
-                                                    {c.quoctich === "Việt Nam"
-                                                        ? `CCCD: ${c.cccd}`
-                                                        : `Hộ chiếu: ${c.passport}`}
+                                                    <div style={{ fontWeight: 600 }}>{c.hoten}</div>
+                                                    <div
+                                                        style={{
+                                                            fontSize: "11px",
+                                                            color: "var(--text3)",
+                                                            marginTop: "2px",
+                                                        }}
+                                                    >
+                                                        Quốc tịch: {c.quoctich} •{" "}
+                                                        {isViet(c.quoctich)
+                                                            ? `CCCD: ${c.cccd}`
+                                                            : `Hộ chiếu: ${c.passport}`}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))
+                                            ))}
+                                            {/* Lazy load indicator */}
+                                            {loadingMore && (
+                                                <div style={{
+                                                    padding: "8px",
+                                                    textAlign: "center",
+                                                    fontSize: "12px",
+                                                    color: "var(--text3)",
+                                                }}>
+                                                    ⧗ Đang tải thêm...
+                                                </div>
+                                            )}
+                                            {!hasMore && filtered.length > 0 && (
+                                                <div style={{
+                                                    padding: "6px",
+                                                    textAlign: "center",
+                                                    fontSize: "11px",
+                                                    color: "var(--text3)",
+                                                    borderTop: "1px solid var(--border)",
+                                                }}>
+                                                    — Đã hiển thị tất cả —
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             )}
