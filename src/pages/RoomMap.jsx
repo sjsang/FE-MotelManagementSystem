@@ -728,7 +728,7 @@ export default function RoomMap() {
     loadRooms();
     getActivePrice()
       .then((r) => setPriceConfig(r.data))
-      .catch(() => {});
+      .catch(() => { });
     const interval = setInterval(loadRooms, 30000);
     return () => clearInterval(interval);
   }, [loadRooms]);
@@ -756,11 +756,12 @@ export default function RoomMap() {
     services,
     notes,
     discount,
-    taxVnd
+    taxVnd,
+    depositOverride
   ) => {
     try {
       // 1. Chốt trả phòng
-      await checkOut(bookingId, { services, notes });
+      await checkOut(bookingId, { services, notes, deposit: depositOverride });
 
       // 2. Tự động tạo hóa đơn
       const resInvoice = await createInvoice({

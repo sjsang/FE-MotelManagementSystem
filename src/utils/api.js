@@ -41,7 +41,10 @@ export const deleteRoom = (id) => api.delete(`/rooms/${id}`);
 export const getBookings = (params) => api.get('/bookings', { params });
 export const getBookingById = (id) => api.get(`/bookings/${id}`); // Mới thêm
 export const checkIn = (data) => api.post('/bookings/checkin', data);
-export const previewCheckout = (bookingId) => api.get(`/bookings/preview-checkout/${bookingId}`); // Mới thêm
+export const previewCheckout = (bookingId, deposit) =>
+  api.get(`/bookings/preview-checkout/${bookingId}`, {
+    params: deposit !== undefined ? { deposit } : {}
+  });
 export const checkOut = (bookingId, data) => api.post(`/bookings/checkout/${bookingId}`, data);
 export const updateBooking = (id, data) => api.put(`/bookings/${id}`, data);
 export const getRevenue = (params) => api.get('/bookings/stats/revenue', { params });

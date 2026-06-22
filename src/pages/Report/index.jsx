@@ -13,10 +13,18 @@ import ReportFilter from "./ReportFilter";
 import SummaryCards from "./SummaryCards";
 import DailyChart from "./DailyChart";
 
-const today = () => new Date().toISOString().split("T")[0];
+const today = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
 const firstDayOfMonth = () => {
   const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0];
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}-01`;
 };
 
 export default function ReportPage() {

@@ -19,21 +19,16 @@ export default function RoomDetailModal({
   const [booking, setBooking] = useState(room.currentBooking);
   const [services, setServices] = useState(booking?.services || []);
   const [elapsed, setElapsed] = useState(calcElapsed(booking?.checkIn));
-  const [newService, setNewService] = useState({
-    name: "",
-    price: "",
-    quantity: 1,
-  });
+  const [newService, setNewService] = useState({ name: "", price: "", quantity: 1 });
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState("info");
   const [createdInvoice, setCreatedInvoice] = useState(null);
-
-  // State quản lý hiển thị Modal xác nhận Check-out
   const [showConfirmCheckout, setShowConfirmCheckout] = useState(false);
 
   const [discount, setDiscount] = useState(0);
   const [taxInput, setTaxInput] = useState("");
-  const [taxType, setTaxType] = useState("percent");
+  const [taxType, setTaxType] = useState("vnd");
+  const [depositOverride, setDepositOverride] = useState(booking?.deposit || 0); // [+]
 
   const [saveStatus, setSaveStatus] = useState("saved");
   const debounceRef = useRef(null);
@@ -46,12 +41,12 @@ export default function RoomDetailModal({
   const fetchPreview = useCallback(async () => {
     if (!booking?._id) return;
     try {
-      const res = await previewCheckout(booking._id);
+      const res = await previewCheckout(booking._id, depositOverride); // [+] truyền depositOverride
       setPreview(res.data);
     } catch {
       // Giữ preview cũ nếu lỗi mạng
     }
-  }, [booking?._id]);
+  }, [booking?._id, depositOverride]); // [+] thêm depositOverride vào deps
 
   useEffect(() => {
     if (tab === "checkout") {
@@ -73,6 +68,7 @@ export default function RoomDetailModal({
     setElapsed(calcElapsed(room.currentBooking?.checkIn));
     setSaveStatus("saved");
     setTab("info");
+    setDepositOverride(room.currentBooking?.deposit || 0); // [+] reset khi đổi booking
   }, [currentBookingId]);
 
   useEffect(() => {
@@ -83,10 +79,7 @@ export default function RoomDetailModal({
   }, [room.currentBooking]);
 
   useEffect(() => {
-    const t = setInterval(
-      () => setElapsed(calcElapsed(booking?.checkIn)),
-      30000
-    );
+    const t = setInterval(() => setElapsed(calcElapsed(booking?.checkIn)), 30000);
     return () => clearInterval(t);
   }, [booking?.checkIn]);
 
@@ -112,21 +105,13 @@ export default function RoomDetailModal({
 
   if (!booking) {
     return (
-      <div
-        className="modal-overlay"
-        onClick={(e) => e.target === e.currentTarget && onClose()}
-      >
+      <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
         <div className="modal">
           <div className="modal-header">
             <div className="modal-title">Phòng {room.roomNumber}</div>
-            <button className="modal-close" onClick={onClose}>
-              ✕
-            </button>
+            <button className="modal-close" onClick={onClose}>✕</button>
           </div>
-          <div
-            className="modal-body"
-            style={{ textAlign: "center", padding: 40, color: "#9fa3b8" }}
-          >
+          <div className="modal-body" style={{ textAlign: "center", padding: 40, color: "#9fa3b8" }}>
             Không có booking active
           </div>
         </div>
@@ -135,18 +120,12 @@ export default function RoomDetailModal({
   }
 
   // --- Calculations ---
-  const serviceTotal = services.reduce(
-    (s, sv) => s + sv.price * sv.quantity,
-    0
-  );
-  const previewTotal =
-    preview?.totalAmount ?? (booking.basePrice || 0) + serviceTotal;
+  const serviceTotal = services.reduce((s, sv) => s + sv.price * sv.quantity, 0);
+  const previewTotal = preview?.totalAmount ?? (booking.basePrice || 0) + serviceTotal;
 
   const taxVnd =
     taxType === "percent"
-      ? Math.round(
-          Math.max(0, previewTotal - discount) * (Number(taxInput || 0) / 100)
-        )
+      ? Math.round(Math.max(0, previewTotal - discount) * (Number(taxInput || 0) / 100))
       : Number(taxInput || 0);
 
   const payableAmount = previewTotal - discount + taxVnd;
@@ -157,47 +136,32 @@ export default function RoomDetailModal({
   const addServiceFromList = (svc) => {
     const exists = services.find((s) => s.name === svc.name);
     if (exists) {
-      setServices((prev) =>
-        prev.map((s) =>
-          s.name === svc.name ? { ...s, quantity: s.quantity + 1 } : s
-        )
-      );
+      setServices((prev) => prev.map((s) => s.name === svc.name ? { ...s, quantity: s.quantity + 1 } : s));
     } else {
-      setServices((prev) => [
-        ...prev,
-        { name: svc.name, price: svc.price, quantity: 1 },
-      ]);
+      setServices((prev) => [...prev, { name: svc.name, price: svc.price, quantity: 1 }]);
     }
   };
 
   const addCustomService = () => {
     if (!newService.name || !newService.price) return;
-    setServices((prev) => [
-      ...prev,
-      {
-        name: newService.name,
-        price: Number(newService.price),
-        quantity: Number(newService.quantity) || 1,
-      },
-    ]);
+    setServices((prev) => [...prev, {
+      name: newService.name,
+      price: Number(newService.price),
+      quantity: Number(newService.quantity) || 1,
+    }]);
     setNewService({ name: "", price: "", quantity: 1 });
   };
 
-  const removeService = (idx) =>
-    setServices((prev) => prev.filter((_, i) => i !== idx));
+  const removeService = (idx) => setServices((prev) => prev.filter((_, i) => i !== idx));
 
   const handleReport = async () => {
     setLoading(true);
     try {
-      const now = new Date();
-      const res = await updateBooking(booking._id, {
-        is_reported: true,
-        reported: now,
-      });
+      const res = await updateBooking(booking._id, { is_reported: true, reported: new Date() });
       setBooking(res.data);
       addToast("Đã ghi nhận khai báo lưu trú thành công");
       if (onRefresh) onRefresh();
-    } catch (e) {
+    } catch {
       addToast("Lỗi khi ghi nhận khai báo lưu trú", "error");
     } finally {
       setLoading(false);
@@ -205,7 +169,7 @@ export default function RoomDetailModal({
   };
 
   const handleCheckOut = async () => {
-    setShowConfirmCheckout(false); // Ẩn modal xác nhận
+    setShowConfirmCheckout(false);
     setLoading(true);
     try {
       const invoiceData = await onCheckOut(
@@ -213,12 +177,11 @@ export default function RoomDetailModal({
         services,
         booking.notes,
         discount,
-        taxVnd
+        taxVnd,
+        depositOverride // [+]
       );
-      if (invoiceData) {
-        setCreatedInvoice(invoiceData);
-      }
-    } catch (e) {
+      if (invoiceData) setCreatedInvoice(invoiceData);
+    } catch {
       addToast("Lỗi check-out", "error");
     } finally {
       setLoading(false);
@@ -226,33 +189,19 @@ export default function RoomDetailModal({
   };
 
   return (
-    <div
-      className="modal-overlay"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ maxWidth: 680 }}>
         <div className="modal-header">
           <div>
-            <div className="modal-title">
-              Phòng {room.roomNumber} — Chi tiết lưu trú
-            </div>
+            <div className="modal-title">Phòng {room.roomNumber} — Chi tiết lưu trú</div>
             <div style={{ fontSize: 12, color: "#9fa3b8", marginTop: 2 }}>
               Check-in: {formatTime(booking.checkIn)} • Đã ở: {elapsed.text}
             </div>
           </div>
-          <button className="modal-close" onClick={onClose}>
-            ✕
-          </button>
+          <button className="modal-close" onClick={onClose}>✕</button>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 0,
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
-            padding: "0 24px",
-          }}
-        >
+        <div style={{ display: "flex", gap: 0, borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "0 24px" }}>
           {[
             ["info", "Thông tin"],
             ["services", `Dịch vụ (${services.length})`],
@@ -262,34 +211,19 @@ export default function RoomDetailModal({
               key={key}
               onClick={() => setTab(key)}
               style={{
-                padding: "10px 14px",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: 13,
-                fontWeight: tab === key ? 600 : 400,
+                padding: "10px 14px", background: "none", border: "none", cursor: "pointer",
+                fontSize: 13, fontWeight: tab === key ? 600 : 400,
                 color: tab === key ? "#8b85ff" : "#9fa3b8",
-                borderBottom:
-                  tab === key ? "2px solid #8b85ff" : "2px solid transparent",
-                marginBottom: -1,
-                fontFamily: "inherit",
-                position: "relative",
+                borderBottom: tab === key ? "2px solid #8b85ff" : "2px solid transparent",
+                marginBottom: -1, fontFamily: "inherit", position: "relative",
               }}
             >
               {label}
               {key === "services" && saveStatus === "pending" && (
-                <span
-                  style={{
-                    position: "absolute",
-                    top: 8,
-                    right: 2,
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
-                    background: "#f59e0b",
-                    display: "inline-block",
-                  }}
-                />
+                <span style={{
+                  position: "absolute", top: 8, right: 2, width: 6, height: 6,
+                  borderRadius: "50%", background: "#f59e0b", display: "inline-block",
+                }} />
               )}
             </button>
           ))}
@@ -330,137 +264,76 @@ export default function RoomDetailModal({
               payableAmount={payableAmount}
               deposit={deposit}
               paidAmount={paidAmount}
+              depositOverride={depositOverride}       // [+]
+              setDepositOverride={setDepositOverride} // [+]
             />
           )}
         </div>
 
         <div className="modal-footer">
-          <button className="btn btn-ghost" onClick={onClose}>
-            Đóng
-          </button>
+          <button className="btn btn-ghost" onClick={onClose}>Đóng</button>
           {tab !== "checkout" && onChangeRoom && (
             <button
-              className="btn"
-              onClick={onChangeRoom}
-              disabled={loading}
-              style={{
-                background: "rgba(139,133,255,0.12)",
-                color: "#8b85ff",
-                border: "1px solid rgba(139,133,255,0.3)",
-              }}
+              className="btn" onClick={onChangeRoom} disabled={loading}
+              style={{ background: "rgba(139,133,255,0.12)", color: "#8b85ff", border: "1px solid rgba(139,133,255,0.3)" }}
             >
               🔄 Đổi phòng
             </button>
           )}
           {tab === "checkout" && (
-            <button
-              className="btn btn-danger"
-              onClick={() => setShowConfirmCheckout(true)}
-              disabled={loading}
-            >
-              {loading ? "..." : "🚪 Xác nhận Check-out"}
+            <button className="btn btn-danger" onClick={() => setShowConfirmCheckout(true)} disabled={loading}>
+              {loading ? "..." : "Xác nhận Check-out"}
             </button>
           )}
-          {tab !== "checkout" &&
-            (!booking.is_reported ? (
+          {tab !== "checkout" && (
+            !booking.is_reported ? (
               <button
-                className="btn btn-success"
-                onClick={handleReport}
-                disabled={loading}
-                style={{
-                  background: "#2e7d52",
-                  borderColor: "#2e7d52",
-                  color: "#ffffff",
-                }}
+                className="btn btn-success" onClick={handleReport} disabled={loading}
+                style={{ background: "#2e7d52", borderColor: "#2e7d52", color: "#ffffff" }}
               >
                 {loading ? "..." : "👮 Đã khai báo lưu trú"}
               </button>
             ) : (
               <button
-                className="btn"
-                style={{
-                  background: "rgba(239,68,68,0.15)",
-                  color: "#f87171",
-                  border: "1px solid rgba(239,68,68,0.3)",
-                }}
-                onClick={() => setTab("checkout")}
+                className="btn" onClick={() => setTab("checkout")}
+                style={{ background: "rgba(239,68,68,0.15)", color: "#f87171", border: "1px solid rgba(239,68,68,0.3)" }}
               >
                 Chuyển sang Check-out →
               </button>
-            ))}
+            )
+          )}
         </div>
       </div>
 
-      {/* Modal hiển thị chi tiết hóa đơn sau khi checkout */}
       {createdInvoice && (
         <InvoiceDetailModal
           invoice={createdInvoice}
-          onClose={() => {
-            setCreatedInvoice(null);
-            onClose();
-          }}
-          onCancel={() => {
-            setCreatedInvoice(null);
-            onClose();
-          }}
+          onClose={() => { setCreatedInvoice(null); onClose(); }}
+          onCancel={() => { setCreatedInvoice(null); onClose(); }}
           addToast={addToast}
         />
       )}
 
-      {/* Modal Xác nhận Check-out tùy chỉnh */}
       {showConfirmCheckout && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0, 0, 0, 0.75)",
-            backdropFilter: "blur(3px)",
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div
-            style={{
-              background: "#d8f0e5",
-              padding: 24,
-              borderRadius: 12,
-              width: "340px",
-              border: "1px solid rgba(16,185,129,0.3)",
-              boxShadow: "0 8px 24px rgba(0,0,0,0.45)",
-            }}
-          >
-            <h4
-              style={{
-                margin: "0 0 16px 0",
-                color: "black",
-                fontSize: 16,
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.75)", backdropFilter: "blur(3px)",
+          zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <div style={{
+            background: "#d8f0e5", padding: 24, borderRadius: 12, width: "340px",
+            border: "1px solid rgba(16,185,129,0.3)", boxShadow: "0 8px 24px rgba(0,0,0,0.45)",
+          }}>
+            <h4 style={{ margin: "0 0 16px 0", color: "black", fontSize: 16, display: "flex", alignItems: "center", gap: 6 }}>
               Xác nhận trả phòng?
             </h4>
-
-            <div
-              style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}
-            >
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
               <button
                 onClick={() => setShowConfirmCheckout(false)}
                 style={{
-                  padding: "8px 14px",
-                  borderRadius: 8,
-                  background: "#e03d52",
-                  color: "#e9f7f6",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  cursor: "pointer",
-                  fontSize: 13,
-                  fontWeight: 500,
+                  padding: "8px 14px", borderRadius: 8, background: "#e03d52",
+                  color: "#e9f7f6", border: "1px solid rgba(255,255,255,0.1)",
+                  cursor: "pointer", fontSize: 13, fontWeight: 500,
                 }}
               >
                 Hủy bỏ
@@ -468,14 +341,8 @@ export default function RoomDetailModal({
               <button
                 onClick={handleCheckOut}
                 style={{
-                  padding: "8px 14px",
-                  borderRadius: 8,
-                  border: "none",
-                  background: "#10b981",
-                  color: "#fff",
-                  cursor: "pointer",
-                  fontSize: 13,
-                  fontWeight: 600,
+                  padding: "8px 14px", borderRadius: 8, border: "none",
+                  background: "#10b981", color: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 600,
                 }}
               >
                 Xác nhận

@@ -50,7 +50,7 @@ export default function SummaryCards({ summaryData, byBookingType }) {
         </div>
         <div style={{ fontSize: 13, color: "#9fa3b8", marginTop: 8 }}>
           Số hóa đơn:{" "}
-          <span style={{ color: "#62f5bc", fontWeight: "bold" }}>
+          <span style={{ color: "#2c916a", fontWeight: "bold" }}>
             {summaryData.totalInvoices}
           </span>
         </div>
