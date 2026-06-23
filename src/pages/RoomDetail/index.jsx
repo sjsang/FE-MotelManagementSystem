@@ -154,6 +154,11 @@ export default function RoomDetailModal({
 
   const removeService = (idx) => setServices((prev) => prev.filter((_, i) => i !== idx));
 
+  const updateServiceQuantity = (idx, newQty) => {
+    if (newQty < 1) return;
+    setServices((prev) => prev.map((s, i) => i === idx ? { ...s, quantity: newQty } : s));
+  };
+
   const handleReport = async () => {
     setLoading(true);
     try {
@@ -190,7 +195,7 @@ export default function RoomDetailModal({
 
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxWidth: 680 }}>
+      <div className="modal" style={{ maxWidth: 600 }}>
         <div className="modal-header">
           <div>
             <div className="modal-title">Phòng {room.roomNumber} — Chi tiết lưu trú</div>
@@ -229,7 +234,12 @@ export default function RoomDetailModal({
           ))}
         </div>
 
-        <div className="modal-body">
+        <div
+          className="modal-body"
+          style={{
+            overflowY: "auto",
+          }}
+        >
           {tab === "info" && <TabInfo booking={booking} />}
 
           {tab === "services" && (
@@ -242,6 +252,7 @@ export default function RoomDetailModal({
               addServiceFromList={addServiceFromList}
               addCustomService={addCustomService}
               removeService={removeService}
+              updateServiceQuantity={updateServiceQuantity}
               serviceTotal={serviceTotal}
             />
           )}

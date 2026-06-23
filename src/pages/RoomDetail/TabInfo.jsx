@@ -70,7 +70,7 @@ export default function TabInfo({ booking }) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {[
           [
             "Khai báo công an",
@@ -83,8 +83,8 @@ export default function TabInfo({ booking }) {
             booking.bookingType === "hourly"
               ? "Nghỉ giờ"
               : booking.bookingType === "overnight"
-              ? "Qua đêm"
-              : "Ngày đêm",
+                ? "Qua đêm"
+                : "Ngày đêm",
           ],
           ["Ca", booking.shift === "night" ? "Ca đêm" : "Ca ngày"],
           // ["Giá cơ bản", formatCurrency(booking.basePrice)],
@@ -121,15 +121,37 @@ export default function TabInfo({ booking }) {
       {booking.notes && (
         <div
           style={{
-            marginTop: 12,
-            background: "rgba(245,158,11,0.08)",
+            marginTop: 30,
+            border: "1px solid rgba(245,158,11,0.3)",
             borderRadius: 8,
-            padding: "10px 12px",
-            fontSize: 13,
-            color: "#f59e0b",
+            padding: "14px 12px 10px",
+            position: "relative",
+            background: "rgba(245,158,11,0.04)",
           }}
         >
-          📝 {booking.notes}
+          <div
+            style={{
+              position: "absolute",
+              top: -12,
+              left: 12,
+              padding: "0 6px",
+              background: "#fff",
+              fontSize: 15,
+              fontWeight: 600,
+              color: "#f59e0b",
+            }}
+          >
+            Ghi chú
+          </div>
+
+          <div
+            style={{
+              fontSize: 13,
+              color: "#f59e0b",
+            }}
+          >
+            {booking.notes}
+          </div>
         </div>
       )}
     </div>

@@ -479,14 +479,12 @@ tbody td {
     background: var(--bg2);
     border-radius: 16px;
     width: 100%;
-    max-width: 480px;
+    max-width: 600px;
+    height: 90vh;
     max-height: 90vh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--border);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-    animation: slideUp 0.2s ease;
 }
 
 .modal-header {

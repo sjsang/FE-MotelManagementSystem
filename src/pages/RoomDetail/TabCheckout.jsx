@@ -22,16 +22,6 @@ export default function TabCheckout({
           <span style={{ fontSize: 13, color: "#f59e0b", fontWeight: 600 }}>
             ⚠️ Phòng chưa khai báo lưu trú
           </span>
-          <button
-            onClick={() => { window.confirm("Bỏ qua khai báo công an và tiếp tục check-out?"); }}
-            style={{
-              fontSize: 11.5, color: "#f59e0b", background: "rgba(245,158,11,0.15)",
-              border: "1px solid rgba(245,158,11,0.3)", borderRadius: 6,
-              padding: "4px 10px", cursor: "pointer", fontFamily: "inherit",
-            }}
-          >
-            Bỏ qua
-          </button>
         </div>
       )}
 

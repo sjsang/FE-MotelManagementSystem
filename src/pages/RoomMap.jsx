@@ -611,9 +611,10 @@ function FloorSection({ floor, rooms, onRoomClick, onMarkCleaning }) {
         background: "#fff",
         border: "1.5px solid #e8f0fe",
         borderRadius: 20,
-        padding: "20px 22px",
-        marginBottom: 20,
+        padding: "16px",
+        marginBottom: 16,
         boxShadow: "0 2px 8px rgba(37,99,235,0.05)",
+        boxSizing: "border-box",
       }}
     >
       {/* Floor header */}
@@ -642,10 +643,18 @@ function FloorSection({ floor, rooms, onRoomClick, onMarkCleaning }) {
           >
             Khu {floor === 1 ? "Trước" : "Sau"}
           </div>
-          <span style={{ fontSize: 12.5, color: "#94a3b8", fontWeight: 500 }}>
+
+          <span
+            style={{
+              fontSize: 12.5,
+              color: "#94a3b8",
+              fontWeight: 500,
+            }}
+          >
             {rooms.length} phòng
           </span>
         </div>
+
         <div style={{ display: "flex", gap: 8 }}>
           {availableCount > 0 && (
             <span
@@ -661,6 +670,7 @@ function FloorSection({ floor, rooms, onRoomClick, onMarkCleaning }) {
               {availableCount} trống
             </span>
           )}
+
           {occupiedCount > 0 && (
             <span
               style={{
@@ -682,8 +692,9 @@ function FloorSection({ floor, rooms, onRoomClick, onMarkCleaning }) {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(155px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
           gap: 12,
+          width: "100%",
         }}
       >
         {rooms.map((room) => (
@@ -826,128 +837,25 @@ export default function RoomMap() {
 
   return (
     <div
-      style={{ minHeight: "100vh", background: "#f8faff", padding: "0 0 40px" }}
+      style={{
+        overflow: "hidden",
+      }}
     >
       <ToastContainer />
 
-      <div style={{ padding: "24px 28px 0" }}>
-        {/* Stats */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: 14,
-            marginBottom: 24,
-          }}
-        >
-          <StatCard
-            label="Tổng phòng"
-            value={stats.total}
-            color="#2563eb"
-            icon={<MeetingRoomIcon />}
-          />
-
-          <StatCard
-            label="Đang trống"
-            value={stats.available}
-            color="#16a34a"
-            icon={<CheckCircleIcon />}
-            sub="Sẵn sàng nhận khách"
-          />
-
-          <StatCard
-            label="Có khách"
-            value={stats.occupied}
-            color="#dc2626"
-            icon={<PersonIcon />}
-            sub="Đang sử dụng"
-          />
-
-          <StatCard
-            label="Dọn phòng"
-            value={stats.cleaning}
-            color="#d97706"
-            icon={<CleaningServicesIcon />}
-            sub="Đang dọn dẹp"
-          />
-        </div>
-
-        {/* Legend */}
-        <div
-          style={{
-            display: "flex",
-            gap: 10,
-            marginBottom: 20,
-            background: "#fff",
-            borderRadius: 12,
-            padding: "10px 16px",
-            border: "1.5px solid #e8f0fe",
-            flexWrap: "wrap",
-            boxShadow: "0 1px 4px rgba(37,99,235,0.05)",
-            alignItems: "center", // thêm dòng này
-            justifyContent: "space-between", // thêm dòng này
-          }}
-        >
-          {/* Phần chú giải giữ nguyên */}
-          <div
-            style={{
-              display: "flex",
-              gap: 10,
-              flexWrap: "wrap",
-              alignItems: "center",
-            }}
-          >
-            <span
-              style={{
-                fontSize: 11.5,
-                color: "#94a3b8",
-                fontWeight: 600,
-                marginRight: 6,
-              }}
-            >
-              Chú giải:
-            </span>
-            {[
-              { color: "#2563eb", label: "Trống" },
-              { color: "#ef4444", label: "Có khách" },
-              { color: "#f59e0b", label: "Dọn phòng" },
-              { color: "#6366f1", label: "Bảo trì" },
-            ].map(({ color, label }) => (
-              <div
-                key={label}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 5,
-                  fontSize: 12,
-                  color: "#475569",
-                  background: `${color}12`,
-                  padding: "3px 10px",
-                  borderRadius: 20,
-                  border: `1px solid ${color}30`,
-                  fontWeight: 500,
-                }}
-              >
-                <div
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    background: color,
-                  }}
-                />
-                {label}
-              </div>
-            ))}
-          </div>
-        </div>
-
+      <div
+        style={{
+          height: "100%",
+          overflowY: "auto",
+          padding: 12,
+          boxSizing: "border-box",
+        }}
+      >
         {/* Floor Sections */}
         {loading ? (
           <div
             style={{
               textAlign: "center",
-              padding: "80px 20px",
               color: "#94a3b8",
               fontSize: 15,
             }}
@@ -978,6 +886,7 @@ export default function RoomMap() {
           addToast={addToast}
         />
       )}
+
       {modal === "detail" && selectedRoom && (
         <RoomDetailModal
           room={selectedRoom}
@@ -1001,6 +910,7 @@ export default function RoomMap() {
           loading={changeRoomLoading}
         />
       )}
+
       {showPricing && (
         <div
           onClick={(e) => e.target === e.currentTarget && setShowPricing(false)}
@@ -1039,6 +949,7 @@ export default function RoomMap() {
               <span style={{ fontWeight: 600, fontSize: 15 }}>
                 Máy tính tiền phòng
               </span>
+
               <button
                 onClick={() => setShowPricing(false)}
                 style={{
@@ -1053,6 +964,7 @@ export default function RoomMap() {
                 ×
               </button>
             </div>
+
             <div style={{ overflowY: "auto", flex: 1 }}>
               <PricingCalculator />
             </div>
