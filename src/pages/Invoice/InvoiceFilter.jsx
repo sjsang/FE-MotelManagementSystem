@@ -2,10 +2,9 @@ import React, { useState, useRef } from 'react';
 import dayjs from 'dayjs';
 import CustomDateRangePicker from '../../components/DateRangePicker';
 
-export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, handleClearFilter }) {
+export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, handleClearFilter, dateLabel, setDateLabel }) {
     const [pickerOpen, setPickerOpen] = useState(false);
     const [pickerAnchor, setPickerAnchor] = useState(null);
-    const [dateLabel, setDateLabel] = useState('Tháng này');
     const dateButtonRef = useRef(null);
 
     const handleOpenPicker = () => {
@@ -21,53 +20,75 @@ export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, ha
     const setF = (k, v) => setFilter(f => ({ ...f, [k]: v }));
 
     const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            handleApplyFilter();
-        }
+        if (e.key === 'Enter') handleApplyFilter();
     };
 
     return (
-        <div className="card" style={{ marginBottom: 16, padding: '16px 20px' }}>
+        <>
             <style>{`
+                /* ── Layout chung ── */
                 .filter-wrapper {
                     display: flex;
-                    gap: 16px;
+                    gap: 12px;
                     flex-wrap: wrap;
                     align-items: flex-end;
+                    flex: 1; 
                 }
-                .f-date { width: 230px; }
-                /* Thu nhỏ chiều ngang Desktop */
-                .f-status { width: 105px; } 
-                .f-room { width: 85px; }    
-                .f-name { width: 200px; }
+                .f-date { width: 210px; }
+                .f-invoice { width: 120px; }
+                .f-status { width: 100px; }
+                .f-room { width: 80px; }
+                .f-name { width: 180px; }
                 .f-actions { display: flex; gap: 8px; }
 
-                /* CSS Responsive cho Mobile */
+                /* ── Stats + Filter cùng hàng trên PC ── */
+                .stats-filter-row {
+                    display: flex;
+                    align-items: center;
+                    gap: 0;
+                }
+                .stats-filter-divider { display: none; }
+
+                /* ── Mobile: Ép tọa độ Grid chính xác ── */
                 @media (max-width: 768px) {
+                    .stats-filter-row {
+                        flex-direction: column;
+                        align-items: stretch;
+                    }
+                    .stats-filter-divider { display: none; }
+
                     .filter-wrapper {
                         display: grid;
-                        /* Đổi tỷ lệ 2fr 1fr để cột bên phải (Phòng/Trạng thái) nhỏ lại hẳn */
-                        grid-template-columns: 2fr 1fr; 
-                        grid-template-areas:
-                            "date room"
-                            "name status"
-                            "actions actions";
+                        grid-template-columns: repeat(10, 1fr);
                         gap: 12px;
                     }
-                    .f-date { grid-area: date; width: 100% !important; }
-                    .f-room { grid-area: room; width: 100% !important; }
-                    .f-name { grid-area: name; width: 100% !important; }
-                    .f-status { grid-area: status; width: 100% !important; }
-                    .f-actions { grid-area: actions; width: 100% !important; justify-content: flex-start; }
-                    
-                    .f-date > button, 
-                    .f-status > select, 
-                    .f-room > input, 
+
+                    /* Ép vị trí cố định: Hàng 1 (Thời gian 7/10, Phòng 3/10) */
+                    .f-date { grid-column: 1 / 8; grid-row: 1; width: 100% !important; }
+                    .f-room { grid-column: 8 / 11; grid-row: 1; width: 100% !important; }
+
+                    /* Ép vị trí cố định: Hàng 2 (Tên 6/10, Trạng thái 4/10) */
+                    .f-name   { grid-column: 1 / 7; grid-row: 2; width: 100% !important; }
+                    .f-status { grid-column: 7 / 11; grid-row: 2; width: 100% !important; }
+
+                    /* Ép vị trí cố định: Hàng 3 (Mã HĐ 6/10, Hành động 4/10) */
+                    .f-invoice { grid-column: 1 / 7; grid-row: 3; width: 100% !important; }
+                    .f-actions { 
+                        grid-column: 7 / 11; 
+                        grid-row: 3; 
+                        width: 100% !important; 
+                        justify-content: flex-start; /* Nút canh trái cho gần input */
+                        align-self: flex-end; /* Ép nút nằm sát đáy cho bằng hàng với input */
+                    }
+
+                    .f-date > button,
+                    .f-invoice > input,
+                    .f-status > select,
+                    .f-room > input,
                     .f-name > input {
                         width: 100% !important;
                         box-sizing: border-box;
                     }
-                    
                     .f-date button span {
                         font-size: 11.5px !important;
                         letter-spacing: 0 !important;
@@ -81,7 +102,7 @@ export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, ha
             <div className="filter-wrapper">
                 {/* 1. Khoảng thời gian */}
                 <div className="f-date">
-                    <div className="form-label" style={{ fontSize: 12, color: '#9fa3b8', marginBottom: 6 }}>Khoảng thời gian</div>
+                    <div className="form-label" style={{ fontSize: 12, color: '#9fa3b8', marginBottom: 6, fontWeight: 600 }}>KHOẢNG THỜI GIAN</div>
                     <button
                         ref={dateButtonRef}
                         onClick={handleOpenPicker}
@@ -99,15 +120,6 @@ export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, ha
                             fontFamily: 'inherit',
                             fontSize: 13.5,
                             transition: 'all 0.2s ease',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
-                        }}
-                        onMouseEnter={e => {
-                            e.currentTarget.style.backgroundColor = '#DCEEFF';
-                            e.currentTarget.style.borderColor = '#AFC7E8';
-                        }}
-                        onMouseLeave={e => {
-                            e.currentTarget.style.backgroundColor = '#EAF4FF';
-                            e.currentTarget.style.borderColor = '#C3D6EA';
                         }}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
@@ -139,36 +151,45 @@ export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, ha
                     />
                 </div>
 
-                {/* 2. Số phòng */}
-                <div className="f-room">
-                    <div className="form-label" style={{ fontSize: 12, color: '#9fa3b8', marginBottom: 6 }}>Số phòng</div>
-                    <input className="form-control" placeholder="VD: 101" value={filter.roomNumber}
-                        onChange={e => setF('roomNumber', e.target.value)}
+                {/* 2. Mã hóa đơn */}
+                <div className="f-invoice">
+                    <div className="form-label" style={{ fontSize: 12, color: '#9fa3b8', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase' }}>Mã hóa đơn</div>
+                    <input className="form-control" placeholder="VD: HD001" value={filter.invoiceNumber || ''}
+                        onChange={e => setF('invoiceNumber', e.target.value)}
                         onKeyDown={handleKeyDown}
-                        // Chỉnh padding nhỏ lại cho gọn
-                        style={{ width: '100%', padding: '8px 10px', fontSize: 13 }} />
+                        style={{ width: '100%', padding: '8px 10px', fontSize: 13, backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8 }} />
                 </div>
 
-                {/* 3. Tên khách hàng */}
+                {/* 3. Số phòng */}
+                <div className="f-room">
+                    <div className="form-label" style={{ fontSize: 12, color: '#9fa3b8', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase' }}>Số phòng</div>
+                    <input className="form-control" placeholder="VD: 01" value={filter.roomNumber || ''}
+                        onChange={e => setF('roomNumber', e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        style={{ width: '100%', padding: '8px 10px', fontSize: 13, backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8 }} />
+                </div>
+
+                {/* 4. Tên khách hàng */}
                 <div className="f-name">
-                    <div className="form-label" style={{ fontSize: 12, color: '#9fa3b8', marginBottom: 6 }}>Tên khách hàng</div>
-                    <input className="form-control" placeholder="Nhập tên..." value={filter.guestName}
+                    <div className="form-label" style={{ fontSize: 12, color: '#9fa3b8', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase' }}>Tên khách hàng</div>
+                    <input className="form-control" placeholder="Nhập tên..." value={filter.guestName || ''}
                         onChange={e => setF('guestName', e.target.value)}
                         onKeyDown={handleKeyDown}
-                        style={{ width: '100%', padding: '8px 12px', fontSize: 13 }} />
+                        style={{ width: '100%', padding: '8px 12px', fontSize: 13, backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8 }} />
                 </div>
-                {/* 4. Trạng thái */}
+
+                {/* 5. Trạng thái */}
                 <div className="f-status">
-                    <div className="form-label" style={{ fontSize: 12, color: '#9fa3b8', marginBottom: 6 }}>Trạng thái</div>
-                    <select className="form-control" value={filter.status} onChange={e => setF('status', e.target.value)}
-                        style={{ width: '100%', padding: '8px 6px 8px 10px', fontSize: 13, cursor: 'pointer' }}>
-                        <option value="" style={{ fontSize: '11px', padding: '4px' }}>Tất cả</option>
-                        <option value="issued" style={{ fontSize: '11px', padding: '4px' }}>Đã xuất</option>
-                        <option value="cancelled" style={{ fontSize: '11px', padding: '4px' }}>Đã hủy</option>
+                    <div className="form-label" style={{ fontSize: 12, color: '#9fa3b8', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase' }}>Trạng thái</div>
+                    <select className="form-control" value={filter.status || ''} onChange={e => setF('status', e.target.value)}
+                        style={{ width: '100%', padding: '8px 6px 8px 10px', fontSize: 13, cursor: 'pointer', backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8 }}>
+                        <option value="">Tất cả</option>
+                        <option value="issued">Đã xuất</option>
+                        <option value="cancelled">Đã hủy</option>
                     </select>
                 </div>
 
-                {/* 5. Các nút hành động */}
+                {/* 6. Nút hành động */}
                 <div className="f-actions">
                     <button
                         onClick={handleApplyFilter}
@@ -176,27 +197,26 @@ export default function InvoiceFilter({ filter, setFilter, handleApplyFilter, ha
                             padding: '8px 18px', height: 'fit-content', borderRadius: 8,
                             backgroundColor: '#16a34a', color: '#fff', border: 'none',
                             fontSize: 13.5, fontWeight: 600, cursor: 'pointer',
-                            boxShadow: '0 2px 6px rgba(22,163,74,0.3)', transition: 'background 0.2s'
                         }}
-                        onMouseEnter={e => e.currentTarget.style.backgroundColor = '#15803d'}
-                        onMouseLeave={e => e.currentTarget.style.backgroundColor = '#16a34a'}
                     >
                         Lọc
                     </button>
 
                     <button
                         className="btn btn-ghost"
-                        style={{ padding: '8px 12px', height: 'fit-content', fontSize: 13 }}
+                        style={{
+                            padding: '8px 12px', height: 'fit-content', fontSize: 13,
+                            backgroundColor: '#e2e8f0', color: '#475569', borderRadius: 8, border: 'none', fontWeight: 600
+                        }}
                         onClick={() => {
                             setDateLabel('Tháng này');
                             handleClearFilter();
                         }}
                     >
-                        ↺ Xóa lọc
+                        ↺ Xóa
                     </button>
                 </div>
-
             </div>
-        </div>
+        </>
     );
 }

@@ -152,8 +152,8 @@ export default function InvoiceDetailModal({ invoice, onClose, onCancel, addToas
 
                                     {/* ── Tầng 3: Thực thu ── */}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 8, marginTop: 4 }}>
-                                        <span style={{ fontSize: 14, fontWeight: 700, color: '#000' }}>Thực thu</span>
-                                        <span style={{ fontSize: 14, fontWeight: 700, color: '#000' }}>{fmt(invoice.paidAmount)}</span>
+                                        <span style={{ fontSize: 17, fontWeight: 700, color: '#2e8518' }}>Thực thu</span>
+                                        <span style={{ fontSize: 17, fontWeight: 700, color: '#2e8518' }}>{fmt(invoice.paidAmount)}</span>
                                     </div>
                                 </>
                             )}

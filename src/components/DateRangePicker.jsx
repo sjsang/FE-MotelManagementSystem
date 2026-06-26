@@ -249,7 +249,7 @@ const CustomDateRangePicker = ({ open, anchorEl, onClose, initialDates, onApply 
                                 Xóa
                             </button>
                             {/* SỬA Ở ĐÂY: Gắn thêm label khi người dùng tự chọn ngày */}
-                            <button onClick={() => handleApplyInternal({ ...tempDates, label: '📅 Chọn trên lịch' })} className="flex-1 font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors" style={{ padding: '10px 0', borderRadius: '8px', fontSize: '13px' }}>
+                            <button onClick={() => handleApplyInternal({ ...tempDates, label: 'Chọn trên lịch' })} className="flex-1 font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors" style={{ padding: '10px 0', borderRadius: '8px', fontSize: '13px' }}>
                                 Áp dụng
                             </button>
                         </div>

@@ -118,11 +118,9 @@ export default function ReportFilter({
           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#EAF4FF"; e.currentTarget.style.borderColor = "#C3D6EA"; }}
         >
           {dateLabel === "Chọn trên lịch" ? (
-            <>
-              <span style={{ fontWeight: 600 }}>{dateRange.from ? dayjs(dateRange.from).format("DD/MM/YYYY") : "--"}</span>
-              <span style={{ margin: "0 10px", color: "#6b7a90" }}>→</span>
-              <span style={{ fontWeight: 600 }}>{dateRange.to ? dayjs(dateRange.to).format("DD/MM/YYYY") : "--"}</span>
-            </>
+            <span style={{ fontWeight: 600 }}>
+              {dateRange.from ? dayjs(dateRange.from).format("DD/MM/YY") : "--"} - {dateRange.to ? dayjs(dateRange.to).format("DD/MM/YY") : "--"}
+            </span>
           ) : (
             <span style={{ fontWeight: 600 }}>{dateLabel}</span>
           )}
