@@ -22,7 +22,7 @@ export default function TabInfo({ booking }) {
       >
         <div
           style={{
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: 700,
             color: "var(--accent)",
             textTransform: "uppercase",
@@ -40,7 +40,7 @@ export default function TabInfo({ booking }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                fontSize: 13.5,
+                fontSize: 14.5,
                 borderBottom:
                   idx < guestsCombined.length - 1
                     ? "1px dashed var(--border)"
@@ -54,7 +54,7 @@ export default function TabInfo({ booking }) {
               {g.id && (
                 <span
                   style={{
-                    fontSize: 11.5,
+                    fontSize: 12.5,
                     color: "var(--text2)",
                     background: "var(--bg3)",
                     padding: "2px 8px",
@@ -83,8 +83,8 @@ export default function TabInfo({ booking }) {
             booking.bookingType === "hourly"
               ? "Nghỉ giờ"
               : booking.bookingType === "overnight"
-                ? "Qua đêm"
-                : "Ngày đêm",
+              ? "Qua đêm"
+              : "Ngày đêm",
           ],
           ["Ca", booking.shift === "night" ? "Ca đêm" : "Ca ngày"],
           // ["Giá cơ bản", formatCurrency(booking.basePrice)],
@@ -97,12 +97,12 @@ export default function TabInfo({ booking }) {
               padding: "10px 12px",
             }}
           >
-            <div style={{ fontSize: 11, color: "#6b6f84", marginBottom: 2 }}>
+            <div style={{ fontSize: 12, color: "#6b6f84", marginBottom: 2 }}>
               {label}
             </div>
             <div
               style={{
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: 600,
                 color:
                   label === "Khai báo công an"
@@ -136,7 +136,7 @@ export default function TabInfo({ booking }) {
               left: 12,
               padding: "0 6px",
               background: "#fff",
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: 600,
               color: "#f59e0b",
             }}
@@ -146,7 +146,7 @@ export default function TabInfo({ booking }) {
 
           <div
             style={{
-              fontSize: 13,
+              fontSize: 14,
               color: "#f59e0b",
             }}
           >
