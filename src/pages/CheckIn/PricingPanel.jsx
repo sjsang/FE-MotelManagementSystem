@@ -7,7 +7,7 @@ import {
 
 // Giờ check-in chuẩn cho từng loại
 const STANDARD_CHECKIN_HOUR = {
-  overnight: 18,
+  overnight: 17,
   fullday: 12,
 };
 
@@ -19,7 +19,7 @@ const STANDARD_CHECKOUT_INFO = {
 
 // Thời lượng chuẩn của mỗi gói (phải khớp với backend booking_controller.js)
 const STANDARD_DURATION_HOURS = {
-  overnight: 14, // 18h -> 8h sáng hôm sau
+  overnight: 15, // 17h -> 8h sáng hôm sau
   fullday: 24, // 12h -> 12h trưa hôm sau
 };
 
@@ -34,16 +34,25 @@ function calcEarlyHours(bookingType) {
   standardToday.setHours(standardHour, 0, 0, 0);
 
   // BUGFIX: trước đây luôn so với mốc "hôm nay", nên khách vào 2h sáng (overnight,
-  // chuẩn 18h) bị tính nhầm là sớm 16 tiếng. Thực tế 2h sáng vẫn thuộc khung qua đêm
-  // của HÔM QUA (18h hôm qua -> 8h sáng hôm nay), nên phải ưu tiên so với mốc hôm qua
+  // chuẩn 17h) bị tính nhầm là sớm nhiều tiếng. Thực tế 2h sáng vẫn thuộc khung qua đêm
+  // của HÔM QUA (17h hôm qua -> 8h sáng hôm nay), nên phải ưu tiên so với mốc hôm qua
   // nếu thời điểm hiện tại vẫn còn nằm trong chu kỳ đó.
+  //
+  // LƯU Ý: chỉ bật cơ chế "so mốc hôm qua" khi duration < 24h (có khoảng trống thực
+  // sự, như overnight). Với fullday, duration = 24h nên "hôm qua + 24h" luôn trùng
+  // khít mốc "hôm nay" — nếu vẫn áp dụng sẽ khiến mọi giờ trước 12h trưa bị tính
+  // nhầm là "không sớm" (earlyH luôn = 0), kể cả khi khách vào lúc 10h sáng.
+  const hasGapFromYesterday = duration < 24;
   const standardYesterday = new Date(standardToday);
   standardYesterday.setDate(standardYesterday.getDate() - 1);
   const yesterdayCycleEnd = new Date(
     standardYesterday.getTime() + duration * 60 * 60 * 1000
   );
 
-  const standard = now < yesterdayCycleEnd ? standardYesterday : standardToday;
+  const standard =
+    hasGapFromYesterday && now < yesterdayCycleEnd
+      ? standardYesterday
+      : standardToday;
 
   if (now >= standard) return 0;
 
@@ -99,7 +108,7 @@ export default function PricingPanel({
 
   const standardHourLabel =
     bookingType === "overnight"
-      ? "18:00"
+      ? "17:00"
       : bookingType === "fullday"
       ? "12:00"
       : null;

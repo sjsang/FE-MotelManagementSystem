@@ -540,7 +540,7 @@ export default function PriceManagement() {
             {field(
               "Qua đêm",
               "dayShift.single.overnight",
-              "Từ 18h đến 8h sáng"
+              "Từ 17h đến 8h sáng"
             )}
             {field("Nghỉ giờ – Đầu (≤30 phút)", "dayShift.single.hourly_first")}
             {field("Nghỉ giờ – Đến 2 giờ", "dayShift.single.hourly_2h")}
