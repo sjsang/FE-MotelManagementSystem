@@ -529,9 +529,6 @@ export default function PriceManagement() {
             <div style={{ fontWeight: 700, marginBottom: 4, color: "#8b85ff" }}>
               Phòng đơn – Ca ngày
             </div>
-            <div style={{ fontSize: 12, color: "#6b6f84", marginBottom: 12 }}>
-              Áp dụng 5h – 23h
-            </div>
             {field(
               "Ngày đêm (24h)",
               "dayShift.single.fullday",
@@ -550,9 +547,6 @@ export default function PriceManagement() {
           <div className="card">
             <div style={{ fontWeight: 700, marginBottom: 4, color: "#f472b6" }}>
               Phòng đôi – Ca ngày
-            </div>
-            <div style={{ fontSize: 12, color: "#6b6f84", marginBottom: 12 }}>
-              Áp dụng 5h – 23h
             </div>
             {field("Ngày đêm (24h)", "dayShift.double.fullday")}
             {field("Qua đêm", "dayShift.double.overnight")}
@@ -580,9 +574,6 @@ export default function PriceManagement() {
             <div style={{ fontWeight: 700, marginBottom: 4, color: "#8b85ff" }}>
               Phòng đơn – Ca đêm
             </div>
-            <div style={{ fontSize: 12, color: "#6b6f84", marginBottom: 12 }}>
-              Áp dụng 23h – 5h
-            </div>
             {field(
               "Giờ đầu tiên",
               "nightShift.single.hourly_first",
@@ -599,28 +590,8 @@ export default function PriceManagement() {
             <div style={{ fontWeight: 700, marginBottom: 4, color: "#f472b6" }}>
               Phòng đôi – Ca đêm
             </div>
-            <div style={{ fontSize: 12, color: "#6b6f84", marginBottom: 12 }}>
-              Áp dụng 23h – 5h
-            </div>
             {field("Giờ đầu tiên", "nightShift.double.hourly_first")}
             {field("Phụ thu mỗi giờ thêm", "nightShift.double.hourly_extra")}
-          </div>
-
-          <div className="card price-span-2">
-            <div
-              style={{
-                background: "rgba(59,130,246,0.08)",
-                borderRadius: 10,
-                padding: "12px 16px",
-                fontSize: 13,
-                color: "#60a5fa",
-              }}
-            >
-              Quy tắc ca đêm: Vào <strong>trước 0h (23h–24h)</strong> và ở dưới
-              15 tiếng → thu trọn giá qua đêm. Vào <strong>sau 0h</strong>
-              (hoặc ở từ 15 tiếng trở lên) → tính theo giờ: 120k/h (giờ đầu),
-              mỗi giờ thêm +40k (đơn).
-            </div>
           </div>
         </div>
       )}

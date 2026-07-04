@@ -83,7 +83,9 @@ export default function CheckInModal({
     // Lấy danh sách CCCD/hộ chiếu đang check-in để ngăn check-in 2 phòng
     getBookings({ status: "active", limit: "none" })
       .then((res) => {
-        const bookingsList = Array.isArray(res.data) ? res.data : res.data?.data || [];
+        const bookingsList = Array.isArray(res.data)
+          ? res.data
+          : res.data?.data || [];
         const ids = new Set();
         bookingsList.forEach((b) => {
           if (b.guestId) {
@@ -112,7 +114,11 @@ export default function CheckInModal({
     setLoadingMoreCustomers(true);
     try {
       const nextPage = customerPage + 1;
-      const res = await getCustomers({ sort: "hoten", limit: PAGE_SIZE, page: nextPage });
+      const res = await getCustomers({
+        sort: "hoten",
+        limit: PAGE_SIZE,
+        page: nextPage,
+      });
       const list = Array.isArray(res.data) ? res.data : res.data?.data || [];
       setCustomers((prev) => [...prev, ...list]);
       setCustomerPage(nextPage);
@@ -199,7 +205,10 @@ export default function CheckInModal({
       return;
     }
 
-    if (form.lydocutru === "20 - Mục đích khác" && (!form.nhaplydo || !form.nhaplydo.trim())) {
+    if (
+      form.lydocutru === "20 - Mục đích khác" &&
+      (!form.nhaplydo || !form.nhaplydo.trim())
+    ) {
       if (addToast) addToast("Vui lòng nhập lý do cư trú cụ thể", "error");
       return;
     }
@@ -354,8 +363,8 @@ export default function CheckInModal({
                     }
                   }}
                 >
-                  <option value="day">Ca ngày (5h–23h)</option>
-                  <option value="night">Ca đêm (23h–5h)</option>
+                  <option value="day">Ca ngày</option>
+                  <option value="night">Ca đêm</option>
                 </select>
               </div>
               <div className="form-group">
@@ -411,9 +420,13 @@ export default function CheckInModal({
                 <option value="12 - Đại sứ quán">12 - Đại sứ quán</option>
                 <option value="13 - Định cư">13 - Định cư</option>
                 <option value="14 - Tiếp thị">14 - Tiếp thị</option>
-                <option value="15 - Báo chí, phóng viên">15 - Báo chí, phóng viên</option>
+                <option value="15 - Báo chí, phóng viên">
+                  15 - Báo chí, phóng viên
+                </option>
                 <option value="16 - Thương mại">16 - Thương mại</option>
-                <option value="17 - Gia hạn thị thực">17 - Gia hạn thị thực</option>
+                <option value="17 - Gia hạn thị thực">
+                  17 - Gia hạn thị thực
+                </option>
                 <option value="18 - Chữa bệnh">18 - Chữa bệnh</option>
                 <option value="19 - Lao động">19 - Lao động</option>
                 <option value="20 - Mục đích khác">20 - Mục đích khác</option>
@@ -439,7 +452,9 @@ export default function CheckInModal({
                 className="form-control"
                 type="text"
                 placeholder="0"
-                value={form.deposit === 0 ? "" : form.deposit.toLocaleString("vi-VN")}
+                value={
+                  form.deposit === 0 ? "" : form.deposit.toLocaleString("vi-VN")
+                }
                 onChange={(e) => {
                   const raw = e.target.value.replace(/\D/g, "");
                   set("deposit", raw ? Number(raw) : 0);
@@ -496,7 +511,10 @@ export default function CheckInModal({
               await updateCustomer(editingCustomer._id, payload);
               if (addToast) addToast("Cập nhật thông tin thành công");
               // Reload danh sách khách
-              const custRes = await getCustomers({ sort: "hoten", limit: "none" });
+              const custRes = await getCustomers({
+                sort: "hoten",
+                limit: "none",
+              });
               const updatedList = Array.isArray(custRes.data)
                 ? custRes.data
                 : custRes.data?.data || [];
@@ -505,7 +523,8 @@ export default function CheckInModal({
               setSelectedGuests((prev) =>
                 prev.map((g) =>
                   g && g._id === editingCustomer._id
-                    ? (updatedList.find((c) => c._id === editingCustomer._id) || g)
+                    ? updatedList.find((c) => c._id === editingCustomer._id) ||
+                      g
                     : g
                 )
               );
