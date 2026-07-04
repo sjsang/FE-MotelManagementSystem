@@ -17,13 +17,33 @@ const STANDARD_CHECKOUT_INFO = {
   fullday: "12:00 trưa hôm sau",
 };
 
+// Thời lượng chuẩn của mỗi gói (phải khớp với backend booking_controller.js)
+const STANDARD_DURATION_HOURS = {
+  overnight: 14, // 18h -> 8h sáng hôm sau
+  fullday: 24, // 12h -> 12h trưa hôm sau
+};
+
 function calcEarlyHours(bookingType) {
   const standardHour = STANDARD_CHECKIN_HOUR[bookingType];
+  const duration = STANDARD_DURATION_HOURS[bookingType];
   if (standardHour == null) return 0;
 
   const now = new Date();
-  const standard = new Date(now);
-  standard.setHours(standardHour, 0, 0, 0);
+
+  const standardToday = new Date(now);
+  standardToday.setHours(standardHour, 0, 0, 0);
+
+  // BUGFIX: trước đây luôn so với mốc "hôm nay", nên khách vào 2h sáng (overnight,
+  // chuẩn 18h) bị tính nhầm là sớm 16 tiếng. Thực tế 2h sáng vẫn thuộc khung qua đêm
+  // của HÔM QUA (18h hôm qua -> 8h sáng hôm nay), nên phải ưu tiên so với mốc hôm qua
+  // nếu thời điểm hiện tại vẫn còn nằm trong chu kỳ đó.
+  const standardYesterday = new Date(standardToday);
+  standardYesterday.setDate(standardYesterday.getDate() - 1);
+  const yesterdayCycleEnd = new Date(
+    standardYesterday.getTime() + duration * 60 * 60 * 1000
+  );
+
+  const standard = now < yesterdayCycleEnd ? standardYesterday : standardToday;
 
   if (now >= standard) return 0;
 
@@ -63,15 +83,28 @@ export default function PricingPanel({
 
   if (!billing) return null;
 
-  const dayPrices = priceConfig?.dayShift?.[roomType === "double" ? "double" : "single"];
-  const feePerHour = priceConfig?.earlyCheckInFee ?? dayPrices?.hourly_extra ?? priceConfig?.lateEarlyFee ?? 20000;
+  const dayPrices =
+    priceConfig?.dayShift?.[roomType === "double" ? "double" : "single"];
+  const feePerHour =
+    priceConfig?.earlyCheckInFee ??
+    dayPrices?.hourly_extra ??
+    priceConfig?.lateEarlyFee ??
+    20000;
   const earlyCheckInCharge = earlyH * feePerHour;
-  const hasEarlyCheckIn = earlyH > 0 && (bookingType === "overnight" || bookingType === "fullday");
+  const hasEarlyCheckIn =
+    earlyH > 0 && (bookingType === "overnight" || bookingType === "fullday");
 
-  const totalWithEarly = billing.total + (hasEarlyCheckIn ? earlyCheckInCharge : 0);
+  const totalWithEarly =
+    billing.total + (hasEarlyCheckIn ? earlyCheckInCharge : 0);
 
-  const standardHourLabel = bookingType === "overnight" ? "18:00" : bookingType === "fullday" ? "12:00" : null;
-  const isFixedMilestone = bookingType === "overnight" || bookingType === "fullday";
+  const standardHourLabel =
+    bookingType === "overnight"
+      ? "18:00"
+      : bookingType === "fullday"
+      ? "12:00"
+      : null;
+  const isFixedMilestone =
+    bookingType === "overnight" || bookingType === "fullday";
 
   return (
     <div
@@ -99,8 +132,17 @@ export default function PricingPanel({
 
       {/* Hiển thị tùy theo loại booking */}
       {!isFixedMilestone ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-          <label style={{ fontSize: 12, color: "var(--text3)" }}>Số giờ nghỉ</label>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 10,
+          }}
+        >
+          <label style={{ fontSize: 12, color: "var(--text3)" }}>
+            Số giờ nghỉ
+          </label>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <input
               type="number"
@@ -135,18 +177,29 @@ export default function PricingPanel({
           </div>
         </div>
       ) : (
-        <div style={{ marginBottom: 12, padding: "10px", background: "rgba(239, 68, 68, 0.08)", borderRadius: 8, border: "1px dashed rgba(239, 68, 68, 0.3)" }}>
+        <div
+          style={{
+            marginBottom: 12,
+            padding: "10px",
+            background: "rgba(239, 68, 68, 0.08)",
+            borderRadius: 8,
+            border: "1px dashed rgba(239, 68, 68, 0.3)",
+          }}
+        >
           <div style={{ fontSize: 13, color: "var(--text)", fontWeight: 600 }}>
-            Gói {bookingType === 'overnight' ? 'Qua đêm' : 'Ngày đêm'}
+            Gói {bookingType === "overnight" ? "Qua đêm" : "Ngày đêm"}
           </div>
           <div style={{ fontSize: 13, color: "#ef4444", marginTop: 4 }}>
-            Trả phòng chậm nhất vào: <strong>{STANDARD_CHECKOUT_INFO[bookingType]}</strong>
+            Trả phòng chậm nhất vào:{" "}
+            <strong>{STANDARD_CHECKOUT_INFO[bookingType]}</strong>
           </div>
         </div>
       )}
 
       {/* Breakdown giá */}
-      <div style={{ borderTop: "1px solid rgba(108,99,255,0.15)", paddingTop: 10 }}>
+      <div
+        style={{ borderTop: "1px solid rgba(108,99,255,0.15)", paddingTop: 10 }}
+      >
         {billing.breakdowns.map((b, i) => (
           <div
             key={i}
@@ -164,7 +217,14 @@ export default function PricingPanel({
         ))}
 
         {hasEarlyCheckIn && (
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 13,
+              marginBottom: 4,
+            }}
+          >
             <span style={{ color: "#f59e0b" }}>
               ⚡ Check-in sớm ({earlyH}h × {fmtMoney(feePerHour)})
             </span>
@@ -174,8 +234,19 @@ export default function PricingPanel({
           </div>
         )}
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(108,99,255,0.15)" }}>
-          <span style={{ fontSize: 13, color: "var(--text3)" }}>Tổng dự kiến</span>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: 8,
+            paddingTop: 8,
+            borderTop: "1px solid rgba(108,99,255,0.15)",
+          }}
+        >
+          <span style={{ fontSize: 13, color: "var(--text3)" }}>
+            Tổng dự kiến
+          </span>
           <span style={{ fontSize: 18, fontWeight: 800, color: "#8b85ff" }}>
             {fmtMoney(totalWithEarly)}
           </span>
@@ -183,8 +254,20 @@ export default function PricingPanel({
       </div>
 
       {hasEarlyCheckIn && (
-        <div style={{ marginTop: 8, padding: "8px 10px", background: "rgba(245,158,11,0.08)", borderRadius: 8, fontSize: 12, color: "#f59e0b", lineHeight: 1.5 }}>
-          ⚡ Khách check-in sớm hơn {earlyH} giờ so với khung giờ chuẩn ({standardHourLabel}). Phụ thu <strong>{fmtMoney(earlyCheckInCharge)}</strong> đã được cộng vào tổng.
+        <div
+          style={{
+            marginTop: 8,
+            padding: "8px 10px",
+            background: "rgba(245,158,11,0.08)",
+            borderRadius: 8,
+            fontSize: 12,
+            color: "#f59e0b",
+            lineHeight: 1.5,
+          }}
+        >
+          ⚡ Khách check-in sớm hơn {earlyH} giờ so với khung giờ chuẩn (
+          {standardHourLabel}). Phụ thu{" "}
+          <strong>{fmtMoney(earlyCheckInCharge)}</strong> đã được cộng vào tổng.
         </div>
       )}
     </div>

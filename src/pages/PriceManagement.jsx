@@ -616,8 +616,10 @@ export default function PriceManagement() {
                 color: "#60a5fa",
               }}
             >
-              Quy tắc ca đêm: Dưới 15 tiếng thu 100% giá qua đêm. Sau 0h:
-              120k/h, mỗi giờ thêm +40k (đơn).
+              Quy tắc ca đêm: Vào <strong>trước 0h (23h–24h)</strong> và ở dưới
+              15 tiếng → thu trọn giá qua đêm. Vào <strong>sau 0h</strong>
+              (hoặc ở từ 15 tiếng trở lên) → tính theo giờ: 120k/h (giờ đầu),
+              mỗi giờ thêm +40k (đơn).
             </div>
           </div>
         </div>
@@ -839,8 +841,9 @@ export default function PriceManagement() {
           </tbody>
         </table>
         <div className="print-note">
-          Quy tắc ca đêm: Dưới 15 tiếng thu 100% giá qua đêm. Sau 0h: 120k/h,
-          mỗi giờ thêm +40k (đơn).
+          Quy tắc ca đêm: Vào trước 0h (23h–24h) và ở dưới 15 tiếng → thu trọn
+          giá qua đêm. Vào sau 0h (hoặc ở từ 15 tiếng trở lên) → tính theo giờ:
+          120k/h (giờ đầu), mỗi giờ thêm +40k (đơn).
         </div>
 
         {edited.services && edited.services.length > 0 && (
