@@ -145,6 +145,50 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
   useEffect(() => {
     const defaultVisa = options?.visaTypes?.[0] || 'DL (Du lịch)';
     if (customer) {
+      // Hàm parse địa chỉ từ cuối lên đầu cho địa chỉ Cũ (Tỉnh, Huyện, Xã, Chi tiết)
+      const parseAddressCu = (addrStr) => {
+        if (!addrStr) return { province: '', district: '', ward: '', detail: '' };
+        const parts = addrStr.split(',').map(s => s.trim());
+        const len = parts.length;
+        
+        let province = '';
+        let district = '';
+        let ward = '';
+        let detail = '';
+
+        // Theo quy chuẩn ghép tự động: [Xã, Huyện, Tỉnh]
+        if (len >= 1) province = parts[len - 1];
+        if (len >= 2) district = parts[len - 2];
+        if (len >= 3) ward = parts[len - 3];
+        if (len >= 4) detail = parts.slice(0, len - 3).join(', ');
+
+        return { province, district, ward, detail };
+      };
+
+      // Hàm parse địa chỉ cho địa chỉ Mới (Tỉnh, Xã, Chi tiết)
+      const parseAddressMoi = (addrStr) => {
+        if (!addrStr) return { province: '', ward: '', detail: '' };
+        const parts = addrStr.split(',').map(s => s.trim());
+        const len = parts.length;
+        
+        let province = '';
+        let ward = '';
+        let detail = '';
+
+        // Theo quy chuẩn ghép tự động mới: [Xã, Tỉnh]
+        if (len >= 1) province = parts[len - 1];
+        if (len >= 2) ward = parts[len - 2];
+        if (len >= 3) detail = parts.slice(0, len - 2).join(', ');
+
+        return { province, ward, detail };
+      };
+
+      const fullAddressCu = customer.thuongtrucu || customer.thuongtru || '';
+      const fullAddressMoi = customer.thuongtrumoi || '';
+
+      const addrCu = parseAddressCu(fullAddressCu);
+      const addrMoi = parseAddressMoi(fullAddressMoi);
+
       setForm({
         hoten: customer.hoten || '',
         gioitinh: customer.gioitinh || '',
@@ -153,7 +197,7 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
         cccd: customer.cccd || '',
         ngaycap: formatDate(customer.ngaycap),
         noicap: customer.noicap || '',
-        thuongtrucu: customer.thuongtrucu || customer.thuongtru || '',
+        thuongtrucu: fullAddressCu,
         passport: customer.passport || '',
         visaType: customer.visaType || defaultVisa,
         visaExpiredDate: formatDate(customer.visaExpiredDate),
@@ -163,12 +207,19 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
         tengiayto: customer.tengiayto || '',
         noicutruhiennay: customer.noicutruhiennay || '',
         sodienthoai: customer.sodienthoai || '',
-        diachichitietcu: customer.diachichitietcu || customer.diachichitiet || '',
-        thuongtrumoi: customer.thuongtrumoi || '',
-        diachichitietmoi: customer.diachichitietmoi || '',
+        diachichitietcu: customer.diachichitietcu || customer.diachichitiet || addrCu.detail || '',
+        thuongtrumoi: fullAddressMoi,
+        diachichitietmoi: customer.diachichitietmoi || addrMoi.detail || '',
       });
-      setAddressMode('manual');
-      setNewAddressMode('manual');
+
+      setAddressMode('select');
+      setAddrProvince(addrCu.province);
+      setAddrDistrict(addrCu.district);
+      setAddrWard(addrCu.ward);
+
+      setNewAddressMode('select');
+      setNewAddrProvince(addrMoi.province);
+      setNewAddrWard(addrMoi.ward);
     } else {
       setForm({
         hoten: '',
@@ -202,30 +253,28 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
     }
   }, [customer, options]);
 
-  // Cập nhật trường thuongtrucu tự động từ AddressSelector
+  // Cập nhật trường thuongtrucu tự động từ AddressSelector (chỉ gồm phường/xã, quận/huyện, tỉnh/thành)
   useEffect(() => {
     if (isScanningRef.current) return;
-    if (addressMode === 'select' && !customer) {
+    if (addressMode === 'select') {
       const parts = [];
-      if (form.diachichitietcu && form.diachichitietcu.trim()) parts.push(form.diachichitietcu.trim());
       if (addrWard) parts.push(addrWard);
       if (addrDistrict) parts.push(addrDistrict);
       if (addrProvince) parts.push(addrProvince);
       setForm(prev => ({ ...prev, thuongtrucu: parts.join(', ') }));
     }
-  }, [addressMode, form.diachichitietcu, addrWard, addrDistrict, addrProvince, customer]);
+  }, [addressMode, addrWard, addrDistrict, addrProvince]);
 
-  // Cập nhật trường thuongtrumoi tự động từ AddressSelectorNew
+  // Cập nhật trường thuongtrumoi tự động từ AddressSelectorNew (chỉ gồm xã/phường, tỉnh/thành)
   useEffect(() => {
     if (isScanningRef.current) return;
-    if (newAddressMode === 'select' && !customer) {
+    if (newAddressMode === 'select') {
       const parts = [];
-      if (form.diachichitietmoi && form.diachichitietmoi.trim()) parts.push(form.diachichitietmoi.trim());
       if (newAddrWard) parts.push(newAddrWard);
       if (newAddrProvince) parts.push(newAddrProvince);
       setForm(prev => ({ ...prev, thuongtrumoi: parts.join(', ') }));
     }
-  }, [newAddressMode, form.diachichitietmoi, newAddrWard, newAddrProvince, customer]);
+  }, [newAddressMode, newAddrWard, newAddrProvince]);
 
   const showMsg = (msg, type = 'error') => {
     if (addToast) addToast(msg, type);
@@ -310,11 +359,6 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
     };
 
     if (form.quoctich === 'VNM - Viet Nam' || form.quoctich === 'Việt Nam') {
-      if (dobYear && dobYear > currentYear - 14) {
-        showMsg(`Công dân Việt Nam phải từ 14 tuổi trở lên (sinh năm ${currentYear - 14} trở về trước)`);
-        return;
-      }
-
       // Address is optional now
       if (addressMode === 'select') {
         const hasAddressSelection = addrProvince || addrDistrict || addrWard;
@@ -338,14 +382,6 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
         const issueYear = issueDate.getFullYear();
         if (isNaN(issueDate.getTime())) { showMsg('Ngày cấp CCCD không hợp lệ'); return; }
         if (issueYear < 1900) { showMsg('Năm cấp CCCD phải từ năm 1900 trở đi'); return; }
-        if (dob) {
-          const dobPlus14 = new Date(dob);
-          dobPlus14.setFullYear(dobPlus14.getFullYear() + 14);
-          if (issueDate < dobPlus14) {
-            showMsg('Ngày cấp CCCD phải sau ngày sinh ít nhất 14 năm');
-            return;
-          }
-        }
         if (issueYear > currentYear) { showMsg('Năm cấp CCCD không được lớn hơn năm hiện tại'); return; }
       }
 
@@ -558,8 +594,6 @@ export default function AddCustomerModal({ customer = null, options = null, onCl
                     className="form-control"
                     value={form.ngaycap}
                     onChange={handleChange}
-                    min={getMinNgayCap()}
-                    max={`${new Date().getFullYear()}-12-31`}
                   />
                 </div>
                 <div className="form-group">

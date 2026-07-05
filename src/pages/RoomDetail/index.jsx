@@ -306,7 +306,27 @@ export default function RoomDetailModal({
             overflowY: "auto",
           }}
         >
-          {tab === "info" && <TabInfo booking={booking} />}
+          {tab === "info" && (
+            <TabInfo
+              booking={booking}
+              addToast={addToast}
+              onUpdateBooking={async (updatedFields) => {
+                try {
+                  const res = await updateBooking(booking._id, {
+                    ...updatedFields,
+                    is_reported: false,
+                    reported: null,
+                    reported_by: "",
+                  });
+                  setBooking(res.data);
+                  if (onRefresh) onRefresh();
+                } catch (err) {
+                  console.error("Lỗi khi cập nhật khách lưu trú:", err);
+                  addToast("Lỗi khi cập nhật khách lưu trú", "error");
+                }
+              }}
+            />
+          )}
 
           {tab === "services" && (
             <TabServices
