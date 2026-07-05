@@ -40,23 +40,17 @@ export function ceilWithGrace(hours) {
     return hours - fl > 0.25 ? fl + 1 : fl;
 }
 
-// Lấy giờ trong ngày theo giờ Việt Nam (UTC+7) — copy từ booking_controller.js
-// để cả 2 phía dùng chung 1 cách xác định "khách vào lúc mấy giờ".
-function getVNHour(date) {
-    const VN_OFFSET_MS = 7 * 60 * 60 * 1000;
-    return new Date(date.getTime() + VN_OFFSET_MS).getUTCHours();
-}
-
 export function calcBillingFromConfig(
     priceConfig,
     roomType,
     shift,
     bookingType,
-    hours,
-    checkInTime // optional — truyền vào (thường là new Date() lúc check-in) để
-    // tái hiện đúng case "khách vào 23h-24h & ở dưới 15h -> tính giá overnight
-    // cố định" giống hệt booking_controller.js. Nếu không truyền, hàm vẫn chạy
-    // được như cũ (không áp dụng case đặc biệt này).
+    hours
+    // Lưu ý: đã bỏ tham số checkInTime — case đặc biệt "vào 23h-24h & ở dưới 15h
+    // -> trọn gói giá qua đêm" không còn tồn tại (đã bỏ đồng bộ với
+    // booking_controller.js), nên không cần biết giờ check-in nữa. Nếu code gọi
+    // hàm này vẫn truyền thêm 1 tham số checkInTime thì cũng không sao — JS bỏ
+    // qua tham số dư, không gây lỗi.
 ) {
     if (!priceConfig) return null;
     try {
@@ -114,46 +108,27 @@ export function calcBillingFromConfig(
                 });
         } else {
             if (shift === "night") {
-                // Case đặc biệt giống booking_controller.js: khách vào trong khung
-                // 23h-24h và tổng thời gian ở dưới 15 tiếng -> thu trọn gói bằng
-                // đúng giá "qua đêm" (không tính theo giờ).
-                const checkInHourVN =
-                    checkInTime instanceof Date ? getVNHour(checkInTime) : null;
-                const isBeforeMidnightArrival =
-                    checkInHourVN !== null && checkInHourVN >= 23;
-
-                if (isBeforeMidnightArrival && hours < STANDARD_DURATION_HOURS.overnight) {
-                    // Giống booking_controller.js: basePrice = dayPrices.overnight
-                    // (luôn lấy từ dayShift, kể cả khi đang ở nhánh ca đêm).
-                    const dayPricesForOvernight =
-                        roomType === "double"
-                            ? priceConfig.dayShift.double
-                            : priceConfig.dayShift.single;
-                    base = dayPricesForOvernight?.overnight ?? 0;
-                    threshold = STANDARD_DURATION_HOURS.overnight;
-                    note = `Vào trước nửa đêm (23h-24h) và ở dưới ${threshold}h: tính trọn gói giá qua đêm ${fmtMoney(
-                        base
-                    )}.`;
-                    breakdowns = [{ l: "Giá qua đêm (vào trước 0h)", v: fmtMoney(base) }];
-                } else {
-                    base = p.hourly_first ?? 0;
-                    threshold = 1;
-                    if (hours > 1) {
-                        extraH = ceilWithGrace(hours - 1);
-                        extra = extraH * (p.hourly_extra ?? 0);
-                    }
-                    note = `Ca đêm: ${fmtMoney(
-                        base
-                    )} giờ đầu. Từ giờ thứ 2 mỗi giờ thêm ${fmtMoney(
-                        p.hourly_extra ?? 0
-                    )} (grace 15 phút).`;
-                    breakdowns = [{ l: "Giờ đầu tiên", v: fmtMoney(base) }];
-                    if (extraH > 0)
-                        breakdowns.push({
-                            l: `${extraH} giờ tiếp × ${fmtMoney(p.hourly_extra ?? 0)}`,
-                            v: fmtMoney(extra),
-                        });
+                // ĐỒNG BỘ với booking_controller.js: đã bỏ case đặc biệt "vào 23h-24h
+                // & ở dưới 15h -> trọn gói giá qua đêm". Luôn tính theo giờ: giờ đầu
+                // cố định (hourly_first) + mỗi giờ thêm (hourly_extra), bất kể giờ
+                // vào là mấy giờ.
+                base = p.hourly_first ?? 0;
+                threshold = 1;
+                if (hours > 1) {
+                    extraH = ceilWithGrace(hours - 1);
+                    extra = extraH * (p.hourly_extra ?? 0);
                 }
+                note = `Ca đêm: ${fmtMoney(
+                    base
+                )} giờ đầu. Từ giờ thứ 2 mỗi giờ thêm ${fmtMoney(
+                    p.hourly_extra ?? 0
+                )} (grace 15 phút).`;
+                breakdowns = [{ l: "Giờ đầu tiên", v: fmtMoney(base) }];
+                if (extraH > 0)
+                    breakdowns.push({
+                        l: `${extraH} giờ tiếp × ${fmtMoney(p.hourly_extra ?? 0)}`,
+                        v: fmtMoney(extra),
+                    });
             } else {
                 threshold = 2;
                 const minutes = hours * 60;
