@@ -13,17 +13,8 @@ function useIsMobile(breakpoint = 640) {
   }, [breakpoint]);
   return isMobile;
 }
-import { getBookings, getRevenue, getCustomers } from "../utils/api";
+import { getBookings, getCustomers } from "../utils/api";
 import { useToast } from "../hooks/useToast";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
 import { exportBookingsToExcel, exportLuutruToExcel } from "../utils/excel_bookinglist";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -78,29 +69,6 @@ function weekAgo() {
   return d.toISOString().split("T")[0];
 }
 
-// ─── Custom tooltip cho chart ─────────────────────────────────────────────────
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload?.length) {
-    return (
-      <div
-        style={{
-          background: "#1e2130",
-          border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: 8,
-          padding: "10px 14px",
-        }}
-      >
-        <div style={{ fontSize: 12, color: "#9fa3b8", marginBottom: 4 }}>
-          {label}
-        </div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#8b85ff" }}>
-          {(payload[0].value || 0).toLocaleString("vi-VN")}đ
-        </div>
-      </div>
-    );
-  }
-  return null;
-};
 
 // ─── FilterTag (chip hiển thị bộ lọc đang active) ────────────────────────────
 function FilterTag({ label, onRemove }) {
@@ -142,11 +110,6 @@ function FilterTag({ label, onRemove }) {
 export default function BookingHistory() {
   const isMobile = useIsMobile();
 
-  // Revenue filter (độc lập với booking filter)
-  const [revFilter, setRevFilter] = useState({ from: weekAgo(), to: today() });
-  const [revenue, setRevenue] = useState(null);
-  const [customers, setCustomers] = useState([]);
-  const [revLoading, setRevLoading] = useState(false);
 
   // Booking filter + lazy loading state
   const [filter, setFilter] = useState({
@@ -277,31 +240,12 @@ export default function BookingHistory() {
     return () => observerRef.current?.disconnect();
   }, [loadMore]);
 
-  // ── Load revenue ─────────────────────────────────────────────────────────
-  const loadRevenue = useCallback(async () => {
-    setRevLoading(true);
-    try {
-      const [rRes, cRes] = await Promise.all([
-        getRevenue({ from: revFilter.from, to: revFilter.to + "T23:59:59" }),
-        getCustomers(),
-      ]);
-      setRevenue(rRes.data);
-      setCustomers(
-        Array.isArray(cRes.data) ? cRes.data : cRes.data?.data || []
-      );
-    } catch {
-      addToast("Lỗi tải doanh thu", "error");
-    } finally {
-      setRevLoading(false);
-    }
-  }, [revFilter]);
+
 
   useEffect(() => {
     loadFirst();
   }, [filter]);
-  useEffect(() => {
-    loadRevenue();
-  }, [revFilter]);
+
 
   // ── Helpers cập nhật filter ──────────────────────────────────────────────
   const setF = (key, val) => setFilter((f) => ({ ...f, [key]: val }));
@@ -439,13 +383,6 @@ export default function BookingHistory() {
     activeTags.push({ key: "to", label: `Đến ${filter.to}` });
   if (filter.search)
     activeTags.push({ key: "search", label: `"${filter.search}"` });
-
-  // ── Chart data ────────────────────────────────────────────────────────────
-  const chartData = revenue
-    ? Object.entries(revenue.byDay || {})
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([day, total]) => ({ date: day.slice(5), total }))
-    : [];
 
   return (
     <div>
@@ -722,9 +659,8 @@ export default function BookingHistory() {
         <div style={{ fontSize: 12, color: "#6b6f84", marginBottom: 10 }}>
           {loading
             ? "Đang tải..."
-            : `Hiển thị ${bookings.length} booking${
-                hasMore ? " (còn thêm)" : ""
-              }`}
+            : `Hiển thị ${bookings.length} booking${hasMore ? " (còn thêm)" : ""
+            }`}
         </div>
 
         {/* ── Bảng / Card booking ── */}

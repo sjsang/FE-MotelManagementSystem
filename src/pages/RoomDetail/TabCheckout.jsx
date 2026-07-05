@@ -19,7 +19,7 @@ export default function TabCheckout({
   deposit,
   paidAmount,
   depositOverride = 0,
-  setDepositOverride = () => {},
+  setDepositOverride = () => { },
 }) {
   const safeDeposit = depositOverride ?? 0;
 
@@ -119,26 +119,25 @@ export default function TabCheckout({
                 booking.earlyCheckInCharge ??
                 0) > 0
                 ? [
-                    [
-                      `Vào sớm ${
-                        preview?.earlyCheckInHours
-                          ? `(${preview.earlyCheckInHours}h)`
-                          : ""
+                  [
+                    `Vào sớm ${preview?.earlyCheckInHours
+                      ? `(${preview.earlyCheckInHours}h)`
+                      : ""
                       }`.trim(),
-                      formatCurrency(
-                        preview?.earlyCheckInCharge ??
-                          booking.earlyCheckInCharge
-                      ),
-                    ],
-                  ]
+                    formatCurrency(
+                      preview?.earlyCheckInCharge ??
+                      booking.earlyCheckInCharge
+                    ),
+                  ],
+                ]
                 : []),
               ...((preview?.extraCharge ?? 0) > 0
                 ? [
-                    [
-                      `Ra trễ (${preview.extraHours}h)`,
-                      formatCurrency(preview.extraCharge),
-                    ],
-                  ]
+                  [
+                    `Ra trễ (${preview.extraHours}h)`,
+                    formatCurrency(preview.extraCharge),
+                  ],
+                ]
                 : []),
               [
                 "Dịch vụ",
@@ -194,7 +193,7 @@ export default function TabCheckout({
             onChange={(e) => {
               const raw = e.target.value.replace(/\D/g, "");
               const val = raw ? Number(raw) : 0;
-              setDiscount(Math.min(val, previewTotal)); // [+]
+              setDiscount(Math.min(val, previewTotal));
             }}
             placeholder="0"
             style={{
@@ -244,8 +243,8 @@ export default function TabCheckout({
                 taxType === "percent"
                   ? taxInput
                   : taxInput === ""
-                  ? ""
-                  : Number(taxInput).toLocaleString("vi-VN")
+                    ? ""
+                    : Number(taxInput).toLocaleString("vi-VN")
               }
               onChange={(e) => {
                 const raw = e.target.value.replace(/\D/g, "");
