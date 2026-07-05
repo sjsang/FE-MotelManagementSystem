@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -47,6 +47,8 @@ import EastIcon from "@mui/icons-material/East";
 import InvoiceHistory from "./pages/Invoice/InvoiceHistory";
 import ReportPage from "./pages/Report";
 import ReportSubSidebar from "./components/ReportSubSidebar";
+import UserManagement from "./pages/UserManagement";
+import AccountBoxIcon from "@mui/icons-material/AccountBox";
 
 const FIRST_REPORT_PATH = "/reports/revenue";
 
@@ -65,6 +67,8 @@ const COLORS = {
   logoutIcon: "#F87171",
 };
 
+import { getUserInfo } from "./utils/api";
+
 // ── Inner layout ─────────────────────────────────────────────────────────────
 function AppLayout({ handleLogout }) {
   const theme = useTheme();
@@ -74,6 +78,8 @@ function AppLayout({ handleLogout }) {
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileReportOpen, setMobileReportOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return localStorage.getItem("main-sidebar-collapsed") === "true";
@@ -81,6 +87,14 @@ function AppLayout({ handleLogout }) {
       return false;
     }
   });
+
+  useEffect(() => {
+    getUserInfo()
+      .then(res => {
+        setCurrentUser(res.data);
+      })
+      .catch(() => {});
+  }, []);
 
   const isInReport = location.pathname.startsWith("/reports");
   const currentSidebarWidth = isMobile
@@ -118,6 +132,7 @@ function AppLayout({ handleLogout }) {
     { label: "Bảng giá", icon: <PriceChangeIcon />, path: "/prices" },
     { label: "Khách lưu trú", icon: <PeopleIcon />, path: "/customers" },
     { label: "Hóa đơn", icon: <ReceiptIcon />, path: "/invoices" },
+    { label: "Tài khoản", icon: <AccountBoxIcon />, path: "/users" },
 
     { label: "BÁO CÁO", isSection: true },
     {
@@ -290,46 +305,23 @@ function AppLayout({ handleLogout }) {
           flexShrink: 0,
         }}
       >
-        <Avatar
-          sx={{
-            width: 40,
-            height: 40,
-            flexShrink: 0,
-            mr: "16px",
-            bgcolor: COLORS.bgActive,
-            color: "white",
-            fontWeight: 700,
-            fontSize: 15,
-            borderRadius: 2,
-          }}
-        >
-          QT
-        </Avatar>
-        <Box sx={{ flexGrow: 1, minWidth: 0, mr: 2, overflow: "hidden" }}>
+        <Box sx={{ flexGrow: 1, minWidth: 0, mr: 1, overflow: "hidden" }}>
           <Typography
             variant="body2"
             fontWeight={700}
             color="white"
-            fontSize={14}
+            fontSize={14.5}
             noWrap
             fontFamily="inherit"
+            title={currentUser ? currentUser.username : "Quản Trị Viên"}
           >
-            Quản Trị Viên
-          </Typography>
-          <Typography
-            variant="caption"
-            color={COLORS.textTitle}
-            fontSize={12}
-            noWrap
-            fontFamily="inherit"
-          >
-            Administrator
+            {currentUser ? currentUser.username : "Quản Trị Viên"}
           </Typography>
         </Box>
         <Tooltip title="Đăng xuất" placement="top" arrow>
           <IconButton
             size="small"
-            onClick={handleLogout}
+            onClick={() => setLogoutModalOpen(true)}
             sx={{
               width: 36,
               height: 36,
@@ -440,10 +432,41 @@ function AppLayout({ handleLogout }) {
           <Route path="/prices" element={<PriceManagement />} />
           <Route path="/customers" element={<CustomerManagement />} />
           <Route path="/invoices" element={<InvoiceHistory />} />
+          <Route path="/users" element={<UserManagement />} />
           <Route path="/reports/revenue" element={<ReportPage />} />
           <Route path="/reports/history" element={<BookingHistory />} />
         </Routes>
       </Box>
+
+      {/* Custom Logout Confirmation Modal */}
+      {logoutModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 3000 }} onClick={() => setLogoutModalOpen(false)}>
+          <div className="modal" style={{ maxWidth: "380px", height: "auto", maxHeight: "fit-content" }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Xác nhận đăng xuất</div>
+              <button type="button" className="modal-close" onClick={() => setLogoutModalOpen(false)}>✕</button>
+            </div>
+            <div className="modal-body" style={{ padding: "20px" }}>
+              <p style={{ margin: 0, fontSize: "14px", color: "var(--text)" }}>
+                Bạn có chắc chắn muốn đăng xuất khỏi hệ thống quản lý?
+              </p>
+            </div>
+            <div className="modal-footer" style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button type="button" className="btn btn-ghost" onClick={() => setLogoutModalOpen(false)}>Hủy</button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={() => {
+                  setLogoutModalOpen(false);
+                  handleLogout();
+                }}
+              >
+                Đăng xuất
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Box>
   );
 }
@@ -456,10 +479,8 @@ export default function App() {
   const handleAuthSuccess = () => setIsAuthenticated(true);
 
   const handleLogout = () => {
-    if (window.confirm("Bạn có chắc muốn đăng xuất?")) {
-      localStorage.removeItem("token");
-      setIsAuthenticated(false);
-    }
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
   };
 
   if (!isAuthenticated) {

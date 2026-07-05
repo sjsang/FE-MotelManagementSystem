@@ -1,13 +1,11 @@
 import React, { useState } from "react";
-import { login, register } from "../utils/api";
+import { login } from "../utils/api";
 import { useToast } from "../hooks/useToast";
 
 export default function Auth({ onAuthSuccess }) {
-  const [isRegister, setIsRegister] = useState(false);
   const [form, setForm] = useState({
     username: "",
     password: "",
-    confirmPassword: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,12 +17,6 @@ export default function Auth({ onAuthSuccess }) {
     setError(""); // clear error when typing
   };
 
-  const handleToggleMode = () => {
-    setIsRegister(!isRegister);
-    setError("");
-    setForm({ username: "", password: "", confirmPassword: "" });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.username.trim() || !form.password.trim()) {
@@ -32,55 +24,23 @@ export default function Auth({ onAuthSuccess }) {
       return;
     }
 
-    if (isRegister && !form.confirmPassword.trim()) {
-      setError("Vui lòng xác nhận mật khẩu");
-      return;
-    }
-
-    if (isRegister && form.password !== form.confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp");
-      return;
-    }
-
     setLoading(true);
     setError("");
 
     try {
-      if (isRegister) {
-        // Register API call
-        const response = await register({
-          username: form.username,
-          password: form.password,
-          confirmPassword: form.confirmPassword,
-        });
-        addToast(
-          response.data.message ||
-            "Đăng ký tài khoản thành công! Hãy đăng nhập.",
-          "success"
-        );
-        // Switch to login mode and keep username
-        const registeredUsername = form.username;
-        setIsRegister(false);
-        setForm({
-          username: registeredUsername,
-          password: "",
-          confirmPassword: "",
-        });
-      } else {
-        // Login API call
-        const response = await login({
-          username: form.username,
-          password: form.password,
-        });
-        const token = response.data.token;
-        localStorage.setItem("token", token);
-        addToast("Đăng nhập thành công!", "success");
+      // Login API call
+      const response = await login({
+        username: form.username,
+        password: form.password,
+      });
+      const token = response.data.token;
+      localStorage.setItem("token", token);
+      addToast("Đăng nhập thành công!", "success");
 
-        // Wait a tiny bit for toast before changing state
-        setTimeout(() => {
-          onAuthSuccess();
-        }, 600);
-      }
+      // Wait a tiny bit for toast before changing state
+      setTimeout(() => {
+        onAuthSuccess();
+      }, 600);
     } catch (err) {
       const errMsg =
         err.response?.data?.message ||
@@ -137,7 +97,7 @@ export default function Auth({ onAuthSuccess }) {
               color: "var(--sidebar-brand)",
             }}
           >
-            <img src="src\utils\logoWeb.png"></img>
+            <img src="src\utils\logoWeb.png" alt="Logo"></img>
           </div>
           <h2
             style={{
@@ -148,7 +108,7 @@ export default function Auth({ onAuthSuccess }) {
               margin: "0 0 6px 0",
             }}
           >
-            {isRegister ? "ĐĂNG KÝ TÀI KHOẢN" : "ĐĂNG NHẬP HỆ THỐNG"}
+            ĐĂNG NHẬP HỆ THỐNG
           </h2>
           <p
             style={{
@@ -159,60 +119,6 @@ export default function Auth({ onAuthSuccess }) {
           >
             Hệ thống quản lý nhà nghỉ & phòng trọ
           </p>
-        </div>
-
-        {/* Tab Selection */}
-        <div
-          style={{
-            display: "flex",
-            background: "var(--bg)",
-            padding: "4px",
-            borderRadius: "10px",
-            marginBottom: "24px",
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => {
-              setIsRegister(false);
-              setError("");
-            }}
-            style={{
-              flex: 1,
-              padding: "8px",
-              border: "none",
-              background: !isRegister ? "var(--bg2)" : "transparent",
-              color: !isRegister ? "var(--accent)" : "var(--text3)",
-              fontWeight: 600,
-              fontSize: "13px",
-              borderRadius: "8px",
-              cursor: "pointer",
-              transition: "all 0.15s",
-            }}
-          >
-            Đăng nhập
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setIsRegister(true);
-              setError("");
-            }}
-            style={{
-              flex: 1,
-              padding: "8px",
-              border: "none",
-              background: isRegister ? "var(--bg2)" : "transparent",
-              color: isRegister ? "var(--accent)" : "var(--text3)",
-              fontWeight: 600,
-              fontSize: "13px",
-              borderRadius: "8px",
-              cursor: "pointer",
-              transition: "all 0.15s",
-            }}
-          >
-            Đăng ký
-          </button>
         </div>
 
         {/* Form Body */}
@@ -247,7 +153,7 @@ export default function Auth({ onAuthSuccess }) {
             />
           </div>
 
-          <div className="form-group" style={{ marginBottom: "16px" }}>
+          <div className="form-group" style={{ marginBottom: "22px" }}>
             <label className="form-label">Mật khẩu</label>
             <input
               type="password"
@@ -255,25 +161,10 @@ export default function Auth({ onAuthSuccess }) {
               className="form-control"
               value={form.password}
               onChange={handleChange}
-              autoComplete={isRegister ? "new-password" : "current-password"}
+              autoComplete="current-password"
               required
             />
           </div>
-
-          {isRegister && (
-            <div className="form-group" style={{ marginBottom: "22px" }}>
-              <label className="form-label">Xác nhận mật khẩu</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                className="form-control"
-                value={form.confirmPassword}
-                onChange={handleChange}
-                autoComplete="new-password"
-                required
-              />
-            </div>
-          )}
 
           <button
             type="submit"
@@ -288,31 +179,9 @@ export default function Auth({ onAuthSuccess }) {
               marginTop: "10px",
             }}
           >
-            {loading ? "Đang xử lý..." : isRegister ? "Đăng ký" : "Đăng nhập"}
+            {loading ? "Đang xử lý..." : "Đăng nhập"}
           </button>
         </form>
-
-        {/* Footer switcher link */}
-        <div style={{ textAlign: "center", marginTop: "22px" }}>
-          <button
-            type="button"
-            onClick={handleToggleMode}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--text3)",
-              fontSize: "13px",
-              cursor: "pointer",
-              textDecoration: "underline",
-            }}
-            onMouseEnter={(e) => (e.target.style.color = "var(--accent)")}
-            onMouseLeave={(e) => (e.target.style.color = "var(--text3)")}
-          >
-            {isRegister
-              ? "Đã có tài khoản? Đăng nhập ngay"
-              : "Chưa có tài khoản? Đăng ký tại đây"}
-          </button>
-        </div>
       </div>
     </div>
   );
