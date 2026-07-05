@@ -29,8 +29,13 @@ api.interceptors.response.use(
 
 // Auth
 export const login = (data) => api.post('/auth/login', data);
-export const register = (data) => api.post('/auth/register', data);
 export const getUserInfo = () => api.get('/auth/me');
+
+// User Accounts
+export const getUsers = () => api.get('/users');
+export const createUser = (data) => api.post('/users', data);
+export const updateUser = (id, data) => api.put(`/users/${id}`, data);
+export const deleteUser = (id) => api.delete(`/users/${id}`);
 
 // Rooms
 export const getRooms = () => api.get('/rooms');

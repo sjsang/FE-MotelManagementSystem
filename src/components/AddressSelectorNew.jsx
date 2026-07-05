@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function AddressSelectorNew({
   mode,
@@ -18,6 +18,27 @@ export default function AddressSelectorNew({
   const [selectedProvinceCode, setSelectedProvinceCode] = useState('');
   const [wards, setWards] = useState([]);
 
+  // States cho ô tìm kiếm Tỉnh thành mới
+  const [searchProvinceQuery, setSearchProvinceQuery] = useState('');
+  const [provinceDropdownOpen, setProvinceDropdownOpen] = useState(false);
+  const provinceDropdownRef = useRef(null);
+
+  // Đóng dropdown khi click ngoài
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (provinceDropdownRef.current && !provinceDropdownRef.current.contains(e.target)) {
+        setProvinceDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Đồng bộ searchProvinceQuery khi province prop thay đổi
+  useEffect(() => {
+    setSearchProvinceQuery(province || '');
+  }, [province]);
+
   // Sync province code if province name changes (e.g. on reset or initialization)
   useEffect(() => {
     if (province) {
@@ -25,23 +46,38 @@ export default function AddressSelectorNew({
       if (match) {
         setSelectedProvinceCode(match.code);
         setWards(postMergerWards[match.code] || []);
+      } else if (postMergerProvinces.length > 0) {
+        // Nếu không khớp với danh sách tỉnh thành sau sáp nhập, tự động chuyển sang nhập tay
+        onChangeMode('manual');
       }
     } else {
       setSelectedProvinceCode('');
       setWards([]);
     }
-  }, [province]);
+  }, [province, postMergerProvinces, onChangeMode]);
 
-  const handleProvinceChange = (e) => {
-    const name = e.target.value;
-    const option = e.target.options[e.target.selectedIndex];
-    const code = option.getAttribute('data-code') || '';
+  // Kiểm tra khớp Xã/Phường mới (edit mode)
+  useEffect(() => {
+    if (!ward || wards.length === 0) return;
+    const match = wards.find(w => w === ward);
+    if (!match) {
+      // Nếu có tên Xã/Phường mới nhưng không khớp với danh sách sau sáp nhập, chuyển về manual
+      onChangeMode('manual');
+    }
+  }, [ward, wards, onChangeMode]);
 
-    onChangeProvince(name);
+  const selectProvinceDirectly = (name, code) => {
+    const displayProvince = `${code} - ${name}`;
+    onChangeProvince(displayProvince);
     setSelectedProvinceCode(code);
     onChangeWard('');
-    setWards(code ? (postMergerWards[code] || []) : []);
+    setWards(postMergerWards[code] || []);
   };
+
+  const filteredProvinces = postMergerProvinces.filter(p =>
+    p.name.toLowerCase().includes(searchProvinceQuery.toLowerCase()) ||
+    `${p.code} - ${p.name}`.toLowerCase().includes(searchProvinceQuery.toLowerCase())
+  );
 
   return (
     <div className="form-group">
@@ -60,21 +96,74 @@ export default function AddressSelectorNew({
       {mode === 'select' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div className="input-row" style={{ marginBottom: 0, gap: '10px' }}>
-            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+            <div className="form-group" style={{ flex: 1, marginBottom: 0, position: 'relative' }} ref={provinceDropdownRef}>
               <label className="form-label" style={{ fontSize: '11px', color: 'var(--text3)' }}>Tỉnh / Thành phố mới</label>
-              <select
+              
+              <input
+                type="text"
                 className="form-control"
-                value={province}
-                onChange={handleProvinceChange}
-              >
-                <option value="">-- Chọn Tỉnh --</option>
-                {postMergerProvinces.map(p => {
-                  const displayProvince = `${p.code} - ${p.name}`;
-                  return (
-                    <option key={p.code} value={displayProvince} data-code={p.code}>{displayProvince}</option>
-                  );
-                })}
-              </select>
+                placeholder="Gõ để tìm kiếm Tỉnh..."
+                value={searchProvinceQuery}
+                onChange={(e) => {
+                  setSearchProvinceQuery(e.target.value);
+                  setProvinceDropdownOpen(true);
+                  if (e.target.value === '') {
+                    onChangeProvince('');
+                    setSelectedProvinceCode('');
+                    onChangeWard('');
+                    setWards([]);
+                  }
+                }}
+                onFocus={() => setProvinceDropdownOpen(true)}
+              />
+
+              {provinceDropdownOpen && filteredProvinces.length > 0 && (
+                <ul style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  zIndex: 1000,
+                  background: 'var(--modal-bg, #fff)',
+                  border: '1px solid var(--border, #e2e8f0)',
+                  borderRadius: '6px',
+                  maxHeight: '180px',
+                  overflowY: 'auto',
+                  padding: '4px 0',
+                  margin: '4px 0 0 0',
+                  listStyle: 'none',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                }}>
+                  {filteredProvinces.map(p => {
+                    const displayProvince = `${p.code} - ${p.name}`;
+                    return (
+                      <li
+                        key={p.code}
+                        onClick={() => {
+                          selectProvinceDirectly(p.name, p.code);
+                          setSearchProvinceQuery(displayProvince);
+                          setProvinceDropdownOpen(false);
+                        }}
+                        style={{
+                          padding: '8px 12px',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          background: displayProvince === province ? 'var(--primary-light, #ede9fe)' : 'transparent',
+                          color: displayProvince === province ? 'var(--primary, #7c3aed)' : 'inherit',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (displayProvince !== province) e.currentTarget.style.background = 'var(--hover-bg, #f3f4f6)';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (displayProvince !== province) e.currentTarget.style.background = 'transparent';
+                        }}
+                      >
+                        {displayProvince}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
             <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
               <label className="form-label" style={{ fontSize: '11px', color: 'var(--text3)' }}>Phường / Xã / Đặc khu mới</label>

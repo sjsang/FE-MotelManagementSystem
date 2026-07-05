@@ -1,28 +1,45 @@
 export function exportBookingsToExcel(bookings, customers) {
-  // 1. Tạo bản đồ tra cứu cccd/passport của khách hàng để tối ưu hiệu năng tìm kiếm
-  const customerMap = {};
+  // 1. Tạo bản đồ tra cứu khách hàng theo _id, cccd và passport để tối ưu hiệu năng
+  const customerMapById = {};
+  const customerMapByCard = {};
+  
   customers.forEach(c => {
-    if (c.cccd) customerMap[c.cccd] = c;
-    if (c.passport) customerMap[c.passport] = c;
+    if (c._id) customerMapById[c._id] = c;
+    if (c.cccd) customerMapByCard[c.cccd] = c;
+    if (c.passport) customerMapByCard[c.passport] = c;
   });
 
   // 2. Lọc các booking và giải nén danh sách khách người Việt Nam
   const rows = [];
   bookings.forEach(b => {
-    if (!b.guestId) return;
-    // booking.guestId là danh sách CCCD/Hộ chiếu ngăn cách bởi dấu phẩy
-    const guestIds = b.guestId.split(',').map(s => s.trim());
+    // Ưu tiên dùng guestCustomerId mới để tra cứu chính xác bằng MongoDB ID
+    const guestCustIds = b.guestCustomerId ? b.guestCustomerId.split(',').map(s => s.trim()) : [];
+    
+    if (guestCustIds.length > 0) {
+      guestCustIds.forEach(cid => {
+        const cust = customerMapById[cid];
+        if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam')) {
+          rows.push({
+            booking: b,
+            customer: cust
+          });
+        }
+      });
+    } else {
+      // Fallback cho dữ liệu cũ (tra cứu bằng CCCD/Passport)
+      if (!b.guestId) return;
+      const guestIds = b.guestId.split(',').map(s => s.trim());
 
-    guestIds.forEach(gid => {
-      const cust = customerMap[gid];
-      // Hiện tại chỉ xuất các khách có quốc tịch Việt Nam
-      if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam')) {
-        rows.push({
-          booking: b,
-          customer: cust
-        });
-      }
-    });
+      guestIds.forEach(gid => {
+        const cust = customerMapByCard[gid];
+        if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam')) {
+          rows.push({
+            booking: b,
+            customer: cust
+          });
+        }
+      });
+    }
   });
 
   // 3. Thiết lập mã HTML giả lập Excel XML có cấu trúc chuẩn giống mẫu
@@ -128,6 +145,15 @@ export function exportBookingsToExcel(bookings, customers) {
     // Địa chỉ Trước sáp nhập
     let thuongTruVal = cust.thuongtrucu || cust.thuongtru || '';
     let diaChiChiTietVal = cust.diachichitietcu || cust.diachichitiet || '';
+
+    // LOGIC TỰ ĐỘNG PHÂN TÁCH: Nếu địa chỉ chi tiết trống nhưng địa chỉ thường trú chứa chuỗi gộp (từ 4 phần trở lên)
+    if (!diaChiChiTietVal.trim() && thuongTruVal.includes(',')) {
+      const parts = thuongTruVal.split(',').map(s => s.trim());
+      if (parts.length >= 4) {
+        diaChiChiTietVal = parts[0]; // Phần đầu tiên (Số nhà/Khu phố) đưa vào Địa chỉ chi tiết
+        thuongTruVal = parts.slice(1).join(', '); // Phần còn lại đưa vào Địa chỉ thường trú
+      }
+    }
 
     // Địa chỉ Sau sáp nhập (Tỉnh thành mới, Phường xã mới, Chi tiết mới)
     let tinhThanhMoiVal = '';
@@ -369,6 +395,15 @@ export function exportLuutruToExcel(bookings, customers) {
     // Địa chỉ Trước sáp nhập
     let thuongTruVal = cust.thuongtrucu || cust.thuongtru || '';
     let diaChiChiTietVal = cust.diachichitietcu || cust.diachichitiet || '';
+
+    // LOGIC TỰ ĐỘNG PHÂN TÁCH: Nếu địa chỉ chi tiết trống nhưng địa chỉ thường trú chứa chuỗi gộp (từ 4 phần trở lên)
+    if (!diaChiChiTietVal.trim() && thuongTruVal.includes(',')) {
+      const parts = thuongTruVal.split(',').map(s => s.trim());
+      if (parts.length >= 4) {
+        diaChiChiTietVal = parts[0]; // Phần đầu tiên (Số nhà/Khu phố) đưa vào Địa chỉ chi tiết
+        thuongTruVal = parts.slice(1).join(', '); // Phần còn lại đưa vào Địa chỉ thường trú
+      }
+    }
 
     // Địa chỉ Sau sáp nhập (Tỉnh thành mới, Phường xã mới, Chi tiết mới)
     let tinhThanhMoiVal = '';
