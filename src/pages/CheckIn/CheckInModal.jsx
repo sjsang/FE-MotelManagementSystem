@@ -16,6 +16,104 @@ const BOOKING_TYPES = [
   { value: "fullday", label: "Ngày đêm (24h)" },
 ];
 
+function ScrollableDropdown({ value, onChange, options }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const ITEM_HEIGHT = 34;
+  const VISIBLE_ROWS = 7;
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        className="form-control"
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          cursor: "pointer",
+          textAlign: "left",
+          background: "var(--input-bg, #fff)",
+        }}
+      >
+        <span>{value}</span>
+        <span style={{ fontSize: 10, opacity: 0.5 }}>{open ? "▲" : "▼"}</span>
+      </button>
+
+      {open && (
+        <ul
+          style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            right: 0,
+            zIndex: 9999,
+            margin: 0,
+            padding: "4px 0",
+            listStyle: "none",
+            background: "var(--modal-bg, #fff)",
+            border: "1px solid var(--border, #e2e8f0)",
+            borderRadius: 8,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+            maxHeight: ITEM_HEIGHT * VISIBLE_ROWS + 8,
+            overflowY: "auto",
+          }}
+        >
+          {options.map((opt) => (
+            <li
+              key={opt}
+              onClick={() => {
+                onChange(opt);
+                setOpen(false);
+              }}
+              style={{
+                height: ITEM_HEIGHT,
+                lineHeight: ITEM_HEIGHT + "px",
+                padding: "0 12px",
+                cursor: "pointer",
+                fontSize: 13,
+                background: opt === value ? "var(--primary-light, #ede9fe)" : "transparent",
+                color: opt === value ? "var(--primary, #7c3aed)" : "inherit",
+                fontWeight: opt === value ? 600 : 400,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+              onMouseEnter={(e) => {
+                if (opt !== value) e.currentTarget.style.background = "var(--hover-bg, #f3f4f6)";
+              }}
+              onMouseLeave={(e) => {
+                if (opt !== value) e.currentTarget.style.background = "transparent";
+              }}
+            >
+              {opt}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+const LY_DO_CU_TRU_OPTIONS = [
+  "1 - Du lịch", "2 - Công tác", "3 - Học tập", "4 - Thăm viếng",
+  "5 - Hội nghị", "6 - Thăm thân", "7 - Từ thiện", "8 - Tổ chức quốc tế",
+  "9 - Kết hôn", "10 - Lãnh sự quán", "11 - Viện trợ", "12 - Đại sứ quán",
+  "13 - Định cư", "14 - Tiếp thị", "15 - Báo chí, phóng viên",
+  "16 - Thương mại", "17 - Gia hạn thị thực", "18 - Chữa bệnh",
+  "19 - Lao động", "20 - Mục đích khác",
+];
+
 export default function CheckInModal({
   room,
   priceConfig,
@@ -37,20 +135,12 @@ export default function CheckInModal({
     visaTypes: [],
   });
   const [checkedInIds, setCheckedInIds] = useState(new Set());
+  const [checkedInCustomerIds, setCheckedInCustomerIds] = useState(new Set());
+  const [checkedInNames, setCheckedInNames] = useState(new Set());
 
   const guestsContainerRef = useRef(null);
 
-  // Tự động cuộn xuống dưới cùng khi thêm khách mới vào phòng
-  useEffect(() => {
-    if (selectedGuests.length > 1 && guestsContainerRef.current) {
-      setTimeout(() => {
-        if (guestsContainerRef.current) {
-          guestsContainerRef.current.scrollTop =
-            guestsContainerRef.current.scrollHeight;
-        }
-      }, 50);
-    }
-  }, [selectedGuests.length]);
+
 
   const [form, setForm] = useState({
     bookingType: "hourly",
@@ -80,13 +170,15 @@ export default function CheckInModal({
         console.error("Không thể tải danh sách khách hàng:", err);
       });
 
-    // Lấy danh sách CCCD/hộ chiếu đang check-in để ngăn check-in 2 phòng
+    // Lấy danh sách CCCD/hộ chiếu, ID và họ tên đang check-in để ngăn check-in 2 phòng
     getBookings({ status: "active", limit: "none" })
       .then((res) => {
         const bookingsList = Array.isArray(res.data)
           ? res.data
           : res.data?.data || [];
         const ids = new Set();
+        const customerIds = new Set();
+        const names = new Set();
         bookingsList.forEach((b) => {
           if (b.guestId) {
             b.guestId.split(",").forEach((id) => {
@@ -94,10 +186,24 @@ export default function CheckInModal({
               if (trimmed) ids.add(trimmed);
             });
           }
+          if (b.guestCustomerId) {
+            b.guestCustomerId.split(",").forEach((cid) => {
+              const trimmed = cid.trim();
+              if (trimmed) customerIds.add(trimmed);
+            });
+          }
+          if (b.guestName) {
+            b.guestName.split(",").forEach((name) => {
+              const trimmed = name.trim().toLowerCase();
+              if (trimmed) names.add(trimmed);
+            });
+          }
         });
         setCheckedInIds(ids);
+        setCheckedInCustomerIds(customerIds);
+        setCheckedInNames(names);
       })
-      .catch(() => {});
+      .catch(() => { });
 
     getCustomerOptions()
       .then((res) => {
@@ -105,7 +211,7 @@ export default function CheckInModal({
           res.data || { nationalities: [], provinces: [], visaTypes: [] }
         );
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Hàm lazy load: gọi khi người dùng cuộn xuống cuối dropdown
@@ -179,10 +285,10 @@ export default function CheckInModal({
       const newCustomer = newId
         ? updatedList.find((c) => c._id === newId)
         : updatedList.find(
-            (c) =>
-              (payload.cccd && c.cccd === payload.cccd) ||
-              (payload.passport && c.passport === payload.passport)
-          );
+          (c) =>
+            (payload.cccd && c.cccd === payload.cccd) ||
+            (payload.passport && c.passport === payload.passport)
+        );
       if (newCustomer) {
         setSelectedGuests((prev) => {
           const updated = [...prev];
@@ -218,13 +324,16 @@ export default function CheckInModal({
     const guestNames = activeGuests.map((g) => g.hoten).join(", ");
     const guestIds = activeGuests
       .map((g) => g.cccd || g.passport || "")
-      .filter((id) => id !== "")
+      .join(", ");
+    const guestCustIds = activeGuests
+      .map((g) => g._id || "")
       .join(", ");
 
     await onSubmit({
       ...form,
       guestName: guestNames,
       guestId: guestIds,
+      guestCustomerId: guestCustIds,
       guestPhone: "",
       roomNumber: room.roomNumber,
     });
@@ -281,58 +390,97 @@ export default function CheckInModal({
           >
             {/* Vùng chọn danh sách khách hàng */}
             <div style={{ marginBottom: "14px" }}>
-              {selectedGuests.map((guest, idx) => (
-                <SearchableCustomerSelect
-                  key={idx}
-                  label={
-                    idx === 0
-                      ? "Khách hàng chính *"
-                      : `Khách hàng thứ ${idx + 1}`
-                  }
-                  customers={customers.filter((c) => {
-                    // Ẩn khách đang check-in ở phòng khác
-                    const id = c.cccd || c.passport || "";
-                    return !id || !checkedInIds.has(id);
-                  })}
-                  selectedCustomer={guest}
-                  onSelect={(c) => {
-                    setSelectedGuests((prev) => {
-                      const updated = [...prev];
-                      updated[idx] = c;
-                      return updated;
-                    });
-                  }}
-                  onClear={() => {
-                    if (idx === 0) {
+              {selectedGuests.map((guest, idx) =>
+                idx === 0 ? (
+                  <SearchableCustomerSelect
+                    key={idx}
+                    label="Khách hàng chính *"
+                    customers={customers.filter((c) => {
+                      const id = c.cccd || c.passport || "";
+                      const cid = c._id;
+
+                      if (cid && checkedInCustomerIds.has(cid)) return false;
+                      if (id && checkedInIds.has(id)) return false;
+
+                      return true;
+                    })}
+                    selectedCustomer={guest}
+                    onSelect={(c) => {
+                      setSelectedGuests((prev) => {
+                        const updated = [...prev];
+                        updated[idx] = c;
+                        return updated;
+                      });
+                    }}
+                    onClear={() => {
                       setSelectedGuests((prev) => {
                         const updated = [...prev];
                         updated[0] = null;
                         return updated;
                       });
-                    } else {
-                      setSelectedGuests((prev) =>
-                        prev.filter((_, i) => i !== idx)
-                      );
-                    }
-                  }}
-                  onEditClick={(customer) => setEditingCustomer(customer)}
-                  excludeIds={selectedGuests
-                    .filter((g, i) => g !== null && i !== idx)
-                    .map((g) => g._id)}
-                  onAddDirectClick={() => {
-                    setAddingForIndex(idx);
-                    setShowAddCustomerModal(true);
-                  }}
-                  onLoadMore={loadMoreCustomers}
-                  hasMore={hasMoreCustomers}
-                  loadingMore={loadingMoreCustomers}
-                  dropdownAlign="down"
-                />
-              ))}
+                    }}
+                    onEditClick={(customer) => setEditingCustomer(customer)}
+                    excludeIds={selectedGuests
+                      .filter((g, i) => g !== null && i !== idx)
+                      .map((g) => g._id)}
+                    onAddDirectClick={() => {
+                      setAddingForIndex(idx);
+                      setShowAddCustomerModal(true);
+                    }}
+                    onLoadMore={loadMoreCustomers}
+                    hasMore={hasMoreCustomers}
+                    loadingMore={loadingMoreCustomers}
+                    dropdownAlign="down"
+                  />
+                ) : (
+                  <div key={idx} style={{ position: "relative" }}>
+                    {/* Nút Hủy slot trống */}
+                    <SearchableCustomerSelect
+                      label={`Khách hàng thứ ${idx + 1}`}
+                      customers={customers.filter((c) => {
+                        const id = c.cccd || c.passport || "";
+                        const cid = c._id;
+
+                        if (cid && checkedInCustomerIds.has(cid)) return false;
+                        if (id && checkedInIds.has(id)) return false;
+
+                        return true;
+                      })}
+                      selectedCustomer={guest}
+                      onSelect={(c) => {
+                        setSelectedGuests((prev) => {
+                          const updated = [...prev];
+                          updated[idx] = c;
+                          return updated;
+                        });
+                      }}
+                      onClear={() => {
+                        setSelectedGuests((prev) =>
+                          prev.filter((_, i) => i !== idx)
+                        );
+                      }}
+                      onEditClick={(customer) => setEditingCustomer(customer)}
+                      excludeIds={selectedGuests
+                        .filter((g, i) => g !== null && i !== idx)
+                        .map((g) => g._id)}
+                      onAddDirectClick={() => {
+                        setAddingForIndex(idx);
+                        setShowAddCustomerModal(true);
+                      }}
+                      onLoadMore={loadMoreCustomers}
+                      hasMore={hasMoreCustomers}
+                      loadingMore={loadingMoreCustomers}
+                      dropdownAlign="down"
+                    />
+                  </div>
+
+                )
+              )}
             </div>
 
-            {/* Nút thêm khách vào phòng */}
-            <div style={{ marginBottom: 14 }}>
+
+            {/* Nút thêm khách + Hủy trên cùng một hàng */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"
@@ -347,6 +495,18 @@ export default function CheckInModal({
               >
                 ➕ Thêm khách vào phòng
               </button>
+              {selectedGuests.length > 1 && selectedGuests[selectedGuests.length - 1] === null && (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() =>
+                    setSelectedGuests((prev) => prev.slice(0, -1))
+                  }
+                  style={{ padding: "4px 12px", fontSize: 13 }}
+                >
+                  Hủy
+                </button>
+              )}
             </div>
 
             <div className="input-row" style={{ marginTop: 14 }}>
@@ -385,52 +545,19 @@ export default function CheckInModal({
               </div>
             </div>
 
-            <PricingPanel
-              priceConfig={priceConfig}
-              roomType={room.type}
-              shift={form.shift}
-              bookingType={form.bookingType}
-            />
-
-            {/* Lý do cư trú */}
+            {/* Lý do cư trú — đặt trước Tính tiền để dropdown có chỗ sổ xuống */}
             <div className="form-group">
               <label className="form-label">Lý do cư trú</label>
-              <select
-                className="form-control"
+              <ScrollableDropdown
                 value={form.lydocutru}
-                onChange={(e) => {
-                  const val = e.target.value;
+                options={LY_DO_CU_TRU_OPTIONS}
+                onChange={(val) => {
                   set("lydocutru", val);
                   if (val !== "20 - Mục đích khác") {
                     set("nhaplydo", "");
                   }
                 }}
-              >
-                <option value="1 - Du lịch">1 - Du lịch</option>
-                <option value="2 - Công tác">2 - Công tác</option>
-                <option value="3 - Học tập">3 - Học tập</option>
-                <option value="4 - Thăm viếng">4 - Thăm viếng</option>
-                <option value="5 - Hội nghị">5 - Hội nghị</option>
-                <option value="6 - Thăm thân">6 - Thăm thân</option>
-                <option value="7 - Từ thiện">7 - Từ thiện</option>
-                <option value="8 - Tổ chức quốc tế">8 - Tổ chức quốc tế</option>
-                <option value="9 - Kết hôn">9 - Kết hôn</option>
-                <option value="10 - Lãnh sự quán">10 - Lãnh sự quán</option>
-                <option value="11 - Viện trợ">11 - Viện trợ</option>
-                <option value="12 - Đại sứ quán">12 - Đại sứ quán</option>
-                <option value="13 - Định cư">13 - Định cư</option>
-                <option value="14 - Tiếp thị">14 - Tiếp thị</option>
-                <option value="15 - Báo chí, phóng viên">
-                  15 - Báo chí, phóng viên
-                </option>
-                <option value="16 - Thương mại">16 - Thương mại</option>
-                <option value="17 - Gia hạn thị thực">
-                  17 - Gia hạn thị thực
-                </option>
-                <option value="18 - Chữa bệnh">18 - Chữa bệnh</option>
-                <option value="19 - Lao động">19 - Lao động</option>
-                <option value="20 - Mục đích khác">20 - Mục đích khác</option>
-              </select>
+              />
             </div>
 
             {form.lydocutru === "20 - Mục đích khác" && (
@@ -445,7 +572,14 @@ export default function CheckInModal({
               </div>
             )}
 
-            {/* Tạm ứng */}
+            <PricingPanel
+              priceConfig={priceConfig}
+              roomType={room.type}
+              shift={form.shift}
+              bookingType={form.bookingType}
+            />
+
+
             <div className="form-group">
               <label className="form-label">Tạm ứng (đ)</label>
               <input
@@ -524,7 +658,7 @@ export default function CheckInModal({
                 prev.map((g) =>
                   g && g._id === editingCustomer._id
                     ? updatedList.find((c) => c._id === editingCustomer._id) ||
-                      g
+                    g
                     : g
                 )
               );

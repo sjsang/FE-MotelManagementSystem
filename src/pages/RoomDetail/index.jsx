@@ -32,11 +32,19 @@ export default function RoomDetailModal({
   const [tab, setTab] = useState("checkout");
   const [createdInvoice, setCreatedInvoice] = useState(null);
   const [showConfirmCheckout, setShowConfirmCheckout] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const [discount, setDiscount] = useState(0);
   const [taxInput, setTaxInput] = useState("");
   const [taxType, setTaxType] = useState("vnd");
   const [depositOverride, setDepositOverride] = useState(booking?.deposit || 0);
+
+  const [savedDraft, setSavedDraft] = useState({
+    discount: 0,
+    taxType: "vnd",
+    taxInput: "",
+    depositOverride: 0,
+  });
 
   const previewIntervalRef = useRef(null);
   const [preview, setPreview] = useState(null);
@@ -70,8 +78,28 @@ export default function RoomDetailModal({
     setPendingServices([]);
     setElapsed(calcElapsed(room.currentBooking?.checkIn));
     setTab("checkout");
-    setDepositOverride(room.currentBooking?.deposit || 0);
-  }, [currentBookingId]);
+
+    let draft = null;
+    try {
+      draft = JSON.parse(localStorage.getItem(`checkout-draft-${currentBookingId}`));
+    } catch { }
+
+    const initDiscount = draft?.discount ?? 0;
+    const initTaxType = draft?.taxType ?? "vnd";
+    const initTaxInput = draft?.taxInput ?? "";
+    const initDepositOverride = draft?.depositOverride ?? (room.currentBooking?.deposit || 0);
+
+    setDiscount(initDiscount);
+    setTaxType(initTaxType);
+    setTaxInput(initTaxInput);
+    setDepositOverride(initDepositOverride);
+    setSavedDraft({
+      discount: initDiscount,
+      taxType: initTaxType,
+      taxInput: initTaxInput,
+      depositOverride: initDepositOverride,
+    });
+  }, [currentBookingId, room.currentBooking]);
 
   useEffect(() => {
     const t = setInterval(
@@ -81,6 +109,26 @@ export default function RoomDetailModal({
     return () => clearInterval(t);
   }, [booking?.checkIn]);
 
+  const isCheckoutDirty =
+    discount !== savedDraft.discount ||
+    taxType !== savedDraft.taxType ||
+    taxInput !== savedDraft.taxInput ||
+    depositOverride !== savedDraft.depositOverride;
+
+  const handleCloseAttempt = () => {
+    if (isCheckoutDirty) {
+      setShowExitConfirm(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleSaveCheckoutDraft = () => {
+    const draftData = { discount, taxType, taxInput, depositOverride };
+    localStorage.setItem(`checkout-draft-${currentBookingId}`, JSON.stringify(draftData));
+    setSavedDraft(draftData);
+    if (addToast) addToast("Đã lưu thay đổi thành công");
+  };
   // --- Calculations ---
   const savedServices = booking?.services || [];
   const serviceTotal = savedServices.reduce(
@@ -93,8 +141,8 @@ export default function RoomDetailModal({
   const taxVnd =
     taxType === "percent"
       ? Math.round(
-          Math.max(0, previewTotal - discount) * (Number(taxInput || 0) / 100)
-        )
+        Math.max(0, previewTotal - discount) * (Number(taxInput || 0) / 100)
+      )
       : Number(taxInput || 0);
 
   const payableAmount = previewTotal - discount + taxVnd;
@@ -286,7 +334,10 @@ export default function RoomDetailModal({
         taxVnd,
         depositOverride
       );
-      if (invoiceData) setCreatedInvoice(invoiceData);
+      if (invoiceData) {
+        setCreatedInvoice(invoiceData);
+        localStorage.removeItem(`checkout-draft-${booking._id}`);
+      }
     } catch {
       addToast("Lỗi check-out", "error");
     } finally {
@@ -324,7 +375,7 @@ export default function RoomDetailModal({
   return (
     <div
       className="modal-overlay"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+      onClick={(e) => e.target === e.currentTarget && handleCloseAttempt()}
     >
       <div className="modal" style={{ maxWidth: 760, width: "94%" }}>
         <div className="modal-header">
@@ -336,7 +387,7 @@ export default function RoomDetailModal({
               Check-in: {formatTime(booking.checkIn)} • Đã ở: {elapsed.text}
             </div>
           </div>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={handleCloseAttempt}>
             ✕
           </button>
         </div>
@@ -385,7 +436,27 @@ export default function RoomDetailModal({
             overflowY: "auto",
           }}
         >
-          {tab === "info" && <TabInfo booking={booking} />}
+          {tab === "info" && (
+            <TabInfo
+              booking={booking}
+              addToast={addToast}
+              onUpdateBooking={async (updatedFields) => {
+                try {
+                  const res = await updateBooking(booking._id, {
+                    ...updatedFields,
+                    is_reported: false,
+                    reported: null,
+                    reported_by: "",
+                  });
+                  setBooking(res.data);
+                  if (onRefresh) onRefresh();
+                } catch (err) {
+                  console.error("Lỗi khi cập nhật khách lưu trú:", err);
+                  addToast("Lỗi khi cập nhật khách lưu trú", "error");
+                }
+              }}
+            />
+          )}
 
           {tab === "services" && (
             <TabServices
@@ -429,10 +500,32 @@ export default function RoomDetailModal({
         </div>
 
         <div className="modal-footer">
-          <button className="btn btn-ghost" onClick={onClose}>
+          <style>
+            {`
+              @keyframes buttonPop {
+                0% { transform: scale(0.8); opacity: 0; }
+                50% { transform: scale(1.2); opacity: 1; }
+                100% { transform: scale(1); opacity: 1; }
+              }
+            `}
+          </style>
+
+          {isCheckoutDirty && (
+            <button
+              className="btn mr-2 bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600 hover:border-emerald-600 transition-colors duration-200"
+              onClick={handleSaveCheckoutDraft}
+              style={{
+                animation: "buttonPop 0.3s ease-out forwards",
+              }}
+            >
+              Lưu
+            </button>
+          )}
+
+          <button className="btn btn-ghost" onClick={handleCloseAttempt}>
             Đóng
           </button>
-          {onChangeRoom && (
+          {tab !== "checkout" && onChangeRoom && (
             <button
               className="btn"
               onClick={onChangeRoom}
@@ -447,7 +540,20 @@ export default function RoomDetailModal({
             </button>
           )}
 
-          {!booking.is_reported ? (
+          {tab !== "checkout" && booking.is_reported ? (
+            <button
+              className="btn"
+              style={{
+                background: "rgba(239,68,68,0.15)",
+                color: "#f87171",
+                border: "1px solid rgba(239,68,68,0.3)",
+                fontWeight: 600,
+              }}
+              onClick={() => setTab("checkout")}
+            >
+              Chuyển sang Check-out →
+            </button>
+          ) : !booking.is_reported ? (
             <button
               className="btn btn-success"
               onClick={handleReport}
@@ -600,6 +706,73 @@ export default function RoomDetailModal({
             onClose();
           }}
         />
+      )}
+
+      {showExitConfirm && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.75)",
+            backdropFilter: "blur(3px)",
+            zIndex: 10000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              background: "#ffffff",
+              padding: 24,
+              borderRadius: 12,
+              width: "360px",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.45)",
+              color: "#333333",
+            }}
+          >
+            <h4 style={{ margin: "0 0 12px 0", fontSize: 16, fontWeight: 600 }}>
+              Bạn có chắc muốn thoát mà không lưu?
+            </h4>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+              <button
+                onClick={() => setShowExitConfirm(false)}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: 8,
+                  background: "#f3f4f6",
+                  border: "1px solid #d1d5db",
+                  color: "#374151",
+                  cursor: "pointer",
+                  fontSize: 13,
+                }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => {
+                  setShowExitConfirm(false);
+                  onClose();
+                }}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: 8,
+                  background: "#ef4444",
+                  border: "none",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  fontWeight: 500,
+                }}
+              >
+                Thoát
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
