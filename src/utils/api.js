@@ -100,3 +100,11 @@ export const exportReportBCA = (params) =>
     params,
     responseType: 'blob', // Rất quan trọng để tải được file Excel về
   });
+
+// Inventory Management (Kho dịch vụ)
+export const getInventoryStock = () => api.get('/inventory/stock');
+export const updateInventoryStock = (serviceId, data) => api.put(`/inventory/stock/${serviceId}`, data);
+export const createImportSlip = (data) => api.post('/inventory/import', data);
+export const createExportSlip = (data) => api.post('/inventory/export', data);
+export const getInventorySlips = (params) => api.get('/inventory/slips', { params });
+export const exportInventoryExcel = () => api.get('/inventory/export-excel', { responseType: 'blob' });

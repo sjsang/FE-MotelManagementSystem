@@ -40,6 +40,7 @@ import ReceiptIcon from "@mui/icons-material/Receipt";
 import PriceChangeIcon from "@mui/icons-material/PriceChange";
 import PeopleIcon from "@mui/icons-material/People";
 import AssessmentIcon from "@mui/icons-material/Assessment";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import EastIcon from "@mui/icons-material/East";
@@ -47,6 +48,7 @@ import EastIcon from "@mui/icons-material/East";
 import InvoiceHistory from "./pages/Invoice/InvoiceHistory";
 import ReportPage from "./pages/Report";
 import ReportSubSidebar from "./components/ReportSubSidebar";
+import ServiceInventory from "./pages/ServiceInventory";
 
 const FIRST_REPORT_PATH = "/reports/revenue";
 
@@ -116,6 +118,7 @@ function AppLayout({ handleLogout }) {
     { label: "QUẢN LÝ", isSection: true },
     { label: "Quản lý phòng", icon: <MeetingRoomIcon />, path: "/rooms" },
     { label: "Bảng giá", icon: <PriceChangeIcon />, path: "/prices" },
+    { label: "Kho dịch vụ", icon: <Inventory2Icon />, path: "/inventory" },
     { label: "Khách lưu trú", icon: <PeopleIcon />, path: "/customers" },
     { label: "Hóa đơn", icon: <ReceiptIcon />, path: "/invoices" },
 
@@ -438,6 +441,7 @@ function AppLayout({ handleLogout }) {
           <Route path="/" element={<RoomMap />} />
           <Route path="/rooms" element={<RoomManagement />} />
           <Route path="/prices" element={<PriceManagement />} />
+          <Route path="/inventory" element={<ServiceInventory />} />
           <Route path="/customers" element={<CustomerManagement />} />
           <Route path="/invoices" element={<InvoiceHistory />} />
           <Route path="/reports/revenue" element={<ReportPage />} />
