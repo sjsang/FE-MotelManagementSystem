@@ -721,6 +721,13 @@ export default function RoomMap() {
   const [showPricing, setShowPricing] = useState(false);
   const [changeRoomModal, setChangeRoomModal] = useState(false);
   const [changeRoomLoading, setChangeRoomLoading] = useState(false);
+  const loadPriceConfig = useCallback(async () => {
+    try {
+      const r = await getActivePrice();
+      setPriceConfig(r.data);
+    } catch (e) {}
+  }, []);
+
   const loadRooms = useCallback(async () => {
     try {
       const res = await getRooms();
@@ -735,14 +742,16 @@ export default function RoomMap() {
     }
   }, [addToast]);
 
-  useEffect(() => {
+  const refreshAll = useCallback(() => {
     loadRooms();
-    getActivePrice()
-      .then((r) => setPriceConfig(r.data))
-      .catch(() => { });
+    loadPriceConfig();
+  }, [loadRooms, loadPriceConfig]);
+
+  useEffect(() => {
+    refreshAll();
     const interval = setInterval(loadRooms, 30000);
     return () => clearInterval(interval);
-  }, [loadRooms]);
+  }, [refreshAll, loadRooms]);
 
   const handleRoomClick = (room) => {
     setSelectedRoom(room);
@@ -893,7 +902,7 @@ export default function RoomMap() {
           priceConfig={priceConfig}
           onClose={() => setModal(null)}
           onCheckOut={handleCheckOut}
-          onRefresh={loadRooms}
+          onRefresh={refreshAll}
           addToast={addToast}
           onChangeRoom={handleOpenChangeRoom}
         />

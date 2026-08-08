@@ -88,15 +88,15 @@ function AppLayout({ handleLogout }) {
   const currentSidebarWidth = isMobile
     ? SIDEBAR_FULL
     : collapsed
-    ? SIDEBAR_RAIL
-    : SIDEBAR_FULL;
+      ? SIDEBAR_RAIL
+      : SIDEBAR_FULL;
 
   const toggleCollapse = () => {
     setCollapsed((v) => {
       const next = !v;
       try {
         localStorage.setItem("main-sidebar-collapsed", String(next));
-      } catch {}
+      } catch { }
       return next;
     });
   };
@@ -118,7 +118,7 @@ function AppLayout({ handleLogout }) {
     { label: "QUẢN LÝ", isSection: true },
     { label: "Quản lý phòng", icon: <MeetingRoomIcon />, path: "/rooms" },
     { label: "Bảng giá", icon: <PriceChangeIcon />, path: "/prices" },
-    { label: "Kho dịch vụ", icon: <Inventory2Icon />, path: "/inventory" },
+    { label: "Kho", icon: <Inventory2Icon />, path: "/inventory" },
     { label: "Khách lưu trú", icon: <PeopleIcon />, path: "/customers" },
     { label: "Hóa đơn", icon: <ReceiptIcon />, path: "/invoices" },
 
@@ -223,8 +223,8 @@ function AppLayout({ handleLogout }) {
             item.activeCheck !== undefined
               ? item.activeCheck
               : item.exact
-              ? location.pathname === item.path
-              : location.pathname.startsWith(item.path);
+                ? location.pathname === item.path
+                : location.pathname.startsWith(item.path);
 
           return (
             <Tooltip

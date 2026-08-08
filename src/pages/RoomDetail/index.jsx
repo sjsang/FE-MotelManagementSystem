@@ -115,11 +115,14 @@ export default function RoomDetailModal({
     const limit = getStockLimit(svc.name);
     const existsInPending = pendingServices.find((s) => s.name === svc.name);
     const pendingQty = existsInPending ? Number(existsInPending.quantity) || 0 : 0;
+    const remaining = Math.max(0, limit - pendingQty);
 
     if (pendingQty + 1 > limit) {
       if (addToast) {
         addToast(
-          `⚠️ Dịch vụ "${svc.name}" chỉ còn tồn kho ${limit} ${svc.unit || 'cái'}, không đủ để chọn thêm!`,
+          remaining === 0
+            ? `⚠️ Dịch vụ "${svc.name}" hiện đã hết hàng trong kho, không thể chọn thêm!`
+            : `⚠️ Dịch vụ "${svc.name}" chỉ còn tồn kho ${remaining} ${svc.unit || 'cái'}, không đủ để chọn thêm!`,
           "error"
         );
       }
@@ -146,11 +149,14 @@ export default function RoomDetailModal({
     const limit = getStockLimit(newService.name);
     const existsInPending = pendingServices.find((s) => s.name === newService.name);
     const pendingQty = existsInPending ? Number(existsInPending.quantity) || 0 : 0;
+    const remaining = Math.max(0, limit - pendingQty);
 
     if (pendingQty + qtyToAdd > limit) {
       if (addToast) {
         addToast(
-          `⚠️ Dịch vụ "${newService.name}" chỉ còn tồn kho ${limit}, không đủ để chọn thêm!`,
+          remaining === 0
+            ? `⚠️ Dịch vụ "${newService.name}" hiện đã hết hàng trong kho, không thể chọn thêm!`
+            : `⚠️ Dịch vụ "${newService.name}" chỉ còn tồn kho ${remaining}, không đủ để chọn thêm!`,
           "error"
         );
       }
@@ -189,7 +195,7 @@ export default function RoomDetailModal({
       if (newQty > limit) {
         if (addToast) {
           addToast(
-            `⚠️ Dịch vụ "${targetService.name}" chỉ còn tồn kho ${limit}, không thể chọn thêm!`,
+            `⚠️ Dịch vụ "${targetService.name}" chỉ còn tồn kho ${limit} ${targetService.unit || 'cái'}, không thể chọn thêm!`,
             "error"
           );
         }

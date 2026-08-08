@@ -56,7 +56,9 @@ export default function TabServices({
             const pendingQty = pendingMap.get(svc.name) || 0;
             const isSelected = pendingQty > 0;
             const isTracked = svc.trackInventory !== false;
-            const isOutOfStock = isTracked && svc.quantity === 0;
+            const totalStock = svc.quantity != null ? Number(svc.quantity) : 0;
+            const remainingStock = isTracked ? Math.max(0, totalStock - pendingQty) : Infinity;
+            const isOutOfStock = isTracked && remainingStock <= 0;
 
             return (
               <button
@@ -105,7 +107,7 @@ export default function TabServices({
                       </span>
                     ) : (
                       <span style={{ fontSize: 11, color: "#64748b" }}>
-                        (Tồn: {svc.quantity})
+                        (Tồn: {remainingStock})
                       </span>
                     )
                   ) : null}
@@ -256,98 +258,116 @@ export default function TabServices({
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
-            {pendingServices.map((ps, idx) => (
-              <div
-                key={idx}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  background: "#fff",
-                  padding: "8px 12px",
-                  borderRadius: 6,
-                  border: "1px solid #e2e8f0",
-                }}
-              >
-                <div style={{ fontWeight: 600, fontSize: 14, color: "#0f172a", flex: 1 }}>
-                  {ps.name}
-                </div>
+            {pendingServices.map((ps, idx) => {
+              const matchingSvc = availableServices.find(
+                (s) => s.name.trim().toLowerCase() === ps.name.trim().toLowerCase()
+              );
+              const isTracked = matchingSvc ? matchingSvc.trackInventory !== false : false;
+              const totalStock = matchingSvc && matchingSvc.quantity != null ? Number(matchingSvc.quantity) : Infinity;
+              const isMaxReached = isTracked && ps.quantity >= totalStock;
 
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  {/* Chỉnh số lượng cho đợt mới */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      border: "1px solid #cbd5e1",
-                      borderRadius: 6,
-                      overflow: "hidden",
-                    }}
-                  >
-                    <button
-                      onClick={() => updatePendingQuantity(idx, ps.quantity - 1)}
-                      style={{
-                        width: 28,
-                        height: 28,
-                        border: "none",
-                        background: "#f1f5f9",
-                        color: "#0f172a",
-                        fontSize: 16,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                      }}
-                    >
-                      −
-                    </button>
-                    <span
-                      style={{
-                        width: 32,
-                        textAlign: "center",
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: "#0f172a",
-                      }}
-                    >
-                      {ps.quantity}
-                    </span>
-                    <button
-                      onClick={() => updatePendingQuantity(idx, ps.quantity + 1)}
-                      style={{
-                        width: 28,
-                        height: 28,
-                        border: "none",
-                        background: "#f1f5f9",
-                        color: "#0f172a",
-                        fontSize: 16,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                      }}
-                    >
-                      +
-                    </button>
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    background: "#fff",
+                    padding: "8px 12px",
+                    borderRadius: 6,
+                    border: "1px solid #e2e8f0",
+                  }}
+                >
+                  <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: "#0f172a" }}>
+                      {ps.name}
+                    </div>
+                    {isTracked && (
+                      <div style={{ fontSize: 11.5, color: "#64748b" }}>
+                        Tồn kho còn: <strong style={{ color: isMaxReached ? "#ef4444" : "#059669" }}>{Math.max(0, totalStock - ps.quantity)}</strong> {ps.unit || matchingSvc?.unit || "cái"}
+                      </div>
+                    )}
                   </div>
 
-                  <span style={{ fontSize: 13.5, fontWeight: 700, color: "#0f172a", width: 85, textAlign: "right" }}>
-                    {((ps.price || 0) * (ps.quantity || 1)).toLocaleString("vi-VN")}đ
-                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    {/* Chỉnh số lượng cho đợt mới */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        border: "1px solid #cbd5e1",
+                        borderRadius: 6,
+                        overflow: "hidden",
+                      }}
+                    >
+                      <button
+                        onClick={() => updatePendingQuantity(idx, ps.quantity - 1)}
+                        style={{
+                          width: 28,
+                          height: 28,
+                          border: "none",
+                          background: "#f1f5f9",
+                          color: "#0f172a",
+                          fontSize: 16,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        −
+                      </button>
+                      <span
+                        style={{
+                          width: 32,
+                          textAlign: "center",
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: "#0f172a",
+                        }}
+                      >
+                        {ps.quantity}
+                      </span>
+                      <button
+                        onClick={() => updatePendingQuantity(idx, ps.quantity + 1)}
+                        disabled={isMaxReached}
+                        style={{
+                          width: 28,
+                          height: 28,
+                          border: "none",
+                          background: isMaxReached ? "#e2e8f0" : "#f1f5f9",
+                          color: isMaxReached ? "#94a3b8" : "#0f172a",
+                          fontSize: 16,
+                          fontWeight: 700,
+                          cursor: isMaxReached ? "not-allowed" : "pointer",
+                        }}
+                        title={isMaxReached ? `Đã đạt giới hạn kho (${totalStock})` : "Tăng số lượng"}
+                      >
+                        +
+                      </button>
+                    </div>
 
-                  <button
-                    onClick={() => removePendingService(idx)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#ef4444",
-                      cursor: "pointer",
-                      fontSize: 16,
-                      padding: "2px 6px",
-                    }}
-                    title="Xóa món này khỏi đợt"
-                  >
-                    ✕
-                  </button>
+                    <span style={{ fontSize: 13.5, fontWeight: 700, color: "#0f172a", width: 85, textAlign: "right" }}>
+                      {((ps.price || 0) * (ps.quantity || 1)).toLocaleString("vi-VN")}đ
+                    </span>
+
+                    <button
+                      onClick={() => removePendingService(idx)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#ef4444",
+                        cursor: "pointer",
+                        fontSize: 16,
+                        padding: "2px 6px",
+                      }}
+                      title="Xóa món này khỏi đợt"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div
