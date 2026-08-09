@@ -45,6 +45,16 @@ const toLocalISOString = (d) => {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
 
+// Debounce hook - trì hoãn cập nhật giá trị cho đến khi người dùng ngừng gõ
+function useDebounce(value, delay = 350) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
+
 export default function ServiceInventory() {
   const { addToast, ToastContainer } = useToast();
   const [activeTab, setActiveTab] = useState("stock"); // 'stock' | 'slips'
@@ -53,6 +63,7 @@ export default function ServiceInventory() {
   const [stockData, setStockData] = useState({ services: [], summary: {} });
   const [stockLoading, setStockLoading] = useState(true);
   const [stockSearch, setStockSearch] = useState("");
+  const debouncedStockSearch = useDebounce(stockSearch, 350);
 
   // Slips state
   const [slips, setSlips] = useState([]);
@@ -62,6 +73,7 @@ export default function ServiceInventory() {
   const [slipFrom, setSlipFrom] = useState("");
   const [slipTo, setSlipTo] = useState("");
   const [slipSearch, setSlipSearch] = useState("");
+  const debouncedSlipSearch = useDebounce(slipSearch, 400);
 
   // Modals state
   const [showImportModal, setShowImportModal] = useState(false);
@@ -74,6 +86,7 @@ export default function ServiceInventory() {
 
   // Form State cho Phiếu Nhập Kho (bảng danh sách dịch vụ với checkbox)
   const [importSearch, setImportSearch] = useState("");
+  const debouncedImportSearch = useDebounce(importSearch, 350);
   const [importForm, setImportForm] = useState({
     date: toLocalISOString(),
     notes: "",
@@ -82,6 +95,7 @@ export default function ServiceInventory() {
 
   // Form State cho Phiếu Xuất Kho (bảng danh sách dịch vụ với checkbox)
   const [exportSearch, setExportSearch] = useState("");
+  const debouncedExportSearch = useDebounce(exportSearch, 350);
   const [exportForm, setExportForm] = useState({
     date: toLocalISOString(),
     notes: "",
@@ -110,7 +124,7 @@ export default function ServiceInventory() {
       if (slipPreset !== "all") params.preset = slipPreset;
       if (slipFrom) params.from = slipFrom;
       if (slipTo) params.to = slipTo;
-      if (slipSearch) params.search = slipSearch;
+      if (debouncedSlipSearch) params.search = debouncedSlipSearch;
 
       const res = await getInventorySlips(params);
       setSlips(res.data.slips || []);
@@ -129,7 +143,7 @@ export default function ServiceInventory() {
     if (activeTab === "slips") {
       loadSlips();
     }
-  }, [activeTab, slipTypeFilter, slipPreset, slipFrom, slipTo]);
+  }, [activeTab, slipTypeFilter, slipPreset, slipFrom, slipTo, debouncedSlipSearch]);
 
   const handleSlipSearchSubmit = (e) => {
     e.preventDefault();
@@ -310,17 +324,17 @@ export default function ServiceInventory() {
 
   // Filtered Stock Services
   const filteredServices = (stockData.services || []).filter((s) =>
-    s.name.toLowerCase().includes(stockSearch.toLowerCase().trim())
+    s.name.toLowerCase().includes(debouncedStockSearch.toLowerCase().trim())
   );
 
   // Filtered Import Items in Modal
   const filteredImportItems = importForm.items.filter((it) =>
-    it.serviceName.toLowerCase().includes(importSearch.toLowerCase().trim())
+    it.serviceName.toLowerCase().includes(debouncedImportSearch.toLowerCase().trim())
   );
 
   // Filtered Export Items in Modal
   const filteredExportItems = exportForm.items.filter((it) =>
-    it.serviceName.toLowerCase().includes(exportSearch.toLowerCase().trim())
+    it.serviceName.toLowerCase().includes(debouncedExportSearch.toLowerCase().trim())
   );
 
   // Import stats summary inside modal
@@ -639,7 +653,7 @@ export default function ServiceInventory() {
               </select>
             </div>
 
-            {/* Search Box */}
+            {/* Search Box - tự động tìm kiếm sau khi debounce (400ms), vẫn giữ nút Tìm để submit ngay */}
             <form onSubmit={handleSlipSearchSubmit} style={{ display: "flex", gap: 8 }}>
               <input
                 type="text"
