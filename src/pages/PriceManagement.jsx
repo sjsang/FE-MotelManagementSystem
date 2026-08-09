@@ -108,6 +108,7 @@ export default function PriceManagement() {
         name: newService.name.trim(),
         price: Number(newService.price),
         unit: newService.unit || "cái",
+        trackInventory: newService.trackInventory !== false,
       });
       const svc = res.data;
       const newEdited = {
@@ -133,7 +134,7 @@ export default function PriceManagement() {
         );
       }
 
-      setNewService({ name: "", price: "", unit: "cái" });
+      setNewService({ name: "", price: "", unit: "cái", trackInventory: true });
       setShowAddModal(false);
       addToast("✅ Đã thêm dịch vụ");
     } catch (e) {
@@ -640,6 +641,30 @@ export default function PriceManagement() {
                 value={svc.unit}
                 onChange={(e) => setService(i, "unit", e.target.value)}
               />
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 12.5,
+                  cursor: "pointer",
+                  userSelect: "none",
+                  color: svc.trackInventory === false ? "#f59e0b" : "#8a94a6",
+                  whiteSpace: "nowrap",
+                  padding: "0 4px",
+                }}
+                title="Tích chọn nếu dịch vụ này KHÔNG cần quản lý tồn kho (ví dụ: giặt sấy, thuê xe,...)"
+              >
+                <input
+                  type="checkbox"
+                  checked={svc.trackInventory === false}
+                  onChange={(e) =>
+                    setService(i, "trackInventory", !e.target.checked)
+                  }
+                  style={{ width: 16, height: 16, accentColor: "#f59e0b", cursor: "pointer" }}
+                />
+                Không quản lý kho
+              </label>
               <button
                 className="btn btn-sm"
                 style={{
@@ -853,10 +878,10 @@ export default function PriceManagement() {
           grid-column: span 2;
         }
 
-        /* Service row: 4 columns */
+        /* Service row: 5 columns */
         .svc-row {
           display: grid;
-          grid-template-columns: 2fr 1fr 1fr auto;
+          grid-template-columns: 2fr 1.2fr 1fr auto auto;
           gap: 10px;
           margin-bottom: 10px;
           align-items: center;

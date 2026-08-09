@@ -29,6 +29,7 @@ api.interceptors.response.use(
 
 // Auth
 export const login = (data) => api.post('/auth/login', data);
+export const register = (data) => api.post('/auth/register', data);
 export const getUserInfo = () => api.get('/auth/me');
 
 // User Accounts
@@ -42,6 +43,7 @@ export const getRooms = () => api.get('/rooms');
 export const createRoom = (data) => api.post('/rooms', data);
 export const updateRoom = (id, data) => api.put(`/rooms/${id}`, data);
 export const deleteRoom = (id) => api.delete(`/rooms/${id}`);
+
 // Bookings
 export const getBookings = (params) => api.get('/bookings', { params });
 export const getBookingById = (id) => api.get(`/bookings/${id}`); // Mới thêm
@@ -99,9 +101,16 @@ export const exportReportExcel = (params) =>
     responseType: 'blob',
   });
 
-// THÊM ĐOẠN NÀY VÀO DƯỚI CÙNG:
 export const exportReportBCA = (params) =>
   api.get('/reports/export/bca', {
     params,
     responseType: 'blob', // Rất quan trọng để tải được file Excel về
   });
+
+// Inventory Management (Kho dịch vụ)
+export const getInventoryStock = () => api.get('/inventory/stock');
+export const updateInventoryStock = (serviceId, data) => api.put(`/inventory/stock/${serviceId}`, data);
+export const createImportSlip = (data) => api.post('/inventory/import', data);
+export const createExportSlip = (data) => api.post('/inventory/export', data);
+export const getInventorySlips = (params) => api.get('/inventory/slips', { params });
+export const exportInventoryExcel = () => api.get('/inventory/export-excel', { responseType: 'blob' });
