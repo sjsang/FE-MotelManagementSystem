@@ -73,7 +73,7 @@ export default function CustomerManagement() {
   useEffect(() => {
     const timer = setTimeout(() => {
       loadData(searchQuery);
-    }, 250);
+    }, 350);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
