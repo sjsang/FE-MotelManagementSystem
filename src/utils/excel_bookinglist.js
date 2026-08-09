@@ -18,7 +18,7 @@ export function exportBookingsToExcel(bookings, customers) {
     if (guestCustIds.length > 0) {
       guestCustIds.forEach(cid => {
         const cust = customerMapById[cid];
-        if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam')) {
+        if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam') && (cust.cccd || cust.passport)) {
           rows.push({
             booking: b,
             customer: cust
@@ -32,7 +32,7 @@ export function exportBookingsToExcel(bookings, customers) {
 
       guestIds.forEach(gid => {
         const cust = customerMapByCard[gid];
-        if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam')) {
+        if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam') && (cust.cccd || cust.passport)) {
           rows.push({
             booking: b,
             customer: cust
@@ -278,7 +278,7 @@ export function exportLuutruToExcel(bookings, customers) {
     if (guestCustIds.length > 0) {
       guestCustIds.forEach(cid => {
         const cust = customerMapById[cid];
-        if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam')) {
+        if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam') && (cust.cccd || cust.passport)) {
           rows.push({
             booking: b,
             customer: cust
@@ -292,7 +292,7 @@ export function exportLuutruToExcel(bookings, customers) {
 
       guestIds.forEach(gid => {
         const cust = customerMapByCard[gid];
-        if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam')) {
+        if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam') && (cust.cccd || cust.passport)) {
           rows.push({
             booking: b,
             customer: cust

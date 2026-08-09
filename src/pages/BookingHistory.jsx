@@ -336,7 +336,7 @@ export default function BookingHistory() {
         let foundVn = false;
         for (const cid of guestCustIds) {
           const cust = customerMapById[cid];
-          if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam')) {
+          if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam') && (cust.cccd || cust.passport)) {
             hasVnGuest = true;
             foundVn = true;
             break;
@@ -349,7 +349,7 @@ export default function BookingHistory() {
           const guestIds = b.guestId.split(',').map(s => s.trim());
           for (const gid of guestIds) {
             const cust = customerMapByCard[gid];
-            if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam')) {
+            if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam') && (cust.cccd || cust.passport)) {
               hasVnGuest = true;
               foundVn = true;
               break;
