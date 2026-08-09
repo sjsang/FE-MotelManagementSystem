@@ -321,24 +321,42 @@ export default function BookingHistory() {
       }
 
       // Lọc xem có khách Việt Nam nào không trước khi xuất
-      const customerMap = {};
+      const customerMapById = {};
+      const customerMapByCard = {};
       allCustomers.forEach(c => {
-        if (c.cccd) customerMap[c.cccd] = c;
-        if (c.passport) customerMap[c.passport] = c;
+        if (c._id) customerMapById[c._id] = c;
+        if (c.cccd) customerMapByCard[c.cccd] = c;
+        if (c.passport) customerMapByCard[c.passport] = c;
       });
 
       let hasVnGuest = false;
       for (const b of allBookings) {
-        if (!b.guestId) continue;
-        const guestIds = b.guestId.split(',').map(s => s.trim());
-        for (const gid of guestIds) {
-          const cust = customerMap[gid];
-          if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam')) {
+        // 1. Kiểm tra qua guestCustomerId (MongoDB ID)
+        const guestCustIds = b.guestCustomerId ? b.guestCustomerId.split(',').map(s => s.trim()) : [];
+        let foundVn = false;
+        for (const cid of guestCustIds) {
+          const cust = customerMapById[cid];
+          if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam') && (cust.cccd || cust.passport)) {
             hasVnGuest = true;
+            foundVn = true;
             break;
           }
         }
-        if (hasVnGuest) break;
+        if (foundVn) break;
+
+        // 2. Fallback qua guestId (CCCD/Passport)
+        if (b.guestId) {
+          const guestIds = b.guestId.split(',').map(s => s.trim());
+          for (const gid of guestIds) {
+            const cust = customerMapByCard[gid];
+            if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam') && (cust.cccd || cust.passport)) {
+              hasVnGuest = true;
+              foundVn = true;
+              break;
+            }
+          }
+        }
+        if (foundVn) break;
       }
 
       if (!hasVnGuest) {
