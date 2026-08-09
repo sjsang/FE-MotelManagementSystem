@@ -202,22 +202,22 @@ export function exportBookingsToExcel(bookings, customers) {
           <td>${idx + 1}</td>
           <td style="text-align: left;">${cust.hoten}</td>
           <!-- Nếu là Nam thì xuất ngày sinh vào cột NAM, ngược lại Nữ vào cột NỮ -->
-          <td>${isNam ? dobStr : ''}</td>
-          <td>${!isNam ? dobStr : ''}</td>
+          <td style="mso-number-format:'\\@';">${isNam ? dobStr : ''}</td>
+          <td style="mso-number-format:'\\@';">${!isNam ? dobStr : ''}</td>
           <td>${cust.quoctich}</td>
           <!-- Ép định dạng Text bằng mso-number-format để không bị Excel tự động cắt mất số 0 đầu tiên -->
           <td style="mso-number-format:'\\@';">${cust.cccd || ''}</td>
-          <td>${ngayCapStr}</td>
+          <td style="mso-number-format:'\\@';">${ngayCapStr}</td>
           <td style="text-align: left;">${noiCapStr}</td>
           <td style="text-align: left;">${thuongTruVal}</td>
           <td style="text-align: left;">${diaChiChiTietVal}</td>
           <td style="text-align: left;">${tinhThanhMoiVal}</td>
           <td style="text-align: left;">${phuongXaMoiVal}</td>
           <td style="text-align: left;">${diaChiChiTietMoiVal}</td>
-          <td>${checkInTime}</td>
-          <td>${checkInDate}</td>
-          <td>${checkOutTime}</td>
-          <td>${checkOutDate}</td>
+          <td style="mso-number-format:'\\@';">${checkInTime}</td>
+          <td style="mso-number-format:'\\@';">${checkInDate}</td>
+          <td style="mso-number-format:'\\@';">${checkOutTime}</td>
+          <td style="mso-number-format:'\\@';">${checkOutDate}</td>
           <td style="font-weight: bold;">${b.roomNumber}</td>
           <td style="text-align: left;">${reporterInfo}</td>
           <td></td>
@@ -260,29 +260,46 @@ function formatExcelDate(dateStr) {
 }
 
 export function exportLuutruToExcel(bookings, customers) {
-  // 1. Tạo bản đồ tra cứu cccd/passport của khách hàng để tối ưu hiệu năng tìm kiếm
-  const customerMap = {};
+  // 1. Tạo bản đồ tra cứu khách hàng để tối ưu hiệu năng tìm kiếm
+  const customerMapById = {};
+  const customerMapByCard = {};
   customers.forEach(c => {
-    if (c.cccd) customerMap[c.cccd] = c;
-    if (c.passport) customerMap[c.passport] = c;
+    if (c._id) customerMapById[c._id] = c;
+    if (c.cccd) customerMapByCard[c.cccd] = c;
+    if (c.passport) customerMapByCard[c.passport] = c;
   });
 
   // 2. Lọc các booking và giải nén danh sách khách người Việt Nam
   const rows = [];
   bookings.forEach(b => {
-    if (!b.guestId) return;
-    const guestIds = b.guestId.split(',').map(s => s.trim());
+    // Ưu tiên dùng guestCustomerId mới để tra cứu chính xác bằng MongoDB ID
+    const guestCustIds = b.guestCustomerId ? b.guestCustomerId.split(',').map(s => s.trim()) : [];
+    
+    if (guestCustIds.length > 0) {
+      guestCustIds.forEach(cid => {
+        const cust = customerMapById[cid];
+        if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam')) {
+          rows.push({
+            booking: b,
+            customer: cust
+          });
+        }
+      });
+    } else {
+      // Fallback cho dữ liệu cũ (tra cứu bằng CCCD/Passport)
+      if (!b.guestId) return;
+      const guestIds = b.guestId.split(',').map(s => s.trim());
 
-    guestIds.forEach(gid => {
-      const cust = customerMap[gid];
-      // Chỉ lọc những khách là công dân Việt Nam
-      if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam')) {
-        rows.push({
-          booking: b,
-          customer: cust
-        });
-      }
-    });
+      guestIds.forEach(gid => {
+        const cust = customerMapByCard[gid];
+        if (cust && (cust.quoctich === 'Việt Nam' || cust.quoctich === 'VNM - Viet Nam')) {
+          rows.push({
+            booking: b,
+            customer: cust
+          });
+        }
+      });
+    }
   });
 
   // 3. Thiết lập mã HTML giả lập Excel XML có cấu trúc chuẩn giống mẫu
@@ -440,7 +457,7 @@ export function exportLuutruToExcel(bookings, customers) {
         <tr>
           <td>${idx + 1}</td>
           <td style="text-align: left;">${(cust.hoten || '').toUpperCase()}</td>
-          <td>${dobStr}</td>
+          <td style="mso-number-format:'\\@';">${dobStr}</td>
           <td>${gioitinhVal}</td>
           <td>VNM - Viet Nam</td>
           <td>${cust.loaigiayto || '1 - Thẻ CCCD'}</td>
@@ -453,8 +470,8 @@ export function exportLuutruToExcel(bookings, customers) {
           <td style="text-align: left;">${tinhThanhMoiVal}</td>
           <td style="text-align: left;">${phuongXaMoiVal}</td>
           <td style="text-align: left;">${diaChiChiTietMoiVal}</td>
-          <td>${checkInDate}</td>
-          <td>${checkOutDate}</td>
+          <td style="mso-number-format:'\\@';">${checkInDate}</td>
+          <td style="mso-number-format:'\\@';">${checkOutDate}</td>
           <td style="font-weight: bold;">${b.roomNumber}</td>
           <td>${b.lydocutru || '1 - Du lịch'}</td>
           <td style="text-align: left;">${b.nhaplydo || ''}</td>
