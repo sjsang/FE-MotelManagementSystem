@@ -824,7 +824,7 @@ export default function ServiceInventory() {
       {/* ── MODAL NHẬP KHO (BẢNG DẠNG CHECKBOX XUẤT SỐ LƯỢNG) ── */}
       {showImportModal && (
         <div className="modal-overlay" onClick={() => !modalSubmitting && setShowImportModal(false)}>
-          <div className="modal" style={{ maxWidth: 850, width: "95%" }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal" style={{ maxWidth: 850, width: "95%", height: "90vh", maxHeight: "90vh", display: "flex", flexDirection: "column" }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">Phiếu Nhập Kho Dịch Vụ</div>
               <button className="modal-close" onClick={() => setShowImportModal(false)}>
@@ -832,8 +832,39 @@ export default function ServiceInventory() {
               </button>
             </div>
 
-            <form onSubmit={handleImportSubmit}>
-              <div className="modal-body" style={{ maxHeight: "75vh", overflowY: "auto" }}>
+            <form onSubmit={handleImportSubmit} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
+              {/* Dynamic Action Bar pinned at top */}
+              <div
+                style={{
+                  padding: "12px 20px",
+                  background: "var(--bg3)",
+                  borderBottom: "1px solid var(--border)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 12,
+                  flexShrink: 0,
+                  zIndex: 5,
+                }}
+              >
+                <div style={{ fontSize: 13, display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+                  <div>Đã chọn: <strong style={{ color: "#10b981", fontSize: 15 }}>{checkedImportCount}</strong> dịch vụ</div>
+                  <div>SL nhập: <strong style={{ color: "#10b981", fontSize: 15 }}>{formatNumber(totalImportQty)}</strong></div>
+                  <div>Tổng tiền: <strong style={{ color: "#10b981", fontSize: 16 }}>{formatCurrency(totalImportAmount)}</strong></div>
+                </div>
+
+                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <button type="button" className="btn btn-ghost" onClick={() => setShowImportModal(false)} disabled={modalSubmitting}>
+                    Hủy bỏ
+                  </button>
+                  <button type="submit" className="btn" style={{ background: "#10b981", color: "#fff", fontWeight: 700 }} disabled={modalSubmitting || checkedImportCount === 0}>
+                    {modalSubmitting ? "..." : `Xác nhận Nhập Kho (${checkedImportCount})`}
+                  </button>
+                </div>
+              </div>
+
+              <div className="modal-body" style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
                 {/* Ngày giờ nhập & Ghi chú */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
                   <div>
@@ -1045,36 +1076,6 @@ export default function ServiceInventory() {
                     </tbody>
                   </table>
                 </div>
-
-                {/* Tóm tắt nhập kho */}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    background: "rgba(16, 185, 129, 0.08)",
-                    border: "1px solid rgba(16, 185, 129, 0.2)",
-                    padding: "12px 16px",
-                    borderRadius: 8,
-                    fontSize: 14,
-                  }}
-                >
-                  <div>
-                    Đã chọn: <strong style={{ color: "#10b981" }}>{checkedImportCount}</strong> dịch vụ | Tổng số lượng nhập: <strong style={{ color: "#10b981" }}>{formatNumber(totalImportQty)}</strong>
-                  </div>
-                  <div>
-                    Tổng tiền nhập kho: <strong style={{ color: "#10b981", fontSize: 16 }}>{formatCurrency(totalImportAmount)}</strong>
-                  </div>
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button type="button" className="btn btn-ghost" onClick={() => setShowImportModal(false)} disabled={modalSubmitting}>
-                  Hủy bỏ
-                </button>
-                <button type="submit" className="btn" style={{ background: "#10b981", color: "#fff", fontWeight: 700 }} disabled={modalSubmitting || checkedImportCount === 0}>
-                  {modalSubmitting ? "..." : `Xác nhận Nhập Kho (${checkedImportCount})`}
-                </button>
               </div>
             </form>
           </div>
@@ -1084,7 +1085,7 @@ export default function ServiceInventory() {
       {/* ── MODAL XUẤT KHO (BẢNG DẠNG CHECKBOX XUẤT SỐ LƯỢNG) ── */}
       {showExportModal && (
         <div className="modal-overlay" onClick={() => !modalSubmitting && setShowExportModal(false)}>
-          <div className="modal" style={{ maxWidth: 850, width: "95%" }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal" style={{ maxWidth: 850, width: "95%", height: "90vh", maxHeight: "90vh", display: "flex", flexDirection: "column" }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">Phiếu Xuất Kho Dịch Vụ</div>
               <button className="modal-close" onClick={() => setShowExportModal(false)}>
@@ -1092,8 +1093,39 @@ export default function ServiceInventory() {
               </button>
             </div>
 
-            <form onSubmit={handleExportSubmit}>
-              <div className="modal-body" style={{ maxHeight: "75vh", overflowY: "auto" }}>
+            <form onSubmit={handleExportSubmit} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
+              {/* Dynamic Action Bar pinned at top */}
+              <div
+                style={{
+                  padding: "12px 20px",
+                  background: "var(--bg3)",
+                  borderBottom: "1px solid var(--border)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 12,
+                  flexShrink: 0,
+                  zIndex: 5,
+                }}
+              >
+                <div style={{ fontSize: 13, display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+                  <div>Đã chọn: <strong style={{ color: "#f59e0b", fontSize: 15 }}>{checkedExportCount}</strong> dịch vụ</div>
+                  <div>SL xuất: <strong style={{ color: "#f59e0b", fontSize: 15 }}>{formatNumber(totalExportQty)}</strong></div>
+                  <div>Tổng giá trị: <strong style={{ color: "#f59e0b", fontSize: 16 }}>{formatCurrency(totalExportAmount)}</strong></div>
+                </div>
+
+                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <button type="button" className="btn btn-ghost" onClick={() => setShowExportModal(false)} disabled={modalSubmitting}>
+                    Hủy bỏ
+                  </button>
+                  <button type="submit" className="btn" style={{ background: "#f59e0b", color: "#fff", fontWeight: 700 }} disabled={modalSubmitting || checkedExportCount === 0}>
+                    {modalSubmitting ? "..." : `Xác nhận Xuất Kho (${checkedExportCount})`}
+                  </button>
+                </div>
+              </div>
+
+              <div className="modal-body" style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
                 {/* Ngày giờ xuất & Ghi chú */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
                   <div>
@@ -1313,36 +1345,6 @@ export default function ServiceInventory() {
                     </tbody>
                   </table>
                 </div>
-
-                {/* Tóm tắt xuất kho */}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    background: "rgba(245, 158, 11, 0.08)",
-                    border: "1px solid rgba(245, 158, 11, 0.2)",
-                    padding: "12px 16px",
-                    borderRadius: 8,
-                    fontSize: 14,
-                  }}
-                >
-                  <div>
-                    Đã chọn: <strong style={{ color: "#f59e0b" }}>{checkedExportCount}</strong> dịch vụ | Tổng số lượng xuất: <strong style={{ color: "#f59e0b" }}>{formatNumber(totalExportQty)}</strong>
-                  </div>
-                  <div>
-                    Tổng giá trị xuất kho: <strong style={{ color: "#f59e0b", fontSize: 16 }}>{formatCurrency(totalExportAmount)}</strong>
-                  </div>
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button type="button" className="btn btn-ghost" onClick={() => setShowExportModal(false)} disabled={modalSubmitting}>
-                  Hủy bỏ
-                </button>
-                <button type="submit" className="btn" style={{ background: "#f59e0b", color: "#fff", fontWeight: 700 }} disabled={modalSubmitting || checkedExportCount === 0}>
-                  {modalSubmitting ? "..." : `Xác nhận Xuất Kho (${checkedExportCount})`}
-                </button>
               </div>
             </form>
           </div>
