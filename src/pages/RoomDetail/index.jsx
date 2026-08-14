@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { updateBooking, previewCheckout } from "../../utils/api";
 import InvoiceDetailModal from "../Invoice/InvoiceDetailModal";
-import { formatTime, calcElapsed } from "../../utils/RoomDetailHelpers";
+import { formatTime, calcElapsed, formatCurrency } from "../../utils/RoomDetailHelpers";
 
 import TabInfo from "./TabInfo";
 import TabServices from "./TabServices";
@@ -147,7 +147,7 @@ export default function RoomDetailModal({
 
   const payableAmount = previewTotal - discount + taxVnd;
   const deposit = booking?.deposit || 0;
-  const paidAmount = Math.max(0, payableAmount - deposit);
+  const paidAmount = Math.max(0, payableAmount - (depositOverride ?? deposit));
 
   // --- Service Stock & Export Slip Handlers ---
   const getStockLimit = (svcName) => {
@@ -387,9 +387,19 @@ export default function RoomDetailModal({
               Check-in: {formatTime(booking.checkIn)} • Đã ở: {elapsed.text}
             </div>
           </div>
-          <button className="modal-close" onClick={handleCloseAttempt}>
-            ✕
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 12, color: "#9fa3b8", fontWeight: 500, lineHeight: 1.2 }}>
+                Thực thu
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#f59e0b", marginTop: 2 }}>
+                {formatCurrency(paidAmount)}
+              </div>
+            </div>
+            <button className="modal-close" onClick={handleCloseAttempt}>
+              ✕
+            </button>
+          </div>
         </div>
 
         <div
