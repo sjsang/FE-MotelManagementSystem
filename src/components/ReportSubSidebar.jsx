@@ -45,20 +45,33 @@ function SidebarContent({ collapsed, onCollapse, onClose }) {
     // ========================================================
     const [bcaModalOpen, setBcaModalOpen] = useState(false);
     const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentQuarter = Math.floor(today.getMonth() / 3) + 1;
+    const currentMonth = today.getMonth() + 1; // 1-12
+    let currentYear = today.getFullYear();
+    let currentQuarter;
+
+    if (currentMonth === 12) {
+        currentQuarter = 1;
+        currentYear = currentYear + 1; // Tháng 12 thuộc Quý I năm sau
+    } else if (currentMonth <= 2) {
+        currentQuarter = 1;
+    } else if (currentMonth <= 5) {
+        currentQuarter = 2;
+    } else if (currentMonth <= 8) {
+        currentQuarter = 3;
+    } else {
+        currentQuarter = 4;
+    }
 
     const availableYears = [];
     for (let i = 0; i < 5; i++) {
         const y = currentYear - i;
-        if (y === currentYear && currentQuarter === 1) continue;
         availableYears.push(y);
     }
 
     const [selectedYear, setSelectedYear] = useState(availableYears[0] || currentYear - 1);
 
     const availableQuarters = selectedYear === currentYear
-        ? Array.from({ length: currentQuarter - 1 }, (_, i) => i + 1)
+        ? Array.from({ length: currentQuarter }, (_, i) => i + 1)
         : [1, 2, 3, 4];
 
     const [selectedQuarter, setSelectedQuarter] = useState(availableQuarters[availableQuarters.length - 1]);
@@ -74,14 +87,22 @@ function SidebarContent({ collapsed, onCollapse, onClose }) {
     }, [selectedYear]);
 
     const handleConfirmBCA = async () => {
-        let fromMonth, toMonth, endDay;
-        if (selectedQuarter === 1) { fromMonth = "01"; toMonth = "03"; endDay = "31"; }
-        else if (selectedQuarter === 2) { fromMonth = "04"; toMonth = "06"; endDay = "30"; }
-        else if (selectedQuarter === 3) { fromMonth = "07"; toMonth = "09"; endDay = "30"; }
-        else if (selectedQuarter === 4) { fromMonth = "10"; toMonth = "12"; endDay = "31"; }
-
-        const from = `${selectedYear}-${fromMonth}-01`;
-        const to = `${selectedYear}-${toMonth}-${endDay}`;
+        let from, to;
+        if (selectedQuarter === 1) {
+            // 01/12 năm trước → 28-29/02 năm báo cáo
+            from = `${selectedYear - 1}-12-01`;
+            to = `${selectedYear}-02-28`; // BE dùng endOf('day') nên 28 là đủ, năm nhuận BE tự xử
+        } else if (selectedQuarter === 2) {
+            from = `${selectedYear}-03-01`;
+            to = `${selectedYear}-05-31`;
+        } else if (selectedQuarter === 3) {
+            from = `${selectedYear}-06-01`;
+            to = `${selectedYear}-08-31`;
+        } else {
+            // Quý IV
+            from = `${selectedYear}-09-01`;
+            to = `${selectedYear}-11-30`;
+        }
 
         try {
             // Lấy token và API Base URL (Dùng relative URL nếu không có base)
